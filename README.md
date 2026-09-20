@@ -12,7 +12,7 @@ A pantry companion for students. Photograph what's in your fridge or cupboard an
 
 ## Requirements
 
-- iOS 26 or later
+- iOS 26.5 or later
 - An Apple Intelligence-capable device (iPhone 15 Pro or newer) for the on-device AI features
 
 ## Running this project
