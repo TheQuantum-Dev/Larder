@@ -31,6 +31,7 @@
 		DDFD439B3060698600DC37AE /* Larder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Larder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDFD43A83060698800DC37AE /* LarderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LarderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDFD43B23060698800DC37AE /* LarderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LarderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDFD43D4306071B700DC37AE /* Larder.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Larder.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +81,7 @@
 		DDFD43923060698600DC37AE = {
 			isa = PBXGroup;
 			children = (
+				DDFD43D4306071B700DC37AE /* Larder.storekit */,
 				DDFD439D3060698600DC37AE /* Larder */,
 				DDFD43AB3060698800DC37AE /* LarderTests */,
 				DDFD43B53060698800DC37AE /* LarderUITests */,

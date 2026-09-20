@@ -1,0 +1,78 @@
+{
+  "identifier" : "A3F2C1D4",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_locale" : "en_US",
+    "_storefront" : "USA"
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21482345",
+      "localizations" : [
+
+      ],
+      "name" : "Larder Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "10.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6746100001",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Craving chat, budget insights, and Cook Mode extras. Billed every 6 months.",
+              "displayName" : "Larder Plus Semester",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "larder_semester",
+          "recurringSubscriptionPeriod" : "P6M",
+          "referenceName" : "Larder Plus Semester",
+          "subscriptionGroupID" : "21482345",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "6746100002",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Craving chat, budget insights, and Cook Mode extras. Billed monthly.",
+              "displayName" : "Larder Plus Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "larder_monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Larder Plus Monthly",
+          "subscriptionGroupID" : "21482345",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
