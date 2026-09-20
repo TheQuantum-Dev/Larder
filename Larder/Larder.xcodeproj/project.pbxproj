@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DDFD43D330606DD500DC37AE /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = DDFD43D230606DD500DC37AE /* RevenueCat */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		DDFD43A93060698800DC37AE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDFD43D330606DD500DC37AE /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = Larder;
 			packageProductDependencies = (
+				DDFD43D230606DD500DC37AE /* RevenueCat */,
 			);
 			productName = Larder;
 			productReference = DDFD439B3060698600DC37AE /* Larder.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = DDFD43923060698600DC37AE;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DDFD43D130606DD500DC37AE /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DDFD439C3060698600DC37AE /* Products */;
 			projectDirPath = "";
@@ -578,6 +587,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DDFD43D130606DD500DC37AE /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.90.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DDFD43D230606DD500DC37AE /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DDFD43D130606DD500DC37AE /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DDFD43933060698600DC37AE /* Project object */;
 }
