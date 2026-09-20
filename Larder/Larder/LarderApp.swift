@@ -10,6 +10,8 @@ import RevenueCat
 
 @main
 struct LarderApp: App {
+    @State private var purchaseStore = PurchaseStore()
+
     init() {
         #if DEBUG
         Purchases.logLevel = .debug
@@ -20,6 +22,9 @@ struct LarderApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(purchaseStore)
+                .fontDesign(.rounded)
+                .task { await purchaseStore.start() }
         }
     }
 }
