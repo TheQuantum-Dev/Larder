@@ -1,0 +1,1722 @@
+[
+  {
+    "id": "egg-fried-rice",
+    "title": "Egg fried rice",
+    "emoji": "🍳",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice (day-old is best)",
+        "qty": 1
+      },
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2
+      },
+      {
+        "id": "frozen-veg",
+        "amount": "½ cup frozen peas and carrots",
+        "qty": 0.5,
+        "alt": [
+          "peas",
+          "carrot",
+          "corn"
+        ]
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tbsp soy sauce",
+        "qty": 1
+      },
+      {
+        "id": "onion",
+        "amount": "¼ onion, diced",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "garlic",
+        "amount": "1 garlic clove, minced",
+        "qty": 1,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "No cooked rice? Simmer ½ cup dry rice with 1 cup water, lid on, on low heat for 15 minutes, then let it sit 5 minutes and fluff it. Skip this if you already have cooked rice.",
+        "timer": 900
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat. Add the veg (and the onion or garlic, if using) and stir for 3 minutes.",
+        "timer": 180
+      },
+      {
+        "text": "Push everything to one side and scramble the eggs on the other, stirring until they are fully set with no runny bits.",
+        "timer": 90
+      },
+      {
+        "text": "Add the rice and soy sauce and stir-fry for 3 minutes, until everything is steaming hot.",
+        "timer": 180
+      }
+    ],
+    "tip": "Cold, day-old rice fries up fluffier than fresh."
+  },
+  {
+    "id": "loaded-ramen",
+    "title": "Loaded instant ramen",
+    "emoji": "🍜",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "ramen",
+        "amount": "1 pack instant ramen",
+        "qty": 1
+      },
+      {
+        "id": "egg",
+        "amount": "1 egg",
+        "qty": 1
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "alt": [
+          "kale",
+          "frozen-veg"
+        ]
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tsp soy sauce",
+        "qty": 0.3,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Boil about 500 ml (2 cups) of water in a pot. Take care with the hot water and steam.",
+        "timer": 240
+      },
+      {
+        "text": "Add the noodles and cook for the time on the pack, usually about 3 minutes.",
+        "timer": 180
+      },
+      {
+        "text": "Crack in the egg, stir gently, and cook 3 minutes until the white is completely set.",
+        "timer": 180
+      },
+      {
+        "text": "Stir in the spinach and about half of the seasoning packet. Give it 30 seconds to wilt, then eat while hot.",
+        "timer": 30
+      }
+    ],
+    "tip": "Half the seasoning packet is plenty. It's very salty."
+  },
+  {
+    "id": "pb-banana-toast",
+    "title": "Peanut butter banana toast",
+    "emoji": "🍌",
+    "minutes": 5,
+    "servings": 1,
+    "equipment": [
+      "toaster"
+    ],
+    "ingredients": [
+      {
+        "id": "bread",
+        "amount": "2 slices of bread",
+        "qty": 2
+      },
+      {
+        "id": "peanut-butter",
+        "amount": "2 tbsp peanut butter",
+        "qty": 2
+      },
+      {
+        "id": "banana",
+        "amount": "1 banana",
+        "qty": 1
+      },
+      {
+        "id": "honey",
+        "amount": "a drizzle of honey",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Toast the bread until golden.",
+        "timer": 120
+      },
+      {
+        "text": "Spread the peanut butter on while the toast is still warm so it melts in."
+      },
+      {
+        "text": "Slice the banana on top and add a drizzle of honey if you like."
+      }
+    ],
+    "tip": "Warm toast melts the peanut butter, so spread it right away."
+  },
+  {
+    "id": "cheesy-egg-toast",
+    "title": "Cheesy eggs on toast",
+    "emoji": "🧀",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "pan",
+      "toaster"
+    ],
+    "ingredients": [
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of shredded cheese",
+        "qty": 1
+      },
+      {
+        "id": "bread",
+        "amount": "2 slices of bread",
+        "qty": 2
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter",
+        "qty": 1,
+        "alt": [
+          "cooking-oil"
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "text": "Put the bread in the toaster.",
+        "timer": 120
+      },
+      {
+        "text": "Melt the butter in a pan over medium-low heat. Pour in the beaten eggs and stir gently for about 3 minutes, until set and no longer wet.",
+        "timer": 180
+      },
+      {
+        "text": "Take the pan off the heat, stir in the cheese for 30 seconds until melted, and pile it on the toast.",
+        "timer": 30
+      }
+    ],
+    "tip": "Low heat keeps scrambled eggs soft instead of rubbery."
+  },
+  {
+    "id": "grilled-cheese",
+    "title": "Grilled cheese",
+    "emoji": "🥪",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "bread",
+        "amount": "2 slices of bread",
+        "qty": 2
+      },
+      {
+        "id": "cheese",
+        "amount": "2 slices of cheese",
+        "qty": 1.5
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter, softened",
+        "qty": 1
+      }
+    ],
+    "steps": [
+      {
+        "text": "Butter one side of each slice of bread. Put the cheese between the slices with the buttered sides facing out."
+      },
+      {
+        "text": "Cook in a pan over medium heat, first side down, for about 3 minutes until golden.",
+        "timer": 180
+      },
+      {
+        "text": "Flip and cook 2 minutes more, until the cheese is melted. Let it rest a minute before cutting.",
+        "timer": 120
+      }
+    ],
+    "tip": "Medium heat, not high, so the cheese melts before the bread burns."
+  },
+  {
+    "id": "simple-tomato-pasta",
+    "title": "Simple tomato pasta",
+    "emoji": "🍝",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "pasta",
+        "amount": "100 g pasta (a big handful)",
+        "qty": 1
+      },
+      {
+        "id": "tomato-sauce",
+        "amount": "½ cup tomato sauce",
+        "qty": 1
+      },
+      {
+        "id": "garlic",
+        "amount": "1 garlic clove, minced",
+        "qty": 1,
+        "optional": true
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "optional": true
+      },
+      {
+        "id": "cheese",
+        "amount": "a little grated cheese",
+        "qty": 0.5,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Bring a big pot of salted water to a boil.",
+        "timer": 420
+      },
+      {
+        "text": "Cook the pasta for the time on the pack, about 10 minutes. Scoop out a splash of the pasta water, then drain.",
+        "timer": 600
+      },
+      {
+        "text": "Put the pot back on low heat with the sauce (and garlic and oil, if using). Add the pasta and stir for 2 minutes until hot, loosening with a little pasta water.",
+        "timer": 120
+      },
+      {
+        "text": "Top with cheese if you have it."
+      }
+    ],
+    "tip": "A splash of the starchy pasta water makes the sauce cling."
+  },
+  {
+    "id": "garlic-oil-pasta",
+    "title": "Garlic and oil pasta",
+    "emoji": "🧄",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pot",
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "pasta",
+        "amount": "100 g pasta",
+        "qty": 1
+      },
+      {
+        "id": "garlic",
+        "amount": "3 garlic cloves, sliced",
+        "qty": 3
+      },
+      {
+        "id": "olive-oil",
+        "amount": "3 tbsp olive oil",
+        "qty": 3,
+        "alt": [
+          "butter"
+        ]
+      },
+      {
+        "id": "cheese",
+        "amount": "a little grated cheese",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Boil a pot of salted water and cook the pasta for about 10 minutes.",
+        "timer": 600
+      },
+      {
+        "text": "Meanwhile, warm the oil in a pan over low heat and add the garlic. Cook 2 minutes, just until pale gold. Don't let it brown or it turns bitter.",
+        "timer": 120
+      },
+      {
+        "text": "Scoop out a splash of pasta water, drain the pasta, and toss it in the pan with the garlic oil for 1 minute.",
+        "timer": 60
+      }
+    ],
+    "tip": "Low and slow with the garlic. Burnt garlic can't be fixed."
+  },
+  {
+    "id": "bean-cheese-quesadilla",
+    "title": "Bean and cheese quesadilla",
+    "emoji": "🌮",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "tortilla",
+        "amount": "1 large tortilla",
+        "qty": 1
+      },
+      {
+        "id": "beans",
+        "amount": "½ can beans, drained",
+        "qty": 1
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of cheese",
+        "qty": 1
+      },
+      {
+        "id": "salsa",
+        "amount": "salsa for dipping",
+        "qty": 0.5,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Mash the beans with a fork. Spread them over half of the tortilla, add the cheese, and fold it over."
+      },
+      {
+        "text": "Cook in a dry pan over medium heat for 2 to 3 minutes, until golden underneath.",
+        "timer": 150
+      },
+      {
+        "text": "Flip and cook 2 to 3 minutes more, until the cheese is melted. Cut into wedges.",
+        "timer": 150
+      }
+    ],
+    "tip": "Press down gently with a spatula so it crisps evenly."
+  },
+  {
+    "id": "black-bean-rice-bowl",
+    "title": "Black bean rice bowl",
+    "emoji": "🥣",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice",
+        "qty": 1
+      },
+      {
+        "id": "beans",
+        "amount": "½ can black beans, drained",
+        "qty": 1
+      },
+      {
+        "id": "salsa",
+        "amount": "¼ cup salsa",
+        "qty": 1
+      },
+      {
+        "id": "avocado",
+        "amount": "½ an avocado",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cheese",
+        "amount": "a little cheese",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "corn",
+        "amount": "a handful of corn",
+        "qty": 1,
+        "optional": true,
+        "alt": [
+          "frozen-veg"
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "text": "No cooked rice? Simmer ½ cup dry rice with 1 cup water, lid on, on low heat for 15 minutes, then let it sit 5 minutes.",
+        "timer": 900
+      },
+      {
+        "text": "Warm the beans in a small pot with a splash of water for 3 minutes, stirring now and then.",
+        "timer": 180
+      },
+      {
+        "text": "Pile the rice into a bowl, add the beans and salsa, and top with anything else you have."
+      }
+    ],
+    "tip": "Rice and beans together make a complete, very cheap meal."
+  },
+  {
+    "id": "veggie-stir-fry",
+    "title": "Veggie stir-fry",
+    "emoji": "🥦",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice",
+        "qty": 1
+      },
+      {
+        "id": "bell-pepper",
+        "amount": "½ bell pepper, sliced",
+        "qty": 0.5,
+        "alt": [
+          "carrot",
+          "cabbage",
+          "mushroom"
+        ]
+      },
+      {
+        "id": "broccoli",
+        "amount": "1 cup broccoli florets",
+        "qty": 1,
+        "alt": [
+          "frozen-veg",
+          "green-bean",
+          "cabbage"
+        ]
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "2 tbsp soy sauce",
+        "qty": 2
+      },
+      {
+        "id": "garlic",
+        "amount": "1 garlic clove, minced",
+        "qty": 1
+      },
+      {
+        "id": "ginger",
+        "amount": "a little grated ginger",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "No cooked rice? Simmer ½ cup dry rice with 1 cup water, lid on, on low heat for 15 minutes.",
+        "timer": 900
+      },
+      {
+        "text": "Heat the oil in a pan over high heat and stir-fry the veg for about 5 minutes, until bright and just tender.",
+        "timer": 300
+      },
+      {
+        "text": "Add the garlic (and ginger) and stir for 30 seconds.",
+        "timer": 30
+      },
+      {
+        "text": "Pour in the soy sauce with a splash of water and toss for 1 minute. Serve over the rice.",
+        "timer": 60
+      }
+    ],
+    "tip": "Cut everything to a similar size so it all cooks at the same speed."
+  },
+  {
+    "id": "microwave-oatmeal",
+    "title": "Microwave oatmeal with fruit",
+    "emoji": "🥣",
+    "minutes": 5,
+    "servings": 1,
+    "equipment": [
+      "microwave"
+    ],
+    "ingredients": [
+      {
+        "id": "oats",
+        "amount": "½ cup rolled oats",
+        "qty": 1
+      },
+      {
+        "id": "water",
+        "amount": "1 cup water",
+        "qty": 0
+      },
+      {
+        "id": "banana",
+        "amount": "1 banana, sliced",
+        "qty": 1,
+        "alt": [
+          "apple",
+          "blueberry",
+          "strawberry"
+        ]
+      },
+      {
+        "id": "milk",
+        "amount": "a splash of milk",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "honey",
+        "amount": "a drizzle of honey",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Stir the oats and water together in a big microwave-safe bowl. It bubbles up, so use a bigger bowl than you think you need."
+      },
+      {
+        "text": "Microwave for 90 seconds, then stir.",
+        "timer": 90
+      },
+      {
+        "text": "Microwave 45 seconds more. Let it stand for a minute (the bowl will be hot), then top with the fruit.",
+        "timer": 45
+      }
+    ],
+    "tip": "Use oven mitts. The bowl gets very hot."
+  },
+  {
+    "id": "yogurt-fruit-parfait",
+    "title": "Yogurt and fruit parfait",
+    "emoji": "🍓",
+    "minutes": 5,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "yogurt",
+        "amount": "¾ cup yogurt",
+        "qty": 1
+      },
+      {
+        "id": "banana",
+        "amount": "1 banana",
+        "qty": 1,
+        "alt": [
+          "apple",
+          "strawberry",
+          "blueberry",
+          "grape",
+          "orange"
+        ]
+      },
+      {
+        "id": "cereal",
+        "amount": "¼ cup cereal or oats",
+        "qty": 0.5,
+        "optional": true,
+        "alt": [
+          "oats"
+        ]
+      },
+      {
+        "id": "honey",
+        "amount": "a drizzle of honey",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Slice or chop the fruit."
+      },
+      {
+        "text": "Spoon half the yogurt into a glass or bowl, add half the fruit and cereal, then repeat."
+      },
+      {
+        "text": "Finish with a drizzle of honey if you like."
+      }
+    ],
+    "tip": "Add the cereal last so it stays crunchy."
+  },
+  {
+    "id": "veggie-omelette",
+    "title": "Veggie omelette",
+    "emoji": "🍳",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "egg",
+        "amount": "3 eggs",
+        "qty": 3
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "alt": [
+          "bell-pepper",
+          "onion",
+          "mushroom",
+          "tomato",
+          "kale"
+        ]
+      },
+      {
+        "id": "cheese",
+        "amount": "a little cheese",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Whisk the eggs with a pinch of salt."
+      },
+      {
+        "text": "Heat the oil in a pan over medium heat and cook the veg for 2 minutes until soft.",
+        "timer": 120
+      },
+      {
+        "text": "Pour in the eggs. Cook about 3 minutes without stirring, lifting the edges so the runny egg flows underneath.",
+        "timer": 180
+      },
+      {
+        "text": "Sprinkle on the cheese, fold the omelette in half, and cook 1 more minute until there is no runny egg left.",
+        "timer": 60
+      }
+    ],
+    "tip": "Don't crank the heat. Medium keeps the outside from browning too fast."
+  },
+  {
+    "id": "chicken-rice-skillet",
+    "title": "One-pan chicken and rice",
+    "emoji": "🍗",
+    "minutes": 35,
+    "servings": 2,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "200 g chicken breast or thigh, cut in small pieces",
+        "qty": 2
+      },
+      {
+        "id": "rice",
+        "amount": "½ cup dry rice",
+        "qty": 1
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, diced",
+        "qty": 0.5
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2
+      },
+      {
+        "id": "frozen-veg",
+        "amount": "½ cup frozen veg",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw chicken."
+      },
+      {
+        "text": "Heat the oil in a large pan with a lid over medium-high heat. Brown the chicken for 5 minutes, stirring now and then.",
+        "timer": 300
+      },
+      {
+        "text": "Add the onion and garlic and cook 2 minutes.",
+        "timer": 120
+      },
+      {
+        "text": "Stir in the rice and 1½ cups water. Bring to a boil, turn the heat to low, cover, and simmer 15 minutes without lifting the lid.",
+        "timer": 900
+      },
+      {
+        "text": "Check that the chicken has reached 74°C (165°F) with no pink inside. Let it stand 5 minutes, then fluff and serve.",
+        "timer": 300
+      }
+    ],
+    "tip": "It makes two servings. The second one reheats well in the microwave."
+  },
+  {
+    "id": "chicken-salad-wrap",
+    "title": "Chicken salad wrap",
+    "emoji": "🌯",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "100 g cooked chicken (leftover or rotisserie)",
+        "qty": 1
+      },
+      {
+        "id": "tortilla",
+        "amount": "1 large tortilla",
+        "qty": 1
+      },
+      {
+        "id": "lettuce",
+        "amount": "a handful of lettuce",
+        "qty": 1
+      },
+      {
+        "id": "mayo",
+        "amount": "1 tbsp mayo",
+        "qty": 1,
+        "alt": [
+          "yogurt",
+          "hummus"
+        ]
+      },
+      {
+        "id": "tomato",
+        "amount": "½ tomato, sliced",
+        "qty": 0.5,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Only use chicken that was cooked all the way through (74°C or 165°F) and kept in the fridge. Eat it within 3 to 4 days of cooking."
+      },
+      {
+        "text": "Shred the chicken and mix it with the mayo."
+      },
+      {
+        "text": "Layer the lettuce, chicken, and tomato on the tortilla, fold in the sides, and roll it up tight."
+      }
+    ],
+    "tip": "Tuck the ends in first so nothing falls out."
+  },
+  {
+    "id": "tuna-melt",
+    "title": "Tuna melt",
+    "emoji": "🥪",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "toaster",
+      "microwave"
+    ],
+    "ingredients": [
+      {
+        "id": "bread",
+        "amount": "2 slices of bread",
+        "qty": 2
+      },
+      {
+        "id": "canned-tuna",
+        "amount": "1 can of tuna, drained",
+        "qty": 1
+      },
+      {
+        "id": "mayo",
+        "amount": "1 tbsp mayo",
+        "qty": 1
+      },
+      {
+        "id": "cheese",
+        "amount": "1 slice of cheese",
+        "qty": 1
+      },
+      {
+        "id": "pickles",
+        "amount": "a few pickle slices",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Drain the tuna and mix it with the mayo."
+      },
+      {
+        "text": "Toast the bread.",
+        "timer": 120
+      },
+      {
+        "text": "Pile the tuna on the toast, lay the cheese on top, and microwave on a plate for 30 seconds until the cheese melts. The plate will be hot.",
+        "timer": 30
+      }
+    ],
+    "tip": "Squeeze the tuna dry so the toast doesn't go soggy."
+  },
+  {
+    "id": "tuna-pasta",
+    "title": "Tuna pasta",
+    "emoji": "🐟",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "pasta",
+        "amount": "100 g pasta",
+        "qty": 1
+      },
+      {
+        "id": "canned-tuna",
+        "amount": "1 can of tuna, drained",
+        "qty": 1
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "alt": [
+          "mayo"
+        ]
+      },
+      {
+        "id": "peas",
+        "amount": "½ cup frozen peas",
+        "qty": 1,
+        "optional": true,
+        "alt": [
+          "frozen-veg"
+        ]
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cook the pasta in a pot of salted boiling water for about 10 minutes, adding the peas for the last 2 minutes.",
+        "timer": 600
+      },
+      {
+        "text": "Drain the pasta and peas, then toss with the tuna, olive oil, and lemon while still warm."
+      },
+      {
+        "text": "Season with salt and pepper and eat it warm or cold."
+      }
+    ],
+    "tip": "It's just as good cold, so pack the leftovers for lunch."
+  },
+  {
+    "id": "lentil-soup",
+    "title": "Lentil soup",
+    "emoji": "🍲",
+    "minutes": 45,
+    "servings": 2,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "lentils",
+        "amount": "½ cup dry lentils, rinsed",
+        "qty": 2
+      },
+      {
+        "id": "onion",
+        "amount": "1 onion, diced",
+        "qty": 1
+      },
+      {
+        "id": "carrot",
+        "amount": "1 carrot, diced",
+        "qty": 1
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2
+      },
+      {
+        "id": "tomato-sauce",
+        "amount": "¼ cup tomato sauce",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cook the onion and carrot in the oil in a pot over medium heat for 5 minutes, until soft.",
+        "timer": 300
+      },
+      {
+        "text": "Add the garlic and stir for 30 seconds.",
+        "timer": 30
+      },
+      {
+        "text": "Add the lentils, the tomato sauce if using, and 3 cups of water. Bring to a boil, then turn down and simmer 25 to 30 minutes, until the lentils are soft.",
+        "timer": 1500
+      },
+      {
+        "text": "Season with salt and pepper. Add a splash of water if it's too thick."
+      }
+    ],
+    "tip": "Tastes even better the next day and keeps in the fridge for 4 days."
+  },
+  {
+    "id": "bean-chili",
+    "title": "Bean chili",
+    "emoji": "🌶️",
+    "minutes": 30,
+    "servings": 2,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "beans",
+        "amount": "1 can of beans, drained",
+        "qty": 2
+      },
+      {
+        "id": "tomato-sauce",
+        "amount": "1 cup tomato sauce",
+        "qty": 2
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, diced",
+        "qty": 0.5
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2
+      },
+      {
+        "id": "bell-pepper",
+        "amount": "½ bell pepper, diced",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "corn",
+        "amount": "a handful of corn",
+        "qty": 1,
+        "optional": true,
+        "alt": [
+          "frozen-veg"
+        ]
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cook the onion (and pepper, if using) in the oil in a pot over medium heat for 4 minutes.",
+        "timer": 240
+      },
+      {
+        "text": "Add the garlic and stir for 30 seconds.",
+        "timer": 30
+      },
+      {
+        "text": "Add the beans, sauce, and ½ cup of water, plus chili powder or any spices you have. Simmer 15 minutes, stirring now and then.",
+        "timer": 900
+      }
+    ],
+    "tip": "Top it with cheese or a spoon of yogurt if you have some."
+  },
+  {
+    "id": "potato-egg-hash",
+    "title": "Potato and egg hash",
+    "emoji": "🥔",
+    "minutes": 25,
+    "servings": 1,
+    "equipment": [
+      "pan",
+      "microwave"
+    ],
+    "ingredients": [
+      {
+        "id": "potato",
+        "amount": "1 potato, diced small",
+        "qty": 1
+      },
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, diced",
+        "qty": 0.5
+      },
+      {
+        "id": "bell-pepper",
+        "amount": "¼ bell pepper, diced",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Dice the potato into small cubes (about 1.5 cm). Microwave in a covered bowl with 2 tbsp water for 4 minutes to soften it.",
+        "timer": 240
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat and fry the potato with the onion for 8 minutes, until golden.",
+        "timer": 480
+      },
+      {
+        "text": "Make two gaps, crack in the eggs, cover the pan, and cook 4 minutes until the whites are completely set.",
+        "timer": 240
+      }
+    ],
+    "tip": "Microwaving first means the potato browns fast without burning."
+  },
+  {
+    "id": "loaded-microwave-potato",
+    "title": "Loaded microwave potato",
+    "emoji": "🥔",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "microwave"
+    ],
+    "ingredients": [
+      {
+        "id": "potato",
+        "amount": "1 large potato",
+        "qty": 1
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter",
+        "qty": 1,
+        "alt": [
+          "sour-cream",
+          "yogurt"
+        ]
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of cheese",
+        "qty": 1
+      },
+      {
+        "id": "broccoli",
+        "amount": "a little steamed broccoli",
+        "qty": 0.5,
+        "optional": true,
+        "alt": [
+          "frozen-veg"
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "text": "Scrub the potato and prick it all over with a fork (6 to 8 times)."
+      },
+      {
+        "text": "Microwave for 5 minutes, then flip it over.",
+        "timer": 300
+      },
+      {
+        "text": "Microwave 3 to 4 minutes more, until it feels soft when squeezed with an oven mitt. It will be very hot and steamy.",
+        "timer": 210
+      },
+      {
+        "text": "Split it open, add the butter and cheese, and microwave 30 seconds more so the cheese melts.",
+        "timer": 30
+      }
+    ],
+    "tip": "Pricking the skin lets steam escape. Skip that and it can burst."
+  },
+  {
+    "id": "avocado-egg-toast",
+    "title": "Avocado egg toast",
+    "emoji": "🥑",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "pan",
+      "toaster"
+    ],
+    "ingredients": [
+      {
+        "id": "bread",
+        "amount": "2 slices of bread",
+        "qty": 2
+      },
+      {
+        "id": "avocado",
+        "amount": "1 avocado",
+        "qty": 1
+      },
+      {
+        "id": "egg",
+        "amount": "1 egg",
+        "qty": 1
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Fry the egg in a little oil over medium heat for about 3 to 4 minutes, until the white is completely set.",
+        "timer": 210
+      },
+      {
+        "text": "Toast the bread.",
+        "timer": 120
+      },
+      {
+        "text": "Mash the avocado with a pinch of salt (and lemon), spread it on the toast, and top with the egg."
+      }
+    ],
+    "tip": "A ripe avocado gives slightly when you squeeze it."
+  },
+  {
+    "id": "hummus-veggie-wrap",
+    "title": "Hummus veggie wrap",
+    "emoji": "🌯",
+    "minutes": 5,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "tortilla",
+        "amount": "1 large tortilla",
+        "qty": 1
+      },
+      {
+        "id": "hummus",
+        "amount": "¼ cup hummus",
+        "qty": 1
+      },
+      {
+        "id": "cucumber",
+        "amount": "½ cucumber, sliced",
+        "qty": 0.5,
+        "alt": [
+          "carrot",
+          "lettuce",
+          "bell-pepper",
+          "spinach"
+        ]
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Spread the hummus over the tortilla, leaving a small border."
+      },
+      {
+        "text": "Layer the veg on top, fold in the sides, and roll it up tight."
+      },
+      {
+        "text": "Cut in half and eat."
+      }
+    ],
+    "tip": "A thin layer of hummus on the edge helps it stick shut."
+  },
+  {
+    "id": "banana-oat-pancakes",
+    "title": "Banana pancakes",
+    "emoji": "🥞",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "banana",
+        "amount": "1 ripe banana",
+        "qty": 1
+      },
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2
+      },
+      {
+        "id": "oats",
+        "amount": "¼ cup oats",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Mash the banana until smooth. Whisk in the eggs (and the oats, if using)."
+      },
+      {
+        "text": "Heat a little oil in a pan over medium-low heat and spoon in small pancakes. Cook about 2 minutes until the edges are set.",
+        "timer": 120
+      },
+      {
+        "text": "Flip carefully and cook 2 minutes more, until fully cooked through.",
+        "timer": 120
+      }
+    ],
+    "tip": "Keep them small. They're fragile and flip more easily."
+  },
+  {
+    "id": "stovetop-mac-cheese",
+    "title": "Stovetop mac and cheese",
+    "emoji": "🧀",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "pasta",
+        "amount": "100 g macaroni or pasta",
+        "qty": 1
+      },
+      {
+        "id": "cheese",
+        "amount": "60 g cheese, grated",
+        "qty": 2
+      },
+      {
+        "id": "milk",
+        "amount": "½ cup milk",
+        "qty": 0.5
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter",
+        "qty": 1
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cook the pasta in salted boiling water for 8 to 10 minutes, then drain.",
+        "timer": 540
+      },
+      {
+        "text": "Put the pasta back in the pot on low heat. Add the butter, milk, and cheese and stir for 2 minutes until creamy.",
+        "timer": 120
+      },
+      {
+        "text": "Season with pepper and eat right away."
+      }
+    ],
+    "tip": "Grate the cheese yourself. It melts smoother than pre-shredded."
+  },
+  {
+    "id": "peanut-noodles",
+    "title": "Peanut noodles",
+    "emoji": "🥜",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "ramen",
+        "amount": "1 pack of noodles (skip the seasoning)",
+        "qty": 1,
+        "alt": [
+          "pasta"
+        ]
+      },
+      {
+        "id": "peanut-butter",
+        "amount": "2 tbsp peanut butter",
+        "qty": 2
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tbsp soy sauce",
+        "qty": 1
+      },
+      {
+        "id": "honey",
+        "amount": "1 tsp honey",
+        "qty": 1,
+        "optional": true
+      },
+      {
+        "id": "cucumber",
+        "amount": "cucumber sticks",
+        "qty": 0.5,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cook the noodles for the time on the pack, then drain.",
+        "timer": 180
+      },
+      {
+        "text": "Stir the peanut butter, soy sauce, and 2 tbsp of hot water together until smooth. Add the honey if using."
+      },
+      {
+        "text": "Toss the noodles in the sauce and top with cucumber."
+      }
+    ],
+    "tip": "If the sauce is too thick, add hot water a spoonful at a time."
+  },
+  {
+    "id": "eggs-in-tomato-sauce",
+    "title": "Eggs in tomato sauce",
+    "emoji": "🍅",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "tomato-sauce",
+        "amount": "1 cup tomato sauce",
+        "qty": 2
+      },
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, diced",
+        "qty": 0.5
+      },
+      {
+        "id": "garlic",
+        "amount": "1 garlic clove, minced",
+        "qty": 1
+      },
+      {
+        "id": "bread",
+        "amount": "bread for dipping",
+        "qty": 2,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cook the onion in the oil in a pan over medium heat for 4 minutes.",
+        "timer": 240
+      },
+      {
+        "text": "Add the garlic for 30 seconds, then pour in the sauce and simmer 5 minutes.",
+        "timer": 300
+      },
+      {
+        "text": "Make two gaps, crack in the eggs, cover, and cook 5 to 6 minutes until the whites are completely set.",
+        "timer": 330
+      }
+    ],
+    "tip": "Dip bread into it. That's the best part."
+  },
+  {
+    "id": "sausage-pepper-pasta",
+    "title": "Sausage and pepper pasta",
+    "emoji": "🍝",
+    "minutes": 30,
+    "servings": 2,
+    "equipment": [
+      "pot",
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "pasta",
+        "amount": "200 g pasta",
+        "qty": 2
+      },
+      {
+        "id": "sausage",
+        "amount": "2 sausages",
+        "qty": 2
+      },
+      {
+        "id": "bell-pepper",
+        "amount": "1 bell pepper, sliced",
+        "qty": 1
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, sliced",
+        "qty": 0.5
+      },
+      {
+        "id": "tomato-sauce",
+        "amount": "½ cup tomato sauce",
+        "qty": 1,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Boil a pot of salted water and cook the pasta for about 10 minutes.",
+        "timer": 600
+      },
+      {
+        "text": "Meanwhile, slice the sausages and cook in a pan over medium heat for 8 minutes, until browned and cooked through to 71°C (160°F) with no pink inside.",
+        "timer": 480
+      },
+      {
+        "text": "Add the pepper and onion and cook 5 minutes more.",
+        "timer": 300
+      },
+      {
+        "text": "Toss with the drained pasta (and the sauce, if using). Wash your hands after handling raw sausage."
+      }
+    ],
+    "tip": "The sausage fat is your cooking oil here, so you don't need to add any."
+  },
+  {
+    "id": "tofu-scramble",
+    "title": "Tofu scramble",
+    "emoji": "🌱",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "tofu",
+        "amount": "150 g firm tofu",
+        "qty": 1.5
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "alt": [
+          "kale",
+          "bell-pepper",
+          "onion"
+        ]
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tbsp soy sauce",
+        "qty": 1
+      },
+      {
+        "id": "onion",
+        "amount": "¼ onion, diced",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Drain the tofu, pat it dry, and crumble it with your hands."
+      },
+      {
+        "text": "Heat the oil in a pan over medium heat and cook the onion for 2 minutes, if using.",
+        "timer": 120
+      },
+      {
+        "text": "Add the tofu and cook for 6 minutes, stirring, until it's lightly golden.",
+        "timer": 360
+      },
+      {
+        "text": "Add the spinach and soy sauce and stir for 1 minute until the spinach wilts.",
+        "timer": 60
+      }
+    ],
+    "tip": "A pinch of turmeric turns it golden, just like scrambled egg."
+  },
+  {
+    "id": "chickpea-salad-sandwich",
+    "title": "Chickpea salad sandwich",
+    "emoji": "🥪",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "beans",
+        "amount": "½ can of chickpeas, drained",
+        "qty": 1
+      },
+      {
+        "id": "mayo",
+        "amount": "1 tbsp mayo",
+        "qty": 1,
+        "alt": [
+          "yogurt",
+          "hummus"
+        ]
+      },
+      {
+        "id": "bread",
+        "amount": "2 slices of bread",
+        "qty": 2
+      },
+      {
+        "id": "celery",
+        "amount": "1 stalk of celery, chopped",
+        "qty": 1,
+        "optional": true
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Mash the chickpeas roughly with a fork, leaving some chunks."
+      },
+      {
+        "text": "Stir in the mayo, and the celery and lemon if you have them. Season with salt and pepper."
+      },
+      {
+        "text": "Spread it on one slice of bread, top with the other, and cut in half."
+      }
+    ],
+    "tip": "It keeps in the fridge for 3 days, so make extra for tomorrow."
+  }
+]
