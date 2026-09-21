@@ -1,0 +1,74 @@
+//
+//  RecipeMatcher.swift
+//  Larder
+//
+//  Created by Joshua Samuel on 9/21/26.
+//
+
+import Foundation
+
+/// How one recipe fits a pantry.
+nonisolated struct RecipeMatch: Identifiable, Sendable {
+    let recipe: Recipe
+    /// Required ingredients the pantry doesn't cover.
+    let missing: [RecipeIngredient]
+    /// How many required ingredients the recipe has in total.
+    let required: Int
+
+    var id: String { recipe.id }
+    var isReady: Bool { missing.isEmpty }
+    var haveCount: Int { required - missing.count }
+}
+
+/// Ranks recipes against what's in the pantry. "Ready now" comes first, then
+/// recipes missing only one or two things. Diets are hard rules; priorities
+/// only nudge the order.
+nonisolated enum RecipeMatcher {
+    static func matches(recipes: [Recipe] = RecipeStore.all,
+                        pantry: Set<String>,
+                        diets: Set<Diet> = [],
+                        priorities: Set<Priority> = [],
+                        maxMissing: Int = 3) -> [RecipeMatch] {
+        let forbidden = Diet.forbiddenTraits(for: diets)
+        var result: [RecipeMatch] = []
+
+        for recipe in recipes where recipe.isCompatible(with: diets) {
+            var missing: [RecipeIngredient] = []
+            var required = 0
+
+            for line in recipe.ingredients where !line.isOptional && !IngredientPrices.assumedStaples.contains(line.id) {
+                required += 1
+                // Any allowed stand-in counts, but a swap the person's diet
+                // rules out never does.
+                let options = ([line.id] + line.alternatives).filter { isAllowed($0, forbidden) }
+                let covered = options.contains { pantry.contains($0) || IngredientPrices.assumedStaples.contains($0) }
+                if !covered { missing.append(line) }
+            }
+
+            if missing.count <= maxMissing {
+                result.append(RecipeMatch(recipe: recipe, missing: missing, required: required))
+            }
+        }
+
+        return result.sorted { a, b in
+            if a.isReady != b.isReady { return a.isReady }
+            if a.missing.count != b.missing.count { return a.missing.count < b.missing.count }
+            let prefA = preference(a, priorities), prefB = preference(b, priorities)
+            if prefA != prefB { return prefA < prefB }
+            return a.recipe.title < b.recipe.title
+        }
+    }
+
+    private static func isAllowed(_ id: String, _ forbidden: DietTraits) -> Bool {
+        IngredientCatalog.ingredient(withID: id)?.traits.isDisjoint(with: forbidden) ?? true
+    }
+
+    /// Lower is better.
+    private static func preference(_ match: RecipeMatch, _ priorities: Set<Priority>) -> Double {
+        var score = 0.0
+        if priorities.contains(.saveMoney) { score += match.recipe.costPerServing }
+        if priorities.contains(.fast) { score += Double(match.recipe.minutes) / 10 }
+        if priorities.contains(.cutWaste) { score -= Double(match.haveCount) * 0.25 }
+        return score
+    }
+}
