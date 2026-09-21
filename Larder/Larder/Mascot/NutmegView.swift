@@ -12,8 +12,9 @@ import SwiftUI
 /// the whole drawing is scaled to fit whatever size the caller gives it.
 struct NutmegView: View {
     /// How Nutmeg is behaving. `idle` is the resting loop; `peeking` is the
-    /// curious look-around he does while something is being worked out.
-    enum Mood { case idle, peeking }
+    /// curious look-around he does while something is being worked out; and
+    /// `celebrating` is a happy hop with a fast wave.
+    enum Mood { case idle, peeking, celebrating }
 
     var mood: Mood = .idle
 
@@ -22,6 +23,7 @@ struct NutmegView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var swaying = false
     @State private var looking = false
+    @State private var hopping = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -43,6 +45,7 @@ struct NutmegView: View {
             if !reduceMotion {
                 swaying = true
                 if mood == .peeking { looking = true }
+                if mood == .celebrating { hopping = true }
             }
         }
     }
@@ -51,6 +54,10 @@ struct NutmegView: View {
     private var pupilShift: CGFloat { mood == .peeking ? (looking ? 14 : -14) : 0 }
     private var pupilLift: CGFloat { mood == .peeking ? -4 : 0 }
     private var tilt: Double { mood == .peeking ? (looking ? 5 : -5) : 0 }
+    private var hop: CGFloat { mood == .celebrating ? (hopping ? -40 : 0) : 0 }
+    /// How far the raised arm swings: a gentle sway at rest, a big wave when celebrating.
+    private var armSwing: Double { mood == .celebrating ? 18 : 4 }
+    private var swayDuration: Double { mood == .celebrating ? 0.3 : 1.8 }
 
     private var art: some View {
         ZStack {
@@ -109,15 +116,18 @@ struct NutmegView: View {
                 .stroke(Palette.amber, style: StrokeStyle(lineWidth: 30, lineCap: .round))
                 circle(530, 238, 34, Palette.amber)
             }
-            .rotationEffect(.degrees(swaying ? -4 : 4),
+            .rotationEffect(.degrees(swaying ? -armSwing : armSwing),
                             anchor: UnitPoint(x: 478 / Self.artSize.width, y: 352 / Self.artSize.height))
 
             // Feet.
             ellipse(300, 472, 30, 18, Palette.foot)
             ellipse(382, 472, 30, 18, Palette.foot)
         }
-        .animation(reduceMotion ? nil : .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
+        .animation(reduceMotion ? nil : .easeInOut(duration: swayDuration).repeatForever(autoreverses: true),
                    value: swaying)
+        .offset(y: hop)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.4).repeatForever(autoreverses: true),
+                   value: hopping)
         .rotationEffect(.degrees(tilt), anchor: .bottom)
         .animation(reduceMotion ? nil : .easeInOut(duration: 1.1).repeatForever(autoreverses: true),
                    value: looking)

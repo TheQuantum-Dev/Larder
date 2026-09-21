@@ -124,6 +124,28 @@ struct CookSessionTests {
         #expect(s.phase == .step(s.stepCount - 1))
     }
 
+    @Test func finishingMarksItMadeOnlyFromTheDoneScreen() {
+        let (s, _) = session()
+        s.finish()
+        #expect(s.phase == .gather)
+        s.begin()
+        s.finish()
+        #expect(s.phase == .step(0))
+        for _ in 0..<s.stepCount { s.next() }
+        s.finish()
+        #expect(s.phase == .made)
+        #expect(s.progress == 1)
+    }
+
+    @Test func onceMadeThereIsNoGoingBack() {
+        let (s, _) = session()
+        s.begin()
+        for _ in 0..<s.stepCount { s.next() }
+        s.finish()
+        s.back()
+        #expect(s.phase == .made)
+    }
+
     @Test func jumpingIgnoresStepsThatDoNotExist() {
         let (s, _) = session()
         s.jump(to: 2)

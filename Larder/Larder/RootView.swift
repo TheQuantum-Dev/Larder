@@ -35,6 +35,7 @@ struct RootView: View {
         switch UserDefaults.standard.string(forKey: "cookPhase") {
         case nil, "gather": .gather
         case "done": .done
+        case "made": .made
         case let number?: .step(max(0, (Int(number) ?? 1) - 1))
         }
     }

@@ -5,6 +5,7 @@
 //  Created by Joshua Samuel on 9/21/26.
 //
 
+import SwiftData
 import SwiftUI
 import UIKit
 
@@ -19,6 +20,10 @@ struct CookModeView: View {
     @State private var session: CookSession
     @State private var confirmingExit = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var context
+    @Query private var pantry: [PantryItem]
+    @AppStorage(AppSettings.orderOutPriceKey) private var orderOutPrice = AppSettings.defaultOrderOutPrice
+    @State private var made: MadeResult?
 
     init(recipe: Recipe, diets: Set<Diet>, startAt phase: CookSession.Phase = .gather,
          onFinish: @escaping () -> Void, onClose: @escaping () -> Void) {
@@ -50,6 +55,7 @@ struct CookModeView: View {
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
             startDebugTimer()
+            startDebugMade()
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -90,14 +96,15 @@ struct CookModeView: View {
         case .gather: "Ready"
         case .step(let index): "\(index + 1)/\(session.stepCount)"
         case .done: "Done"
+        case .made: "Made it!"
         }
     }
 
     private func requestClose() {
-        if case .step = session.phase {
-            confirmingExit = true
-        } else {
-            onClose()
+        switch session.phase {
+        case .step: confirmingExit = true
+        case .made: onFinish()   // the meal is already saved
+        default: onClose()
         }
     }
 
@@ -111,8 +118,59 @@ struct CookModeView: View {
         case .step(let index):
             StepView(session: session, index: index)
         case .done:
-            DoneView(recipe: session.recipe, onFinish: onFinish, onBack: { session.back() })
+            DoneView(recipe: session.recipe, onMade: recordMade, onBack: { session.back() })
+        case .made:
+            MadeItView(result: made ?? MadeResult(summary: MealSummary(recipe: session.recipe, orderOutPrice: orderOutPrice),
+                                                  isFirstMeal: false,
+                                                  stats: MealStats(mealCount: 0, mealsThisWeek: 0, totalSaved: 0)),
+                       candidates: runOutCandidates,
+                       onDone: finishMade)
         }
+    }
+
+    // MARK: - Marking it as made
+
+    /// Saves the meal, works out the savings, and moves to the celebration.
+    private func recordMade() {
+        let summary = MealSummary(recipe: session.recipe, orderOutPrice: orderOutPrice)
+        let isFirst = MealLog.count(in: context) == 0
+        MealLog.record(summary, in: context)
+        made = MadeResult(summary: summary, isFirstMeal: isFirst,
+                          stats: MealStats.compute(from: MealLog.meals(in: context)))
+        session.finish()
+    }
+
+    /// Pantry ingredients the recipe used, for the "anything run out?" chips.
+    private var runOutCandidates: [ResolvedItem] {
+        #if DEBUG
+        if let ids = UserDefaults.standard.string(forKey: "madeCandidates") {
+            return ids.split(separator: ",")
+                .compactMap { IngredientCatalog.ingredient(withID: String($0)) }
+                .map(ResolvedItem.init)
+        }
+        #endif
+        let inPantry = Set(pantry.map(\.ingredientID))
+        return PantryUse.usedIngredientIDs(by: session.recipe, pantry: inPantry)
+            .compactMap { id in pantry.first { $0.ingredientID == id }?.resolved }
+    }
+
+    /// Takes the finished ingredients off the pantry, then leaves Cook Mode.
+    private func finishMade(_ usedUp: Set<String>) {
+        PantryRepository.remove(ids: usedUp, in: context)
+        onFinish()
+    }
+
+    /// `-cookPhase made` shows the celebration with sample numbers, without saving anything
+    /// (debug builds only). Add `-madeFirst YES` for the first-meal version and
+    /// `-madeCandidates egg,rice` for the "anything run out?" chips.
+    private func startDebugMade() {
+        #if DEBUG
+        if session.phase == .made, made == nil {
+            made = MadeResult(summary: MealSummary(recipe: session.recipe, orderOutPrice: orderOutPrice),
+                              isFirstMeal: UserDefaults.standard.bool(forKey: "madeFirst"),
+                              stats: MealStats(mealCount: 3, mealsThisWeek: 2, totalSaved: 31.40))
+        }
+        #endif
     }
 
     /// `-cookTimer YES` starts the timer on the current step, and `-cookTimerStep 2`
@@ -383,7 +441,7 @@ private struct TimerPanel: View {
 
 private struct DoneView: View {
     let recipe: Recipe
-    let onFinish: () -> Void
+    let onMade: () -> Void
     let onBack: () -> Void
 
     var body: some View {
@@ -406,7 +464,7 @@ private struct DoneView: View {
             Spacer(minLength: 0)
 
             VStack(spacing: Theme.Spacing.xs) {
-                Button("I made it!", action: onFinish)
+                Button("I made it!", action: onMade)
                     .buttonStyle(PillButtonStyle())
                 Button("Back to the steps", action: onBack)
                     .font(.body.weight(.semibold))

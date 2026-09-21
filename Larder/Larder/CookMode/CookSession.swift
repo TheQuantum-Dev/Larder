@@ -17,6 +17,8 @@ final class CookSession {
         case gather
         case step(Int)
         case done
+        /// The meal has been marked as made.
+        case made
     }
 
     let recipe: Recipe
@@ -57,7 +59,7 @@ final class CookSession {
         switch phase {
         case .gather: 0
         case .step(let index): Double(index + 1) / Double(max(stepCount, 1))
-        case .done: 1
+        case .done, .made: 1
         }
     }
 
@@ -75,7 +77,13 @@ final class CookSession {
         case .gather: break
         case .step(let index): phase = index == 0 ? .gather : .step(index - 1)
         case .done: phase = stepCount > 0 ? .step(stepCount - 1) : .gather
+        case .made: break   // it's been recorded, so there's no going back
         }
+    }
+
+    /// Marks the meal as made. Only possible from the done screen.
+    func finish() {
+        if phase == .done { phase = .made }
     }
 
     func jump(to step: Int) {
