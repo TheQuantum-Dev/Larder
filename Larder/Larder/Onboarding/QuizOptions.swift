@@ -9,16 +9,16 @@ import Foundation
 
 /// Something a person can pick on a quiz screen. Conforming enums list their
 /// cases once and every quiz screen can render them.
-protocol QuizOption: Hashable, Identifiable, CaseIterable {
+nonisolated protocol QuizOption: Hashable, Identifiable, CaseIterable {
     var title: String { get }
     var emoji: String { get }
 }
 
-extension QuizOption {
+nonisolated extension QuizOption {
     var id: Self { self }
 }
 
-enum Diet: QuizOption {
+nonisolated enum Diet: QuizOption {
     case noRestrictions, vegetarian, vegan, halal, glutenFree, dairyFree, nutFree
 
     var title: String {
@@ -46,7 +46,7 @@ enum Diet: QuizOption {
     }
 }
 
-enum CookingConfidence: QuizOption {
+nonisolated enum CookingConfidence: QuizOption {
     case microwave, followRecipe, improvise
 
     var title: String {
@@ -66,7 +66,7 @@ enum CookingConfidence: QuizOption {
     }
 }
 
-enum Priority: QuizOption {
+nonisolated enum Priority: QuizOption {
     case saveMoney, cutWaste, eatHealthier, fast
 
     var title: String {

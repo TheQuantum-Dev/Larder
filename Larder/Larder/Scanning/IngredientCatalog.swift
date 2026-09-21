@@ -96,6 +96,12 @@ nonisolated enum IngredientCatalog {
         return found
     }
 
+    private static let byID: [String: Ingredient] =
+        Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
+
+    /// The catalog entry with this id, if there is one.
+    static func ingredient(withID id: String) -> Ingredient? { byID[id] }
+
     /// For the manual-entry search box.
     static func search(_ query: String) -> [Ingredient] {
         let q = key(for: query)
@@ -115,8 +121,9 @@ nonisolated enum IngredientCatalog {
     // MARK: - Data
 
     private static func item(_ id: String, _ name: String, _ emoji: String,
-                             _ category: IngredientCategory, _ aliases: String...) -> Ingredient {
-        Ingredient(id: id, name: name, emoji: emoji, category: category, aliases: aliases)
+                             _ category: IngredientCategory, traits: DietTraits = [],
+                             _ aliases: String...) -> Ingredient {
+        Ingredient(id: id, name: name, emoji: emoji, category: category, traits: traits, aliases: aliases)
     }
 
     static let all: [Ingredient] = [
@@ -159,61 +166,61 @@ nonisolated enum IngredientCatalog {
         item("ginger", "Ginger", "🫚", .produce, "ginger"),
         item("herbs", "Fresh herbs", "🌿", .produce, "herb", "cilantro", "parsley", "basil", "mint", "dill", "rosemary", "thyme"),
         // Dairy and eggs
-        item("egg", "Eggs", "🥚", .dairyAndEggs, "egg"),
-        item("milk", "Milk", "🥛", .dairyAndEggs, "milk", "whole milk", "skim milk", "oat milk", "almond milk"),
-        item("butter", "Butter", "🧈", .dairyAndEggs, "butter", "margarine"),
-        item("cheese", "Cheese", "🧀", .dairyAndEggs, "cheese", "cheddar", "mozzarella", "parmesan", "swiss", "cheese slice", "shredded cheese", "cream cheese"),
-        item("yogurt", "Yogurt", "🥣", .dairyAndEggs, "yogurt", "yoghurt", "greek yogurt"),
-        item("sour-cream", "Sour cream", "🥣", .dairyAndEggs, "sour cream", "cream"),
+        item("egg", "Eggs", "🥚", .dairyAndEggs, traits: [.egg], "egg"),
+        item("milk", "Milk", "🥛", .dairyAndEggs, traits: [.dairy], "milk", "whole milk", "skim milk", "oat milk", "almond milk"),
+        item("butter", "Butter", "🧈", .dairyAndEggs, traits: [.dairy], "butter", "margarine"),
+        item("cheese", "Cheese", "🧀", .dairyAndEggs, traits: [.dairy], "cheese", "cheddar", "mozzarella", "parmesan", "swiss", "cheese slice", "shredded cheese", "cream cheese"),
+        item("yogurt", "Yogurt", "🥣", .dairyAndEggs, traits: [.dairy], "yogurt", "yoghurt", "greek yogurt"),
+        item("sour-cream", "Sour cream", "🥣", .dairyAndEggs, traits: [.dairy], "sour cream", "cream"),
         // Protein
-        item("chicken", "Chicken", "🍗", .protein, "chicken", "chicken breast", "chicken thigh", "fried chicken", "rotisserie chicken", "poultry"),
-        item("beef", "Beef", "🥩", .protein, "beef", "ground beef", "steak", "burger"),
-        item("pork", "Pork", "🥩", .protein, "pork", "pork chop"),
-        item("bacon", "Bacon", "🥓", .protein, "bacon"),
-        item("sausage", "Sausage", "🌭", .protein, "sausage", "hot dog", "salami"),
-        item("ham", "Ham", "🍖", .protein, "ham", "deli meat", "lunch meat"),
-        item("turkey", "Turkey", "🦃", .protein, "turkey"),
-        item("fish", "Fish", "🐟", .protein, "fish", "salmon", "tilapia", "cod"),
-        item("shrimp", "Shrimp", "🦐", .protein, "shrimp", "prawn"),
+        item("chicken", "Chicken", "🍗", .protein, traits: [.meat], "chicken", "chicken breast", "chicken thigh", "fried chicken", "rotisserie chicken", "poultry"),
+        item("beef", "Beef", "🥩", .protein, traits: [.meat], "beef", "ground beef", "steak", "burger"),
+        item("pork", "Pork", "🥩", .protein, traits: [.meat, .pork], "pork", "pork chop"),
+        item("bacon", "Bacon", "🥓", .protein, traits: [.meat, .pork], "bacon"),
+        item("sausage", "Sausage", "🌭", .protein, traits: [.meat, .pork], "sausage", "hot dog", "salami"),
+        item("ham", "Ham", "🍖", .protein, traits: [.meat, .pork], "ham", "deli meat", "lunch meat"),
+        item("turkey", "Turkey", "🦃", .protein, traits: [.meat], "turkey"),
+        item("fish", "Fish", "🐟", .protein, traits: [.fish], "fish", "salmon", "tilapia", "cod"),
+        item("shrimp", "Shrimp", "🦐", .protein, traits: [.fish], "shrimp", "prawn"),
         item("tofu", "Tofu", "🥡", .protein, "tofu", "tempeh"),
         item("beans", "Beans", "🫘", .protein, "bean", "black bean", "kidney bean", "pinto bean", "chickpea", "garbanzo", "baked bean"),
         item("lentils", "Lentils", "🫘", .protein, "lentil"),
-        item("peanut-butter", "Peanut butter", "🥜", .protein, "peanut butter", "almond butter", "nut butter"),
-        item("nuts", "Nuts", "🥜", .protein, "nut", "almond", "walnut", "cashew", "peanut", "pecan", "trail mix"),
+        item("peanut-butter", "Peanut butter", "🥜", .protein, traits: [.nuts], "peanut butter", "almond butter", "nut butter"),
+        item("nuts", "Nuts", "🥜", .protein, traits: [.nuts], "nut", "almond", "walnut", "cashew", "peanut", "pecan", "trail mix"),
         // Grains
         item("rice", "Rice", "🍚", .grains, "rice", "brown rice", "white rice"),
-        item("pasta", "Pasta", "🍝", .grains, "pasta", "spaghetti", "penne", "macaroni", "noodle", "fettuccine"),
-        item("ramen", "Instant noodles", "🍜", .grains, "ramen", "instant noodle", "cup noodle"),
-        item("bread", "Bread", "🍞", .grains, "bread", "loaf", "sandwich bread", "bun", "roll", "toast", "sourdough"),
-        item("tortilla", "Tortillas", "🫓", .grains, "tortilla", "flatbread", "pita", "wrap", "naan"),
-        item("bagel", "Bagels", "🥯", .grains, "bagel", "english muffin", "muffin"),
-        item("oats", "Oats", "🥣", .grains, "oat", "oatmeal", "rolled oat"),
-        item("cereal", "Cereal", "🥣", .grains, "cereal", "granola", "corn flake"),
-        item("flour", "Flour", "🌾", .grains, "flour", "baking mix", "pancake mix"),
-        item("quinoa", "Quinoa and couscous", "🌾", .grains, "quinoa", "couscous", "barley"),
-        item("crackers", "Crackers", "🍘", .grains, "cracker", "pretzel", "rice cake"),
+        item("pasta", "Pasta", "🍝", .grains, traits: [.gluten], "pasta", "spaghetti", "penne", "macaroni", "noodle", "fettuccine"),
+        item("ramen", "Instant noodles", "🍜", .grains, traits: [.gluten], "ramen", "instant noodle", "cup noodle"),
+        item("bread", "Bread", "🍞", .grains, traits: [.gluten], "bread", "loaf", "sandwich bread", "bun", "roll", "toast", "sourdough"),
+        item("tortilla", "Tortillas", "🫓", .grains, traits: [.gluten], "tortilla", "flatbread", "pita", "wrap", "naan"),
+        item("bagel", "Bagels", "🥯", .grains, traits: [.gluten], "bagel", "english muffin", "muffin"),
+        item("oats", "Oats", "🥣", .grains, traits: [.gluten], "oat", "oatmeal", "rolled oat"),
+        item("cereal", "Cereal", "🥣", .grains, traits: [.gluten], "cereal", "granola", "corn flake"),
+        item("flour", "Flour", "🌾", .grains, traits: [.gluten], "flour", "baking mix", "pancake mix"),
+        item("quinoa", "Quinoa and couscous", "🌾", .grains, traits: [.gluten], "quinoa", "couscous", "barley"),
+        item("crackers", "Crackers", "🍘", .grains, traits: [.gluten], "cracker", "pretzel", "rice cake"),
         // Pantry
         item("olive-oil", "Olive oil", "🫒", .pantry, "olive oil"),
         item("cooking-oil", "Cooking oil", "🛢️", .pantry, "cooking oil", "vegetable oil", "canola oil", "oil"),
         item("salt", "Salt", "🧂", .pantry, "salt"),
         item("black-pepper", "Black pepper", "🧂", .pantry, "black pepper", "pepper shaker", "spice", "seasoning"),
         item("sugar", "Sugar", "🍬", .pantry, "sugar", "brown sugar", "sweetener"),
-        item("honey", "Honey", "🍯", .pantry, "honey", "maple syrup", "syrup"),
+        item("honey", "Honey", "🍯", .pantry, traits: [.honey], "honey", "maple syrup", "syrup"),
         item("ketchup", "Ketchup", "🥫", .pantry, "ketchup", "catsup"),
         item("mustard", "Mustard", "🟡", .pantry, "mustard"),
-        item("mayo", "Mayonnaise", "🥄", .pantry, "mayo", "mayonnaise", "crema"),
-        item("soy-sauce", "Soy sauce", "🍶", .pantry, "soy sauce", "teriyaki", "sriracha", "hot sauce"),
+        item("mayo", "Mayonnaise", "🥄", .pantry, traits: [.egg], "mayo", "mayonnaise", "crema"),
+        item("soy-sauce", "Soy sauce", "🍶", .pantry, traits: [.gluten], "soy sauce", "teriyaki", "sriracha", "hot sauce"),
         item("salsa", "Salsa", "🥫", .pantry, "salsa", "pico de gallo"),
         item("tomato-sauce", "Tomato sauce", "🥫", .pantry, "tomato sauce", "pasta sauce", "marinara", "canned tomato", "tomato paste"),
-        item("canned-tuna", "Canned tuna", "🐟", .pantry, "tuna", "canned tuna", "sardine"),
-        item("broth", "Broth", "🍲", .pantry, "broth", "stock", "bouillon", "soup"),
+        item("canned-tuna", "Canned tuna", "🐟", .pantry, traits: [.fish], "tuna", "canned tuna", "sardine"),
+        item("broth", "Broth", "🍲", .pantry, traits: [.meat], "broth", "stock", "bouillon", "soup"),
         item("vinegar", "Vinegar", "🍶", .pantry, "vinegar"),
         item("jam", "Jam", "🫙", .pantry, "jam", "jelly", "preserve", "marmalade"),
         item("olives", "Olives", "🫒", .pantry, "olive", "caper"),
         item("pickles", "Pickles", "🥒", .pantry, "pickle", "relish", "sauerkraut"),
-        item("dressing", "Salad dressing", "🥗", .pantry, "dressing", "salad dressing", "ranch", "vinaigrette"),
+        item("dressing", "Salad dressing", "🥗", .pantry, traits: [.dairy, .egg], "dressing", "salad dressing", "ranch", "vinaigrette"),
         item("hummus", "Hummus", "🥣", .pantry, "hummus", "dip", "guacamole"),
-        item("chocolate", "Chocolate", "🍫", .pantry, "chocolate", "cocoa"),
+        item("chocolate", "Chocolate", "🍫", .pantry, traits: [.dairy], "chocolate", "cocoa"),
         // Drinks
         item("juice", "Juice", "🧃", .drinks, "juice", "orange juice", "apple juice"),
         item("soda", "Soda", "🥤", .drinks, "soda", "cola", "coke", "energy drink"),
@@ -223,10 +230,10 @@ nonisolated enum IngredientCatalog {
         // Snacks and frozen
         item("chips", "Chips", "🍟", .snacks, "chip", "potato chip", "crisp", "tortilla chip"),
         item("popcorn", "Popcorn", "🍿", .snacks, "popcorn"),
-        item("cookies", "Cookies", "🍪", .snacks, "cookie", "biscuit", "cake", "brownie"),
-        item("granola-bar", "Snack bars", "🍫", .snacks, "granola bar", "snack bar", "protein bar", "cereal bar"),
-        item("ice-cream", "Ice cream", "🍨", .snacks, "ice cream", "popsicle", "frozen dessert"),
+        item("cookies", "Cookies", "🍪", .snacks, traits: [.gluten, .dairy, .egg], "cookie", "biscuit", "cake", "brownie"),
+        item("granola-bar", "Snack bars", "🍫", .snacks, traits: [.gluten, .nuts], "granola bar", "snack bar", "protein bar", "cereal bar"),
+        item("ice-cream", "Ice cream", "🍨", .snacks, traits: [.dairy], "ice cream", "popsicle", "frozen dessert"),
         item("frozen-veg", "Frozen vegetables", "🧊", .snacks, "frozen vegetable", "frozen veggie"),
-        item("pizza", "Pizza", "🍕", .snacks, "pizza", "frozen pizza"),
+        item("pizza", "Pizza", "🍕", .snacks, traits: [.gluten, .dairy], "pizza", "frozen pizza"),
     ]
 }
