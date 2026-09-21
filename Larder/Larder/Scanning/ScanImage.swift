@@ -47,6 +47,16 @@ extension CGImage {
     /// taken sideways come out upright.
     static func load(from url: URL, maxEdge: Int = 2400) -> CGImage? {
         guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+        return upright(from: source, maxEdge: maxEdge)
+    }
+
+    /// The same, for photo data such as what the photo picker hands back.
+    static func load(from data: Data, maxEdge: Int = 2400) -> CGImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+        return upright(from: source, maxEdge: maxEdge)
+    }
+
+    private static func upright(from source: CGImageSource, maxEdge: Int) -> CGImage? {
         let options: [CFString: Any] = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
             kCGImageSourceCreateThumbnailWithTransform: true,
