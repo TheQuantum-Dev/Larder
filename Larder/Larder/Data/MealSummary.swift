@@ -47,6 +47,10 @@ nonisolated enum Money {
 
 nonisolated enum AppSettings {
     static let orderOutPriceKey = "orderOutPrice"
+    /// How many meals from the pantry the person wants to cook this week (0 = no goal).
+    static let weeklyMealGoalKey = "weeklyMealGoal"
+    /// The weekly food budget in whole dollars (0 = none set).
+    static let weeklyBudgetKey = "weeklyBudget"
     /// A rough price for one takeout or delivery meal. It's an assumption,
     /// shown as one, and will be adjustable in Settings.
     static let defaultOrderOutPrice = 14.0
