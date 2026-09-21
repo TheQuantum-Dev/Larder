@@ -17,4 +17,6 @@ final class OnboardingAnswers {
     var priorities = MultiSelection<Priority>()
     /// What the person confirmed having during the try-it scan.
     var pantry: [ResolvedItem] = []
+    /// The recipe they picked to cook first.
+    var firstRecipeID: String?
 }

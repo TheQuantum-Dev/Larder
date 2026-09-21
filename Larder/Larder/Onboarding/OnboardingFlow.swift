@@ -74,7 +74,28 @@ struct OnboardingFlow: View {
                 answers.pantry = items
                 advance()
             }
+        case .recipes:
+            RecipeResultsView(matches: recipeResults.matches,
+                              stretched: recipeResults.stretched,
+                              diets: answers.diets.items,
+                              onCook: { recipe in
+                                  answers.firstRecipeID = recipe.id
+                                  advance()
+                              },
+                              onAddMore: back)
         }
+    }
+
+    /// Recipes ranked for what the person confirmed, their diet and priorities.
+    /// Recipes for what the person confirmed, widening the search if nothing is
+    /// close, so this screen is never empty.
+    private var recipeResults: (matches: [RecipeMatch], stretched: Bool) {
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "recipesEmpty") { return ([], false) }
+        #endif
+        return RecipeMatcher.bestMatches(pantry: Set(answers.pantry.map(\.id)),
+                                         diets: answers.diets.items,
+                                         priorities: answers.priorities.items)
     }
 
     // MARK: - Navigation
@@ -116,7 +137,8 @@ struct OnboardingFlow: View {
         return .welcome
     }
 
-    /// `-onboardingSample YES` pre-fills some answers (debug builds only).
+    /// `-onboardingSample YES` pre-fills some answers, and `-onboardingPantry egg,rice`
+    /// sets the pantry by ingredient id (debug builds only).
     private static var startingAnswers: OnboardingAnswers {
         let answers = OnboardingAnswers()
         #if DEBUG
@@ -126,6 +148,11 @@ struct OnboardingFlow: View {
             answers.cooking.toggle(.followRecipe)
             answers.priorities.toggle(.saveMoney)
             answers.priorities.toggle(.fast)
+        }
+        if let ids = UserDefaults.standard.string(forKey: "onboardingPantry") {
+            answers.pantry = ids.split(separator: ",")
+                .compactMap { IngredientCatalog.ingredient(withID: String($0)) }
+                .map(ResolvedItem.init)
         }
         #endif
         return answers
