@@ -90,7 +90,7 @@ struct TryItView: View {
                 PhotosPicker(selection: $pickerItem, matching: .images) {
                     Text(CameraPicker.isAvailable ? "Choose from your photos" : "Choose a photo")
                 }
-                .buttonStyle(PillButtonStyle(fill: CameraPicker.isAvailable ? softAmber : Theme.Palette.amber))
+                .buttonStyle(PillButtonStyle(fill: CameraPicker.isAvailable ? Theme.Palette.softAmber : Theme.Palette.amber))
 
                 Button("I'll add things by hand") { model.startByHand() }
                     .font(.body.weight(.semibold))
@@ -104,12 +104,6 @@ struct TryItView: View {
             }
         }
         .padding(Theme.Spacing.s)
-    }
-
-    /// A lighter amber for the second button, so it reads as the quieter choice
-    /// in both light and dark mode.
-    private var softAmber: Color {
-        Theme.Palette.amber.mix(with: .white, by: 0.55)
     }
 
     // MARK: - Loading photos

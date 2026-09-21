@@ -21,6 +21,8 @@ enum Theme {
         static let sage = Color(.sage)
         /// Text and icons that sit on top of amber or coral.
         static let onAccent = Color(.onAccent)
+        /// A lighter amber for the quieter of two buttons.
+        static let softAmber = Color(.amber).mix(with: .white, by: 0.55)
     }
 
     /// Every margin and padding in the app is a multiple of 10.
