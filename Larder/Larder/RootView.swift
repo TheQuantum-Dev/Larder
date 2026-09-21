@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Shows onboarding until it's finished, then the home screen.
+/// Shows onboarding until it's finished, then home.
 struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
@@ -44,7 +44,7 @@ struct RootView: View {
     private var flow: some View {
         ZStack {
             if hasCompletedOnboarding {
-                ContentView()
+                HomeView()
                     .transition(.opacity)
             } else {
                 OnboardingFlow { hasCompletedOnboarding = true }
