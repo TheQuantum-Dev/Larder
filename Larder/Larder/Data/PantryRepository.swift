@@ -25,6 +25,16 @@ enum PantryRepository {
         try? context.save()
     }
 
+    /// Adds items to the pantry, leaving what's already there alone.
+    static func add(_ items: [ResolvedItem], in context: ModelContext) {
+        let existing = Set(all(in: context).map(\.ingredientID))
+        let now = Date()
+        for item in items where !existing.contains(item.id) {
+            context.insert(PantryItem(item: item, addedAt: now))
+        }
+        try? context.save()
+    }
+
     /// Takes finished-off ingredients out of the pantry.
     static func remove(ids: Set<String>, in context: ModelContext) {
         for item in all(in: context) where ids.contains(item.ingredientID) {
