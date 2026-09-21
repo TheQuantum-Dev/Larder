@@ -19,7 +19,6 @@ struct RecipeResultsView: View {
     let onAddMore: () -> Void
 
     @State private var selected: RecipeMatch?
-    @State private var cooking: Recipe?
     @State private var appeared = false
 
     private var ready: [RecipeMatch] { matches.filter(\.isReady) }
@@ -34,24 +33,7 @@ struct RecipeResultsView: View {
             }
         }
         .background(Theme.Palette.background.ignoresSafeArea())
-        .sheet(item: $selected) { match in
-            RecipeDetailView(match: match, diets: diets) { recipe in
-                selected = nil
-                // Let the sheet finish closing before Cook Mode takes over.
-                Task {
-                    try? await Task.sleep(for: .milliseconds(450))
-                    cooking = recipe
-                }
-            }
-        }
-        .fullScreenCover(item: $cooking) { recipe in
-            CookModeView(recipe: recipe, diets: diets,
-                         onFinish: {
-                             cooking = nil
-                             onCooked(recipe)
-                         },
-                         onClose: { cooking = nil })
-        }
+        .recipeCookingFlow(selected: $selected, diets: diets, onCooked: onCooked)
         .onAppear {
             appeared = true
             openDebugRecipe()
