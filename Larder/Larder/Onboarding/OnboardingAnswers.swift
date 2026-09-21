@@ -15,4 +15,6 @@ final class OnboardingAnswers {
     var diets = MultiSelection<Diet>(exclusive: .noRestrictions)
     var cooking = MultiSelection<CookingConfidence>()
     var priorities = MultiSelection<Priority>()
+    /// What the person confirmed having during the try-it scan.
+    var pantry: [ResolvedItem] = []
 }

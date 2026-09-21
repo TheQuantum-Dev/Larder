@@ -7,10 +7,10 @@
 
 import Foundation
 
-/// The screens of onboarding, in order. Later steps (the try-it scan, first
-/// recipe, commitment, founder note, paywall) get added to this list.
+/// The screens of onboarding, in order. Later steps (first recipe,
+/// commitment, founder note, paywall) get added to this list.
 enum OnboardingStep: Int, CaseIterable {
-    case welcome, diet, cooking, priorities, synthesis
+    case welcome, diet, cooking, priorities, synthesis, tryIt
 
     var next: OnboardingStep? { OnboardingStep(rawValue: rawValue + 1) }
     var previous: OnboardingStep? { OnboardingStep(rawValue: rawValue - 1) }

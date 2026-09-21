@@ -69,6 +69,11 @@ struct OnboardingFlow: View {
                        onContinue: advance)
         case .synthesis:
             SynthesisView(answers: answers, onContinue: advance)
+        case .tryIt:
+            TryItView { items in
+                answers.pantry = items
+                advance()
+            }
         }
     }
 
