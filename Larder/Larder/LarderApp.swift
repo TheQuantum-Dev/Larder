@@ -5,8 +5,9 @@
 //  Created by Joshua Samuel on 9/20/26.
 //
 
-import SwiftUI
 import RevenueCat
+import SwiftData
+import SwiftUI
 
 @main
 struct LarderApp: App {
@@ -23,6 +24,7 @@ struct LarderApp: App {
         WindowGroup {
             RootView()
                 .environment(purchaseStore)
+                .modelContainer(for: [PantryItem.self, CookedMeal.self])
                 .fontDesign(.rounded)
                 .task { await purchaseStore.start() }
         }

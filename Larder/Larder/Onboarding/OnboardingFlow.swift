@@ -5,6 +5,7 @@
 //  Created by Joshua Samuel on 9/20/26.
 //
 
+import SwiftData
 import SwiftUI
 
 /// Runs the onboarding screens in order. The progress bar lives here, above
@@ -15,6 +16,7 @@ struct OnboardingFlow: View {
     @State private var step = Self.startingStep
     @State private var answers = Self.startingAnswers
     @State private var goingBack = false
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         VStack(spacing: 0) {
@@ -72,6 +74,7 @@ struct OnboardingFlow: View {
         case .tryIt:
             TryItView { items in
                 answers.pantry = items
+                PantryRepository.replace(with: items, in: modelContext)
                 advance()
             }
         case .recipes:
