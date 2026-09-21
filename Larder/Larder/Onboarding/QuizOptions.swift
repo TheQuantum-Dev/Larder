@@ -18,7 +18,7 @@ nonisolated extension QuizOption {
     var id: Self { self }
 }
 
-nonisolated enum Diet: QuizOption {
+nonisolated enum Diet: String, QuizOption {
     case noRestrictions, vegetarian, vegan, halal, glutenFree, dairyFree, nutFree
 
     var title: String {
@@ -46,7 +46,7 @@ nonisolated enum Diet: QuizOption {
     }
 }
 
-nonisolated enum CookingConfidence: QuizOption {
+nonisolated enum CookingConfidence: String, QuizOption {
     case microwave, followRecipe, improvise
 
     var title: String {
@@ -66,7 +66,7 @@ nonisolated enum CookingConfidence: QuizOption {
     }
 }
 
-nonisolated enum Priority: QuizOption {
+nonisolated enum Priority: String, QuizOption {
     case saveMoney, cutWaste, eatHealthier, fast
 
     var title: String {

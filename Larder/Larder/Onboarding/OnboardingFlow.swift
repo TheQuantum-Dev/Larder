@@ -105,7 +105,7 @@ struct OnboardingFlow: View {
                 advance()
             }
         case .allSet:
-            AllSetView(outcome: answers.paywallOutcome ?? debugOutcome, onFinish: onFinish)
+            AllSetView(outcome: answers.paywallOutcome ?? debugOutcome, onFinish: finish)
         }
     }
 
@@ -119,6 +119,15 @@ struct OnboardingFlow: View {
         return RecipeMatcher.bestMatches(pantry: Set(answers.pantry.map(\.id)),
                                          diets: answers.diets.items,
                                          priorities: answers.priorities.items)
+    }
+
+    /// Saves what the person told us, so recipes stay matched to them, then
+    /// leaves onboarding.
+    private func finish() {
+        ProfileStore.save(Profile(diets: answers.diets.items,
+                                  cooking: answers.cooking.items,
+                                  priorities: answers.priorities.items))
+        onFinish()
     }
 
     // MARK: - Navigation
