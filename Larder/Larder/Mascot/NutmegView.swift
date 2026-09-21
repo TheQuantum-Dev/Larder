@@ -11,10 +11,17 @@ import SwiftUI
 /// below comes straight from that file, in its 680 x 530 coordinate space, and
 /// the whole drawing is scaled to fit whatever size the caller gives it.
 struct NutmegView: View {
+    /// How Nutmeg is behaving. `idle` is the resting loop; `peeking` is the
+    /// curious look-around he does while something is being worked out.
+    enum Mood { case idle, peeking }
+
+    var mood: Mood = .idle
+
     private static let artSize = CGSize(width: 680, height: 530)
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var swaying = false
+    @State private var looking = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -33,9 +40,17 @@ struct NutmegView: View {
         .accessibilityLabel("Nutmeg, the Larder mascot")
         .onAppear {
             // A resting loop so Nutmeg is never a static frame.
-            if !reduceMotion { swaying = true }
+            if !reduceMotion {
+                swaying = true
+                if mood == .peeking { looking = true }
+            }
         }
     }
+
+    /// Pupils sweep side to side while peeking.
+    private var pupilShift: CGFloat { mood == .peeking ? (looking ? 14 : -14) : 0 }
+    private var pupilLift: CGFloat { mood == .peeking ? -4 : 0 }
+    private var tilt: Double { mood == .peeking ? (looking ? 5 : -5) : 0 }
 
     private var art: some View {
         ZStack {
@@ -60,10 +75,13 @@ struct NutmegView: View {
             // Eyes, pupils and highlights.
             ellipse(285, 300, 40, 44, .white)
             ellipse(395, 300, 40, 44, .white)
-            circle(298, 308, 18, Palette.pupil)
-            circle(408, 304, 18, Palette.pupil)
-            circle(304, 302, 5, .white)
-            circle(414, 298, 5, .white)
+            Group {
+                circle(298, 308, 18, Palette.pupil)
+                circle(408, 304, 18, Palette.pupil)
+                circle(304, 302, 5, .white)
+                circle(414, 298, 5, .white)
+            }
+            .offset(x: pupilShift, y: pupilLift)
 
             // Cheeks.
             circle(248, 345, 16, Palette.cheek, opacity: 0.35)
@@ -100,6 +118,9 @@ struct NutmegView: View {
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
                    value: swaying)
+        .rotationEffect(.degrees(tilt), anchor: .bottom)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 1.1).repeatForever(autoreverses: true),
+                   value: looking)
     }
 
     private func ellipse(_ cx: CGFloat, _ cy: CGFloat, _ rx: CGFloat, _ ry: CGFloat,
