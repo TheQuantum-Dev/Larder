@@ -23,6 +23,7 @@ struct MadeItView: View {
     let candidates: [ResolvedItem]
     let onDone: (Set<String>) -> Void
 
+    @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
     @State private var usedUp: Set<String> = []
     @State private var shownSaving = 0.0
     @State private var hapticTick = 0
@@ -113,7 +114,7 @@ struct MadeItView: View {
 
     private var statsRow: some View {
         HStack(spacing: Theme.Spacing.xs) {
-            stat("Meals this week", "\(result.stats.mealsThisWeek)")
+            stat("Meals this week", Commitment.mealsThisWeekText(count: result.stats.mealsThisWeek, goal: mealGoal))
             stat("Saved so far", Money.text(result.stats.totalSaved))
         }
     }

@@ -14,6 +14,7 @@ struct ContentView: View {
     @Environment(PurchaseStore.self) private var store
     @Query private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
+    @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
     @Environment(\.modelContext) private var context
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @State private var showPaywall = Self.launchedWithPaywall
@@ -67,6 +68,12 @@ struct ContentView: View {
                 .font(.subheadline)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .multilineTextAlignment(.center)
+            if mealGoal > 0 {
+                Text("This week: \(Commitment.mealsThisWeekText(count: stats.mealsThisWeek, goal: mealGoal)) meals from your pantry")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .multilineTextAlignment(.center)
+            }
             if stats.mealCount > 0 {
                 Text("\(stats.mealCount) \(stats.mealCount == 1 ? "meal" : "meals") made · saved about \(Money.text(stats.totalSaved))")
                     .font(.subheadline.weight(.semibold))
