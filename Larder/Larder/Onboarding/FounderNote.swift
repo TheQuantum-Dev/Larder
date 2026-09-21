@@ -11,7 +11,7 @@ import Foundation
 /// sound like a person, so it's kept here in one place, in plain text, for
 /// the builder to edit into their own words.
 nonisolated enum FounderNote {
-    static let title = "A quick note from me"
+    static let title = "A quick note from my creator"
     static let name = "Joshua"
 
     // A first draft using only what's already public about the project.
