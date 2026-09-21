@@ -62,6 +62,13 @@ nonisolated struct ResolvedItem: Hashable, Identifiable, Sendable {
     static func == (lhs: ResolvedItem, rhs: ResolvedItem) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 
+    init(id: String, name: String, emoji: String, isCustom: Bool) {
+        self.id = id
+        self.name = name
+        self.emoji = emoji
+        self.isCustom = isCustom
+    }
+
     init(_ ingredient: Ingredient) {
         id = ingredient.id
         name = ingredient.name

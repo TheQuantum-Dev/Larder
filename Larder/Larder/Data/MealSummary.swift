@@ -1,0 +1,53 @@
+//
+//  MealSummary.swift
+//  Larder
+//
+//  Created by Joshua Samuel on 9/21/26.
+//
+
+import Foundation
+
+/// What a cooked meal cost against what ordering the same thing would have.
+nonisolated struct MealSummary: Equatable, Sendable {
+    let recipeID: String
+    let title: String
+    let emoji: String
+    let servings: Int
+    let costPerServing: Double
+    let orderOutPrice: Double
+
+    init(recipe: Recipe, orderOutPrice: Double) {
+        recipeID = recipe.id
+        title = recipe.title
+        emoji = recipe.emoji
+        servings = recipe.servings
+        costPerServing = recipe.costPerServing
+        self.orderOutPrice = orderOutPrice
+    }
+
+    var totalCost: Double { costPerServing * Double(servings) }
+    var orderOutTotal: Double { orderOutPrice * Double(servings) }
+
+    /// Never negative: if a recipe somehow cost more than ordering out, the
+    /// honest answer is "nothing saved", not a minus.
+    var saved: Double { max(0, orderOutTotal - totalCost) }
+}
+
+nonisolated enum Money {
+    /// "$12.70".
+    static func text(_ dollars: Double) -> String {
+        dollars.formatted(.currency(code: "USD"))
+    }
+
+    /// "about $12.70", because every figure here is a rough one.
+    static func about(_ dollars: Double) -> String {
+        "about " + text(dollars)
+    }
+}
+
+nonisolated enum AppSettings {
+    static let orderOutPriceKey = "orderOutPrice"
+    /// A rough price for one takeout or delivery meal. It's an assumption,
+    /// shown as one, and will be adjustable in Settings.
+    static let defaultOrderOutPrice = 14.0
+}
