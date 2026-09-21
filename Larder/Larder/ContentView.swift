@@ -11,6 +11,7 @@ import SwiftUI
 /// is active and presents the paywall.
 struct ContentView: View {
     @Environment(PurchaseStore.self) private var store
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @State private var showPaywall = Self.launchedWithPaywall
 
     var body: some View {
@@ -22,6 +23,11 @@ struct ContentView: View {
                 .foregroundStyle(Theme.Palette.textPrimary)
             Button("See Larder Plus") { showPaywall = true }
                 .buttonStyle(PillButtonStyle())
+            // Handy while the app is still being built; this moves to Settings.
+            Button("Replay the intro") { hasCompletedOnboarding = false }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                .frame(minHeight: 44)
         }
         .padding(Theme.Spacing.s)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
