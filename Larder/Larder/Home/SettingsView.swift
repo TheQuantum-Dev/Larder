@@ -1,0 +1,154 @@
+//
+//  SettingsView.swift
+//  Larder
+//
+//  Created by Joshua Samuel on 9/21/26.
+//
+
+import SwiftUI
+
+/// The few things worth changing after onboarding: what you eat, your weekly
+/// goal and budget, and what "ordering out" costs for the savings figure.
+struct SettingsView: View {
+    @Environment(PurchaseStore.self) private var store
+    @Environment(\.dismiss) private var dismiss
+
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
+    @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
+    @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
+    @AppStorage(AppSettings.orderOutPriceKey) private var orderOutPrice = AppSettings.defaultOrderOutPrice
+
+    @State private var diets: MultiSelection<Diet>
+    @State private var showPaywall = false
+    private let profile: Profile
+
+    init() {
+        let saved = ProfileStore.load()
+        profile = saved
+        var selection = MultiSelection<Diet>(exclusive: .noRestrictions)
+        for diet in saved.dietSet { selection.toggle(diet) }
+        _diets = State(initialValue: selection)
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                foodSection
+                goalSection
+                savingsSection
+                plusSection
+                aboutSection
+            }
+            .scrollContentBackground(.hidden)
+            .background(Theme.Palette.background.ignoresSafeArea())
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+        .tint(Theme.Palette.amber)
+        .fullScreenCover(isPresented: $showPaywall) {
+            PaywallView { _ in showPaywall = false }
+        }
+        .onChange(of: diets.items) { _, newValue in
+            var updated = ProfileStore.load()
+            updated.diets = newValue.map(\.rawValue).sorted()
+            ProfileStore.save(updated)
+        }
+    }
+
+    // MARK: - Sections
+
+    private var foodSection: some View {
+        Section("What you eat") {
+            FlowLayout {
+                ForEach(Diet.allCases) { diet in
+                    ItemChip(item: ResolvedItem(id: diet.rawValue, name: diet.title, emoji: diet.emoji, isCustom: false),
+                             isChecked: diets.contains(diet)) {
+                        diets.toggle(diet)
+                    }
+                }
+            }
+            .padding(.vertical, Theme.Spacing.xs)
+            .listRowBackground(Theme.Palette.surface)
+            Text("Recipes that don't fit are hidden. For halal, that means no pork or alcohol; the meat itself still needs to be halal-certified.")
+                .font(.footnote)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                .listRowBackground(Theme.Palette.surface)
+        }
+        .sensoryFeedback(.selection, trigger: diets.items)
+    }
+
+    private var goalSection: some View {
+        Section("This week") {
+            Picker("Meals from your pantry", selection: $mealGoal) {
+                Text("No goal").tag(0)
+                ForEach(Commitment.mealGoals, id: \.self) { Text("\($0)").tag($0) }
+            }
+            .listRowBackground(Theme.Palette.surface)
+
+            Toggle("Weekly food budget", isOn: Binding(
+                get: { weeklyBudget > 0 },
+                set: { weeklyBudget = $0 ? Commitment.suggestedBudget : 0 }
+            ))
+            .listRowBackground(Theme.Palette.surface)
+
+            if weeklyBudget > 0 {
+                Stepper(value: $weeklyBudget, in: Commitment.budgetRange, step: Commitment.budgetStep) {
+                    Text("\(weeklyBudget, format: .currency(code: "USD").precision(.fractionLength(0))) a week")
+                }
+                .listRowBackground(Theme.Palette.surface)
+            }
+        }
+    }
+
+    private var savingsSection: some View {
+        Section {
+            Stepper(value: $orderOutPrice, in: 5...40, step: 1) {
+                Text("About \(Money.text(orderOutPrice)) a meal")
+            }
+            .listRowBackground(Theme.Palette.surface)
+        } header: {
+            Text("Ordering out costs")
+        } footer: {
+            Text("Used only to work out how much you save by cooking. It's a rough guess, so set it to what you'd really spend.")
+        }
+    }
+
+    private var plusSection: some View {
+        Section("Larder Plus") {
+            Button { showPaywall = true } label: {
+                HStack {
+                    Text(store.isPlusActive ? "Larder Plus is active" : "See Larder Plus")
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.bold())
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.4))
+                }
+            }
+            .listRowBackground(Theme.Palette.surface)
+        }
+    }
+
+    private var aboutSection: some View {
+        Section("About") {
+            Button("Replay the intro") {
+                hasCompletedOnboarding = false
+            }
+            .foregroundStyle(Theme.Palette.textPrimary)
+            .listRowBackground(Theme.Palette.surface)
+
+            LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
+                .listRowBackground(Theme.Palette.surface)
+            Text("Larder is open source under the MIT License. Built for the RevenueCat Shipaton.")
+                .font(.footnote)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                .listRowBackground(Theme.Palette.surface)
+        }
+    }
+}
