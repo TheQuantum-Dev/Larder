@@ -71,17 +71,27 @@ struct ScanConfirmView: View {
             NutmegView()
                 .frame(width: 80)
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                Text(review.foundNothing ? "I couldn't spot much" : "Here's what I spotted")
+                Text(headline)
                     .font(.title2.bold())
                     .foregroundStyle(Theme.Palette.textPrimary)
-                Text(review.foundNothing
-                     ? "No worries. Add what you have and I'll cook something up."
-                     : "Tap anything I got wrong, and add what I missed.")
+                Text(subheadline)
                     .font(.subheadline)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    private var headline: String {
+        if review.isManual { return "What's in your kitchen?" }
+        return review.foundNothing ? "I couldn't spot much" : "Here's what I spotted"
+    }
+
+    private var subheadline: String {
+        if review.isManual { return "Tap what you have, or search for anything else." }
+        return review.foundNothing
+            ? "No worries. Add what you have and I'll cook something up."
+            : "Tap anything I got wrong, and add what I missed."
     }
 
     private func section<Content: View>(_ title: String, note: String? = nil,

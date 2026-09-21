@@ -15,13 +15,21 @@ import Observation
 final class ScanReview {
     let suggestions: [DetectedItem]
     let usedModel: Bool
+    /// True when the person skipped the photo and is listing things by hand.
+    let isManual: Bool
     private(set) var added: [ResolvedItem] = []
     private(set) var checked: Set<String>
 
-    init(result: ScanResult) {
+    init(result: ScanResult, isManual: Bool = false) {
         suggestions = result.items
         usedModel = result.usedModel
+        self.isManual = isManual
         checked = Set(result.items.filter { $0.tier == .looksRight }.map(\.id))
+    }
+
+    /// An empty review for people who'd rather type than take a photo.
+    static func manual() -> ScanReview {
+        ScanReview(result: ScanResult(items: [], usedModel: false), isManual: true)
     }
 
     var looksRight: [ResolvedItem] { suggestions.filter { $0.tier == .looksRight }.map(\.item) }

@@ -65,6 +65,15 @@ struct ScanReviewTests {
         #expect(r.selected == [egg])
     }
 
+    @Test func manualReviewStartsEmptyAndIsMarkedManual() {
+        let r = ScanReview.manual()
+        #expect(r.isManual)
+        #expect(r.suggestions.isEmpty)
+        #expect(r.selected.isEmpty)
+        r.add(egg)
+        #expect(r.selected == [egg])
+    }
+
     @Test func uncheckedHandAddedItemsStayListedButNotSelected() {
         let r = review()
         r.add(rice)
