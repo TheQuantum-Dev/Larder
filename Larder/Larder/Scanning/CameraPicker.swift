@@ -53,7 +53,7 @@ struct CameraPicker: UIViewControllerRepresentable {
         /// Camera photos carry a rotation flag instead of being stored upright.
         /// Redrawing them bakes the rotation in, so later steps see the picture
         /// the way the person did.
-        private static func upright(_ image: UIImage) -> CGImage? {
+        private nonisolated static func upright(_ image: UIImage) -> CGImage? {
             let format = UIGraphicsImageRendererFormat()
             format.scale = 1
             let renderer = UIGraphicsImageRenderer(size: image.size, format: format)

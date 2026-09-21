@@ -9,7 +9,7 @@ import CoreGraphics
 import Foundation
 import ImageIO
 
-extension CGImage {
+nonisolated extension CGImage {
     /// A copy whose longest side is at most `maxEdge` pixels. Smaller images
     /// come back unchanged. Big photos cost the model time for no extra
     /// accuracy, so we shrink them before sending.
