@@ -28,6 +28,9 @@ struct PillButtonStyle: ButtonStyle {
             .offset(y: pressed ? depth : 0)
             // The edge is added after the offset, so it stays put.
             .background(Capsule().fill(fill.mix(with: .black, by: 0.25)).offset(y: depth))
+            // Flatten first, so the face and edge fade together instead of
+            // showing through each other.
+            .compositingGroup()
             .opacity(isEnabled ? 1 : 0.5)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: pressed)
     }
