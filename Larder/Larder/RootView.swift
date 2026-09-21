@@ -12,6 +12,21 @@ struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var body: some View {
+        #if DEBUG
+        // `-scanPreview yes` (or `empty`) opens the scan confirm screen with sample
+        // results; `-scanPreviewQuery onion` also fills the search box.
+        if let mode = UserDefaults.standard.string(forKey: "scanPreview") {
+            ScanConfirmView(review: .sample(empty: mode == "empty"),
+                            initialQuery: UserDefaults.standard.string(forKey: "scanPreviewQuery") ?? "") {}
+        } else {
+            flow
+        }
+        #else
+        flow
+        #endif
+    }
+
+    private var flow: some View {
         ZStack {
             if hasCompletedOnboarding {
                 ContentView()
