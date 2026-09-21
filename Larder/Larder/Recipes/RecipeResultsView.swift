@@ -14,10 +14,12 @@ struct RecipeResultsView: View {
     /// True when nothing was close, so these are just the easiest to get to.
     var stretched = false
     let diets: Set<Diet>
-    let onCook: (Recipe) -> Void
+    /// Called once the person has cooked a recipe all the way through.
+    let onCooked: (Recipe) -> Void
     let onAddMore: () -> Void
 
     @State private var selected: RecipeMatch?
+    @State private var cooking: Recipe?
     @State private var appeared = false
 
     private var ready: [RecipeMatch] { matches.filter(\.isReady) }
@@ -35,8 +37,20 @@ struct RecipeResultsView: View {
         .sheet(item: $selected) { match in
             RecipeDetailView(match: match, diets: diets) { recipe in
                 selected = nil
-                onCook(recipe)
+                // Let the sheet finish closing before Cook Mode takes over.
+                Task {
+                    try? await Task.sleep(for: .milliseconds(450))
+                    cooking = recipe
+                }
             }
+        }
+        .fullScreenCover(item: $cooking) { recipe in
+            CookModeView(recipe: recipe, diets: diets,
+                         onFinish: {
+                             cooking = nil
+                             onCooked(recipe)
+                         },
+                         onClose: { cooking = nil })
         }
         .onAppear {
             appeared = true

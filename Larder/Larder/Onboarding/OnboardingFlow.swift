@@ -78,7 +78,7 @@ struct OnboardingFlow: View {
             RecipeResultsView(matches: recipeResults.matches,
                               stretched: recipeResults.stretched,
                               diets: answers.diets.items,
-                              onCook: { recipe in
+                              onCooked: { recipe in
                                   answers.firstRecipeID = recipe.id
                                   advance()
                               },
