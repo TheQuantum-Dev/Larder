@@ -19,4 +19,6 @@ final class OnboardingAnswers {
     var pantry: [ResolvedItem] = []
     /// The recipe they picked to cook first.
     var firstRecipeID: String?
+    /// What they chose on the paywall.
+    var paywallOutcome: PaywallView.Outcome?
 }

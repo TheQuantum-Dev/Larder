@@ -17,6 +17,8 @@ struct OnboardingFlow: View {
     @State private var answers = Self.startingAnswers
     @State private var goingBack = false
     @Environment(\.modelContext) private var modelContext
+    @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
+    @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -86,6 +88,24 @@ struct OnboardingFlow: View {
                                   advance()
                               },
                               onAddMore: back)
+        case .commitment:
+            let wantsBudget = answers.priorities.contains(.saveMoney)
+            CommitmentView(offersBudget: wantsBudget,
+                           onSet: { goal, budget in
+                               mealGoal = goal
+                               if wantsBudget { weeklyBudget = budget }
+                               advance()
+                           },
+                           onSkip: advance)
+        case .founderNote:
+            FounderNoteView(onContinue: advance)
+        case .paywall:
+            PaywallView { outcome in
+                answers.paywallOutcome = outcome
+                advance()
+            }
+        case .allSet:
+            AllSetView(outcome: answers.paywallOutcome ?? debugOutcome, onFinish: onFinish)
         }
     }
 
@@ -128,6 +148,14 @@ struct OnboardingFlow: View {
     }
 
     // MARK: - Debug launch options
+
+    /// `-allSetOutcome purchased` previews the thank-you version of the last screen.
+    private var debugOutcome: PaywallView.Outcome {
+        #if DEBUG
+        if UserDefaults.standard.string(forKey: "allSetOutcome") == "purchased" { return .purchased }
+        #endif
+        return .declined
+    }
 
     /// `-onboardingStep diet` opens straight onto a screen (debug builds only).
     private static var startingStep: OnboardingStep {
