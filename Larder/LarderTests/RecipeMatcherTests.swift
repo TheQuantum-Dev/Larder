@@ -98,6 +98,15 @@ struct RecipeMatcherTests {
         #expect(ids == ["one-missing", "two-missing"])
     }
 
+    @Test func whenNothingElseSeparatesThemTheCheaperRecipeComesFirst() {
+        let recipes = [
+            recipe("pricey", lines: [line("avocado", qty: 2)]),
+            recipe("cheap", lines: [line("egg")]),
+        ]
+        let ids = RecipeMatcher.matches(recipes: recipes, pantry: ["avocado", "egg"]).map(\.recipe.id)
+        #expect(ids == ["cheap", "pricey"])
+    }
+
     @Test func savingMoneyPutsTheCheaperRecipeFirst() {
         let recipes = [
             recipe("pricey", lines: [line("avocado", qty: 2)]),
@@ -115,6 +124,28 @@ struct RecipeMatcherTests {
         ]
         let ids = RecipeMatcher.matches(recipes: recipes, pantry: ["egg"], priorities: [.fast]).map(\.recipe.id)
         #expect(ids == ["quick", "slow"])
+    }
+
+    // MARK: - Never a dead end
+
+    @Test func nothingCloseWidensTheSearchInsteadOfShowingNothing() {
+        // Five things missing is too far for the normal search but fine for the wider one.
+        let recipes = [recipe("big", lines: [line("egg"), line("rice"), line("beans"), line("cheese"), line("tomato")])]
+        let result = RecipeMatcher.bestMatches(recipes: recipes, pantry: [])
+        #expect(result.stretched)
+        #expect(result.matches.count == 1)
+    }
+
+    @Test func closeRecipesAreNotStretched() {
+        let recipes = [recipe("easy", lines: [line("egg")])]
+        let result = RecipeMatcher.bestMatches(recipes: recipes, pantry: ["egg"])
+        #expect(!result.stretched)
+        #expect(result.matches.count == 1)
+    }
+
+    @Test func aRealStudentDietStillGetsSomethingWithAnEmptyPantry() {
+        let result = RecipeMatcher.bestMatches(pantry: [], diets: [.vegan, .glutenFree, .nutFree])
+        #expect(!result.matches.isEmpty)
     }
 
     // MARK: - With the real recipes

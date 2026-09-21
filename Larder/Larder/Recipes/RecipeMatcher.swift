@@ -22,7 +22,7 @@ nonisolated struct RecipeMatch: Identifiable, Sendable {
 
 /// Ranks recipes against what's in the pantry. "Ready now" comes first, then
 /// recipes missing only one or two things. Diets are hard rules; priorities
-/// only nudge the order.
+/// only nudge the order, and cheaper meals win any tie.
 nonisolated enum RecipeMatcher {
     static func matches(recipes: [Recipe] = RecipeStore.all,
                         pantry: Set<String>,
@@ -55,8 +55,23 @@ nonisolated enum RecipeMatcher {
             if a.missing.count != b.missing.count { return a.missing.count < b.missing.count }
             let prefA = preference(a, priorities), prefB = preference(b, priorities)
             if prefA != prefB { return prefA < prefB }
+            // Otherwise the cheaper meal first: this is a student budget app.
+            if a.recipe.costPerServing != b.recipe.costPerServing { return a.recipe.costPerServing < b.recipe.costPerServing }
             return a.recipe.title < b.recipe.title
         }
+    }
+
+    /// What to show a person: recipes within a few items of their pantry, or,
+    /// if there are none, the easiest ones to get to, so there is always
+    /// something to look at. `stretched` says which happened.
+    static func bestMatches(recipes: [Recipe] = RecipeStore.all,
+                            pantry: Set<String>,
+                            diets: Set<Diet> = [],
+                            priorities: Set<Priority> = []) -> (matches: [RecipeMatch], stretched: Bool) {
+        let close = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, maxMissing: 3)
+        if !close.isEmpty { return (close, false) }
+        let wider = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, maxMissing: 6)
+        return (wider, !wider.isEmpty)
     }
 
     private static func isAllowed(_ id: String, _ forbidden: DietTraits) -> Bool {
