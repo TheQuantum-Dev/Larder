@@ -5,6 +5,7 @@
 //  Created by Joshua Samuel on 9/21/26.
 //
 
+import SwiftData
 import SwiftUI
 
 /// The few things worth changing after onboarding: what you eat, your weekly
@@ -12,6 +13,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(PurchaseStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var context
 
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
@@ -20,7 +22,10 @@ struct SettingsView: View {
 
     @State private var diets: MultiSelection<Diet>
     @State private var showPaywall = false
+    @State private var showResetConfirm = false
     private let profile: Profile
+
+    private static let repoURL = URL(string: "https://github.com/TheQuantum-Dev/Larder")!
 
     init() {
         let saved = ProfileStore.load()
@@ -58,6 +63,12 @@ struct SettingsView: View {
             var updated = ProfileStore.load()
             updated.diets = newValue.map(\.rawValue).sorted()
             ProfileStore.save(updated)
+        }
+        .alert("Reset all app data?", isPresented: $showResetConfirm) {
+            Button("Reset", role: .destructive) { resetAllData() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This deletes your pantry, cooked meals and preferences, and restarts onboarding. This can't be undone.")
         }
     }
 
@@ -137,18 +148,52 @@ struct SettingsView: View {
 
     private var aboutSection: some View {
         Section("About") {
-            Button("Replay the intro") {
+            Button("Replay onboarding") {
                 hasCompletedOnboarding = false
             }
             .foregroundStyle(Theme.Palette.textPrimary)
             .listRowBackground(Theme.Palette.surface)
 
+            Link(destination: Self.repoURL) {
+                HStack {
+                    Text("View source on GitHub")
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.footnote.bold())
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.4))
+                }
+            }
+            .listRowBackground(Theme.Palette.surface)
+
             LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                 .listRowBackground(Theme.Palette.surface)
-            Text("Larder is open source under the MIT License. Built for the RevenueCat Shipaton.")
+            Text("Larder is open source under the MIT License. Built by Joshua Samuel.")
                 .font(.footnote)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .listRowBackground(Theme.Palette.surface)
+
+            #if DEBUG
+            Button("Reset all app data", role: .destructive) {
+                showResetConfirm = true
+            }
+            .listRowBackground(Theme.Palette.surface)
+            #endif
         }
     }
+
+    #if DEBUG
+    /// Debug-only: wipes the pantry, meal log, saved profile and settings,
+    /// then drops back into onboarding. Never shipped to a release build.
+    private func resetAllData() {
+        PantryRepository.remove(ids: Set(PantryRepository.all(in: context).map(\.ingredientID)), in: context)
+        for meal in MealLog.meals(in: context) { context.delete(meal) }
+        try? context.save()
+        ProfileStore.save(Profile())
+        mealGoal = 0
+        weeklyBudget = 0
+        orderOutPrice = AppSettings.defaultOrderOutPrice
+        hasCompletedOnboarding = false
+    }
+    #endif
 }
