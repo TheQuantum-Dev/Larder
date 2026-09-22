@@ -66,5 +66,9 @@ final class PurchaseStore {
 
     private func apply(_ info: CustomerInfo) {
         isPlusActive = info.entitlements[RevenueCatConfig.entitlementID]?.isActive == true
+        #if DEBUG
+        // `-forcePlus YES` pretends Plus is on, to look at paid screens without buying.
+        if UserDefaults.standard.bool(forKey: "forcePlus") { isPlusActive = true }
+        #endif
     }
 }
