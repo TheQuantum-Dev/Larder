@@ -70,7 +70,8 @@
         "timer": 180
       }
     ],
-    "tip": "Cold, day-old rice fries up fluffier than fresh."
+    "tip": "Cold, day-old rice fries up fluffier than fresh.",
+    "healthy": true
   },
   {
     "id": "loaded-ramen",
@@ -126,7 +127,8 @@
         "timer": 30
       }
     ],
-    "tip": "Half the seasoning packet is plenty. It's very salty."
+    "tip": "Half the seasoning packet is plenty. It's very salty.",
+    "healthy": false
   },
   {
     "id": "pb-banana-toast",
@@ -172,7 +174,8 @@
         "text": "Slice the banana on top and add a drizzle of honey if you like."
       }
     ],
-    "tip": "Warm toast melts the peanut butter, so spread it right away."
+    "tip": "Warm toast melts the peanut butter, so spread it right away.",
+    "healthy": false
   },
   {
     "id": "cheesy-egg-toast",
@@ -223,7 +226,8 @@
         "timer": 30
       }
     ],
-    "tip": "Low heat keeps scrambled eggs soft instead of rubbery."
+    "tip": "Low heat keeps scrambled eggs soft instead of rubbery.",
+    "healthy": false
   },
   {
     "id": "grilled-cheese",
@@ -264,7 +268,8 @@
         "timer": 120
       }
     ],
-    "tip": "Medium heat, not high, so the cheese melts before the bread burns."
+    "tip": "Medium heat, not high, so the cheese melts before the bread burns.",
+    "healthy": false
   },
   {
     "id": "simple-tomato-pasta",
@@ -322,7 +327,8 @@
         "text": "Top with cheese if you have it."
       }
     ],
-    "tip": "A splash of the starchy pasta water makes the sauce cling."
+    "tip": "A splash of the starchy pasta water makes the sauce cling.",
+    "healthy": false
   },
   {
     "id": "garlic-oil-pasta",
@@ -379,7 +385,8 @@
         "timer": 60
       }
     ],
-    "tip": "Low and slow with the garlic. Burnt garlic can't be fixed."
+    "tip": "Low and slow with the garlic. Burnt garlic can't be fixed.",
+    "healthy": false
   },
   {
     "id": "bean-cheese-quesadilla",
@@ -426,7 +433,8 @@
         "timer": 150
       }
     ],
-    "tip": "Press down gently with a spatula so it crisps evenly."
+    "tip": "Press down gently with a spatula so it crisps evenly.",
+    "healthy": true
   },
   {
     "id": "black-bean-rice-bowl",
@@ -488,7 +496,8 @@
         "text": "Pile the rice into a bowl, add the beans and salsa, and top with anything else you have."
       }
     ],
-    "tip": "Rice and beans together make a complete, very cheap meal."
+    "tip": "Rice and beans together make a complete, very cheap meal.",
+    "healthy": true
   },
   {
     "id": "veggie-stir-fry",
@@ -565,7 +574,8 @@
         "timer": 60
       }
     ],
-    "tip": "Cut everything to a similar size so it all cooks at the same speed."
+    "tip": "Cut everything to a similar size so it all cooks at the same speed.",
+    "healthy": true
   },
   {
     "id": "microwave-oatmeal",
@@ -623,7 +633,8 @@
         "timer": 45
       }
     ],
-    "tip": "Use oven mitts. The bowl gets very hot."
+    "tip": "Use oven mitts. The bowl gets very hot.",
+    "healthy": true
   },
   {
     "id": "yogurt-fruit-parfait",
@@ -677,7 +688,8 @@
         "text": "Finish with a drizzle of honey if you like."
       }
     ],
-    "tip": "Add the cereal last so it stays crunchy."
+    "tip": "Add the cereal last so it stays crunchy.",
+    "healthy": true
   },
   {
     "id": "veggie-omelette",
@@ -740,7 +752,8 @@
         "timer": 60
       }
     ],
-    "tip": "Don't crank the heat. Medium keeps the outside from browning too fast."
+    "tip": "Don't crank the heat. Medium keeps the outside from browning too fast.",
+    "healthy": true
   },
   {
     "id": "chicken-rice-skillet",
@@ -810,7 +823,8 @@
         "timer": 300
       }
     ],
-    "tip": "It makes two servings. The second one reheats well in the microwave."
+    "tip": "It makes two servings. The second one reheats well in the microwave.",
+    "healthy": true
   },
   {
     "id": "chicken-salad-wrap",
@@ -862,7 +876,8 @@
         "text": "Layer the lettuce, chicken, and tomato on the tortilla, fold in the sides, and roll it up tight."
       }
     ],
-    "tip": "Tuck the ends in first so nothing falls out."
+    "tip": "Tuck the ends in first so nothing falls out.",
+    "healthy": true
   },
   {
     "id": "tuna-melt",
@@ -915,7 +930,8 @@
         "timer": 30
       }
     ],
-    "tip": "Squeeze the tuna dry so the toast doesn't go soggy."
+    "tip": "Squeeze the tuna dry so the toast doesn't go soggy.",
+    "healthy": false
   },
   {
     "id": "tuna-pasta",
@@ -973,7 +989,8 @@
         "text": "Season with salt and pepper and eat it warm or cold."
       }
     ],
-    "tip": "It's just as good cold, so pack the leftovers for lunch."
+    "tip": "It's just as good cold, so pack the leftovers for lunch.",
+    "healthy": true
   },
   {
     "id": "lentil-soup",
@@ -1039,7 +1056,8 @@
         "text": "Season with salt and pepper. Add a splash of water if it's too thick."
       }
     ],
-    "tip": "Tastes even better the next day and keeps in the fridge for 4 days."
+    "tip": "Tastes even better the next day and keeps in the fridge for 4 days.",
+    "healthy": true
   },
   {
     "id": "bean-chili",
@@ -1111,7 +1129,8 @@
         "timer": 900
       }
     ],
-    "tip": "Top it with cheese or a spoon of yogurt if you have some."
+    "tip": "Top it with cheese or a spoon of yogurt if you have some.",
+    "healthy": true
   },
   {
     "id": "potato-egg-hash",
@@ -1170,7 +1189,8 @@
         "timer": 240
       }
     ],
-    "tip": "Microwaving first means the potato browns fast without burning."
+    "tip": "Microwaving first means the potato browns fast without burning.",
+    "healthy": true
   },
   {
     "id": "loaded-microwave-potato",
@@ -1228,7 +1248,8 @@
         "timer": 30
       }
     ],
-    "tip": "Pricking the skin lets steam escape. Skip that and it can burst."
+    "tip": "Pricking the skin lets steam escape. Skip that and it can burst.",
+    "healthy": false
   },
   {
     "id": "avocado-egg-toast",
@@ -1286,7 +1307,8 @@
         "text": "Mash the avocado with a pinch of salt (and lemon), spread it on the toast, and top with the egg."
       }
     ],
-    "tip": "A ripe avocado gives slightly when you squeeze it."
+    "tip": "A ripe avocado gives slightly when you squeeze it.",
+    "healthy": true
   },
   {
     "id": "hummus-veggie-wrap",
@@ -1335,7 +1357,8 @@
         "text": "Cut in half and eat."
       }
     ],
-    "tip": "A thin layer of hummus on the edge helps it stick shut."
+    "tip": "A thin layer of hummus on the edge helps it stick shut.",
+    "healthy": true
   },
   {
     "id": "banana-oat-pancakes",
@@ -1382,7 +1405,8 @@
         "timer": 120
       }
     ],
-    "tip": "Keep them small. They're fragile and flip more easily."
+    "tip": "Keep them small. They're fragile and flip more easily.",
+    "healthy": false
   },
   {
     "id": "stovetop-mac-cheese",
@@ -1428,7 +1452,8 @@
         "text": "Season with pepper and eat right away."
       }
     ],
-    "tip": "Grate the cheese yourself. It melts smoother than pre-shredded."
+    "tip": "Grate the cheese yourself. It melts smoother than pre-shredded.",
+    "healthy": false
   },
   {
     "id": "peanut-noodles",
@@ -1483,7 +1508,8 @@
         "text": "Toss the noodles in the sauce and top with cucumber."
       }
     ],
-    "tip": "If the sauce is too thick, add hot water a spoonful at a time."
+    "tip": "If the sauce is too thick, add hot water a spoonful at a time.",
+    "healthy": false
   },
   {
     "id": "eggs-in-tomato-sauce",
@@ -1541,7 +1567,8 @@
         "timer": 330
       }
     ],
-    "tip": "Dip bread into it. That's the best part."
+    "tip": "Dip bread into it. That's the best part.",
+    "healthy": true
   },
   {
     "id": "sausage-pepper-pasta",
@@ -1603,7 +1630,8 @@
         "text": "Toss with the drained pasta (and the sauce, if using). Wash your hands after handling raw sausage."
       }
     ],
-    "tip": "The sausage fat is your cooking oil here, so you don't need to add any."
+    "tip": "The sausage fat is your cooking oil here, so you don't need to add any.",
+    "healthy": false
   },
   {
     "id": "tofu-scramble",
@@ -1664,7 +1692,8 @@
         "timer": 60
       }
     ],
-    "tip": "A pinch of turmeric turns it golden, just like scrambled egg."
+    "tip": "A pinch of turmeric turns it golden, just like scrambled egg.",
+    "healthy": true
   },
   {
     "id": "chickpea-salad-sandwich",
@@ -1717,6 +1746,7 @@
         "text": "Spread it on one slice of bread, top with the other, and cut in half."
       }
     ],
-    "tip": "It keeps in the fridge for 3 days, so make extra for tomorrow."
+    "tip": "It keeps in the fridge for 3 days, so make extra for tomorrow.",
+    "healthy": true
   }
 ]

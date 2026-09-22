@@ -55,6 +55,9 @@ nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
     let steps: [RecipeStep]
     /// One friendly line from Nutmeg.
     let tip: String
+    /// A rough, hand-picked call, not a nutrition calculation: vegetable- or
+    /// lean-protein-forward and light on butter, cheese and refined carbs.
+    let healthy: Bool
 
     /// What a diet could object to, worked out from the required ingredients
     /// rather than typed in by hand, so a label can't be wrong.
