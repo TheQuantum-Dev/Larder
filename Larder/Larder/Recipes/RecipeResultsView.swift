@@ -14,6 +14,8 @@ struct RecipeResultsView: View {
     /// True when nothing was close, so these are just the easiest to get to.
     var stretched = false
     let diets: Set<Diet>
+    var priorities: Set<Priority> = []
+    var cooking: Set<CookingConfidence> = []
     /// Called once the person has cooked a recipe all the way through.
     let onCooked: (Recipe) -> Void
     let onAddMore: () -> Void
@@ -128,7 +130,8 @@ struct RecipeResultsView: View {
                 .font(.headline)
                 .foregroundStyle(Theme.Palette.textPrimary)
             ForEach(Array(items.enumerated()), id: \.element.id) { offset, match in
-                RecipeCard(match: match) { selected = match }
+                let badges = RecipeBadges.reasons(for: match, priorities: priorities, cooking: cooking)
+                RecipeCard(match: match, badges: badges) { selected = match }
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : 30)
                     .animation(.spring(response: 0.55, dampingFraction: 0.75)

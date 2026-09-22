@@ -11,6 +11,9 @@ import SwiftUI
 /// pantry already covers it.
 struct RecipeCard: View {
     let match: RecipeMatch
+    /// Short "picked for you" reasons, worked out from onboarding answers.
+    /// Empty when nothing stands out, or when the caller has no profile to draw from.
+    var badges: [String] = []
     let action: () -> Void
 
     private var recipe: Recipe { match.recipe }
@@ -31,6 +34,9 @@ struct RecipeCard: View {
                     Text(details)
                         .font(.subheadline)
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    if !badges.isEmpty {
+                        badgeRow
+                    }
                     status
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -67,6 +73,19 @@ struct RecipeCard: View {
                 .font(.footnote)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .multilineTextAlignment(.leading)
+        }
+    }
+
+    private var badgeRow: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            ForEach(badges, id: \.self) { badge in
+                Text(badge)
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    .padding(.horizontal, Theme.Spacing.xs)
+                    .frame(minHeight: 20)
+                    .background(Theme.Palette.background, in: Capsule())
+            }
         }
     }
 

@@ -18,6 +18,8 @@ struct InsightsView: View {
 
     let matches: [RecipeMatch]
     let diets: Set<Diet>
+    var priorities: Set<Priority> = []
+    var cooking: Set<CookingConfidence> = []
 
     @State private var selected: RecipeMatch?
     @State private var showPaywall = false
@@ -163,7 +165,8 @@ struct InsightsView: View {
                 ? Array(matches.sorted { $0.recipe.costPerServing < $1.recipe.costPerServing }.prefix(3))
                 : picks
             ForEach(shown) { match in
-                RecipeCard(match: match) { selected = match }
+                let badges = RecipeBadges.reasons(for: match, priorities: priorities, cooking: cooking)
+                RecipeCard(match: match, badges: badges) { selected = match }
             }
         }
     }

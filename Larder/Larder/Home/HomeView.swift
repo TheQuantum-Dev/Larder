@@ -28,7 +28,8 @@ struct HomeView: View {
     private var pantryIDs: Set<String> { Set(pantry.map(\.ingredientID)) }
 
     private var results: (matches: [RecipeMatch], stretched: Bool) {
-        RecipeMatcher.bestMatches(pantry: pantryIDs, diets: profile.dietSet, priorities: profile.prioritySet)
+        RecipeMatcher.bestMatches(pantry: pantryIDs, diets: profile.dietSet,
+                                  priorities: profile.prioritySet, cooking: profile.cookingSet)
     }
 
     var body: some View {
@@ -57,7 +58,8 @@ struct HomeView: View {
             }
             .navigationDestination(isPresented: $showAllRecipes) {
                 RecipeResultsView(matches: results.matches, stretched: results.stretched,
-                                  diets: profile.dietSet, onCooked: { _ in },
+                                  diets: profile.dietSet, priorities: profile.prioritySet, cooking: profile.cookingSet,
+                                  onCooked: { _ in },
                                   onAddMore: { showAllRecipes = false; showScan = true })
             }
         }
@@ -73,7 +75,8 @@ struct HomeView: View {
             .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showInsights) {
-            InsightsView(matches: results.matches, diets: profile.dietSet)
+            InsightsView(matches: results.matches, diets: profile.dietSet,
+                        priorities: profile.prioritySet, cooking: profile.cookingSet)
         }
         .sheet(isPresented: $showSettings, onDismiss: { profile = ProfileStore.load() }) {
             SettingsView()
@@ -192,7 +195,8 @@ struct HomeView: View {
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
             }
             ForEach(results.matches.prefix(3)) { match in
-                RecipeCard(match: match) { selected = match }
+                let badges = RecipeBadges.reasons(for: match, priorities: profile.prioritySet, cooking: profile.cookingSet)
+                RecipeCard(match: match, badges: badges) { selected = match }
             }
         }
     }
