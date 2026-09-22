@@ -12,14 +12,17 @@ import SwiftUI
 /// things to cook right now, and the pantry itself.
 struct HomeView: View {
     @Environment(\.modelContext) private var context
+    @Environment(PurchaseStore.self) private var store
     @Query(sort: \PantryItem.addedAt) private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
+    @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
 
     @State private var profile = ProfileStore.load()
     @State private var selected: RecipeMatch?
     @State private var showScan = Self.launchedWith("openScan")
     @State private var showSettings = Self.launchedWith("openSettings")
+    @State private var showInsights = Self.launchedWith("openInsights")
     @State private var showAllRecipes = false
 
     private var pantryIDs: Set<String> { Set(pantry.map(\.ingredientID)) }
@@ -34,6 +37,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     nutmegCard
                     progressCard
+                    insightsEntry
                     cookSection
                     pantrySection
                 }
@@ -67,6 +71,9 @@ struct HomeView: View {
                 }
             }
             .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showInsights) {
+            InsightsView(matches: results.matches, diets: profile.dietSet)
         }
         .sheet(isPresented: $showSettings, onDismiss: { profile = ProfileStore.load() }) {
             SettingsView()
@@ -130,6 +137,47 @@ struct HomeView: View {
         }
     }
 
+    // MARK: - Budget insights
+
+    private var insightsEntry: some View {
+        Button { showInsights = true } label: {
+            HStack(spacing: Theme.Spacing.s) {
+                Image(systemName: "chart.bar.fill")
+                    .font(.title3)
+                    .foregroundStyle(Theme.Palette.amber)
+                    .frame(width: 30)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Budget insights")
+                        .font(.headline)
+                    Text(insightsSubtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                }
+                Spacer()
+                if store.isPlusActive {
+                    Image(systemName: "chevron.right")
+                        .font(.footnote.bold())
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.4))
+                } else {
+                    Label("Plus", systemImage: "lock.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                }
+            }
+            .foregroundStyle(Theme.Palette.textPrimary)
+            .padding(Theme.Spacing.s)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var insightsSubtitle: String {
+        guard store.isPlusActive else { return "What your cooking costs and saves" }
+        let insights = BudgetInsights.compute(from: meals, budget: weeklyBudget)
+        return insights.standingHeadline ?? "What your cooking costs and saves"
+    }
+
     // MARK: - Cook something
 
     private var cookSection: some View {
@@ -190,7 +238,7 @@ struct HomeView: View {
 
     // MARK: - Debug
 
-    /// `-openSettings YES` or `-openScan YES` opens that sheet on launch (debug builds only).
+    /// `-openSettings YES`, `-openScan YES` or `-openInsights YES` opens that sheet on launch (debug builds only).
     private static func launchedWith(_ key: String) -> Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: key)
