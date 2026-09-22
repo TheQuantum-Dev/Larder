@@ -83,6 +83,8 @@ struct OnboardingFlow: View {
             RecipeResultsView(matches: recipeResults.matches,
                               stretched: recipeResults.stretched,
                               diets: answers.diets.items,
+                              priorities: answers.priorities.items,
+                              cooking: answers.cooking.items,
                               onCooked: { recipe in
                                   answers.firstRecipeID = recipe.id
                                   advance()
@@ -118,7 +120,8 @@ struct OnboardingFlow: View {
         #endif
         return RecipeMatcher.bestMatches(pantry: Set(answers.pantry.map(\.id)),
                                          diets: answers.diets.items,
-                                         priorities: answers.priorities.items)
+                                         priorities: answers.priorities.items,
+                                         cooking: answers.cooking.items)
     }
 
     /// Saves what the person told us, so recipes stay matched to them, then

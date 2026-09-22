@@ -25,12 +25,14 @@ struct ProfileTests {
         let loaded = ProfileStore.load(from: defaults)
         #expect(loaded == profile)
         #expect(loaded.dietSet == [.vegetarian, .glutenFree])
+        #expect(loaded.cookingSet == [.followRecipe])
         #expect(loaded.prioritySet == [.saveMoney, .fast])
     }
 
     @Test func nothingSavedMeansNoRestrictions() {
         let loaded = ProfileStore.load(from: freshDefaults())
         #expect(loaded.dietSet.isEmpty)
+        #expect(loaded.cookingSet.isEmpty)
         #expect(loaded.prioritySet.isEmpty)
     }
 

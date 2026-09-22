@@ -16,9 +16,10 @@ struct RecipeMatcherTests {
     }
 
     /// A tiny recipe for testing rules without depending on the bundled data.
-    private func recipe(_ id: String, minutes: Int = 10, lines: [RecipeIngredient]) -> Recipe {
-        Recipe(id: id, title: id, emoji: "🍽️", minutes: minutes, servings: 1, equipment: [],
-               ingredients: lines, steps: [RecipeStep(text: "Cook it.", timer: nil)], tip: "Enjoy.")
+    private func recipe(_ id: String, minutes: Int = 10, equipment: [Equipment] = [],
+                        healthy: Bool = false, lines: [RecipeIngredient]) -> Recipe {
+        Recipe(id: id, title: id, emoji: "🍽️", minutes: minutes, servings: 1, equipment: equipment,
+               ingredients: lines, steps: [RecipeStep(text: "Cook it.", timer: nil)], tip: "Enjoy.", healthy: healthy)
     }
 
     private func line(_ id: String, qty: Double = 1, optional: Bool? = nil, alt: [String]? = nil) -> RecipeIngredient {
@@ -124,6 +125,39 @@ struct RecipeMatcherTests {
         ]
         let ids = RecipeMatcher.matches(recipes: recipes, pantry: ["egg"], priorities: [.fast]).map(\.recipe.id)
         #expect(ids == ["quick", "slow"])
+    }
+
+    @Test func wantingToEatHealthierPutsTheHealthierRecipeFirst() {
+        let recipes = [
+            recipe("treat", healthy: false, lines: [line("egg")]),
+            recipe("balanced", healthy: true, lines: [line("cheese")]),
+        ]
+        let pantry: Set<String> = ["egg", "cheese"]
+        let ids = RecipeMatcher.matches(recipes: recipes, pantry: pantry, priorities: [.eatHealthier]).map(\.recipe.id)
+        #expect(ids == ["balanced", "treat"])
+        // Without that priority, cost still decides, so cheese-only wins on price alone.
+        let unranked = RecipeMatcher.matches(recipes: recipes, pantry: pantry).map(\.recipe.id)
+        #expect(unranked == ["treat", "balanced"])
+    }
+
+    @Test func microwaveOnlyCooksGetStoveFreeRecipesFirst() {
+        let recipes = [
+            recipe("stovetop", equipment: [.pan], lines: [line("egg")]),
+            recipe("noStove", equipment: [.microwave], lines: [line("egg")]),
+        ]
+        let ids = RecipeMatcher.matches(recipes: recipes, pantry: ["egg"], cooking: [.microwave]).map(\.recipe.id)
+        #expect(ids == ["noStove", "stovetop"])
+    }
+
+    @Test func sayingYouCanImproviseCancelsTheMicrowaveOnlyNudge() {
+        let recipes = [
+            recipe("stovetop", equipment: [.pan], lines: [line("egg")]),
+            recipe("noStove", equipment: [.microwave], lines: [line("egg")]),
+        ]
+        let ids = RecipeMatcher.matches(recipes: recipes, pantry: ["egg"], cooking: [.microwave, .improvise]).map(\.recipe.id)
+        // Same cost, and the equipment nudge no longer applies, so the id
+        // (which doubles as the title here) breaks the tie alphabetically.
+        #expect(ids == ["noStove", "stovetop"])
     }
 
     // MARK: - Never a dead end

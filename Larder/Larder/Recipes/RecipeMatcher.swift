@@ -22,12 +22,14 @@ nonisolated struct RecipeMatch: Identifiable, Sendable {
 
 /// Ranks recipes against what's in the pantry. "Ready now" comes first, then
 /// recipes missing only one or two things. Diets are hard rules; priorities
-/// only nudge the order, and cheaper meals win any tie.
+/// and cooking confidence only nudge the order from there, and cheaper meals
+/// win any tie.
 nonisolated enum RecipeMatcher {
     static func matches(recipes: [Recipe] = RecipeStore.all,
                         pantry: Set<String>,
                         diets: Set<Diet> = [],
                         priorities: Set<Priority> = [],
+                        cooking: Set<CookingConfidence> = [],
                         maxMissing: Int = 3) -> [RecipeMatch] {
         let forbidden = Diet.forbiddenTraits(for: diets)
         var result: [RecipeMatch] = []
@@ -53,7 +55,7 @@ nonisolated enum RecipeMatcher {
         return result.sorted { a, b in
             if a.isReady != b.isReady { return a.isReady }
             if a.missing.count != b.missing.count { return a.missing.count < b.missing.count }
-            let prefA = preference(a, priorities), prefB = preference(b, priorities)
+            let prefA = preference(a, priorities, cooking), prefB = preference(b, priorities, cooking)
             if prefA != prefB { return prefA < prefB }
             // Otherwise the cheaper meal first: this is a student budget app.
             if a.recipe.costPerServing != b.recipe.costPerServing { return a.recipe.costPerServing < b.recipe.costPerServing }
@@ -67,10 +69,11 @@ nonisolated enum RecipeMatcher {
     static func bestMatches(recipes: [Recipe] = RecipeStore.all,
                             pantry: Set<String>,
                             diets: Set<Diet> = [],
-                            priorities: Set<Priority> = []) -> (matches: [RecipeMatch], stretched: Bool) {
-        let close = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, maxMissing: 3)
+                            priorities: Set<Priority> = [],
+                            cooking: Set<CookingConfidence> = []) -> (matches: [RecipeMatch], stretched: Bool) {
+        let close = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, cooking: cooking, maxMissing: 3)
         if !close.isEmpty { return (close, false) }
-        let wider = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, maxMissing: 6)
+        let wider = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, cooking: cooking, maxMissing: 6)
         return (wider, !wider.isEmpty)
     }
 
@@ -79,11 +82,18 @@ nonisolated enum RecipeMatcher {
     }
 
     /// Lower is better.
-    private static func preference(_ match: RecipeMatch, _ priorities: Set<Priority>) -> Double {
+    private static func preference(_ match: RecipeMatch, _ priorities: Set<Priority>,
+                                   _ cooking: Set<CookingConfidence>) -> Double {
         var score = 0.0
         if priorities.contains(.saveMoney) { score += match.recipe.costPerServing }
         if priorities.contains(.fast) { score += Double(match.recipe.minutes) / 10 }
         if priorities.contains(.cutWaste) { score -= Double(match.haveCount) * 0.25 }
+        if priorities.contains(.eatHealthier) && !match.recipe.healthy { score += 1.5 }
+        // "Mostly microwave and toaster" rules out the stove, unless they also
+        // said they're comfortable improvising.
+        if cooking.contains(.microwave) && !cooking.contains(.improvise) && !match.recipe.needsNoStove {
+            score += 1.5
+        }
         return score
     }
 }

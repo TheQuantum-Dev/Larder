@@ -24,6 +24,7 @@ nonisolated struct Profile: Codable, Equatable, Sendable {
     }
 
     var dietSet: Set<Diet> { Set(diets.compactMap(Diet.init(rawValue:))) }
+    var cookingSet: Set<CookingConfidence> { Set(cooking.compactMap(CookingConfidence.init(rawValue:))) }
     var prioritySet: Set<Priority> { Set(priorities.compactMap(Priority.init(rawValue:))) }
 }
 
