@@ -15,6 +15,9 @@ struct SynthesisView: View {
 
     @Namespace private var namespace
     @State private var assembled = false
+    /// Drives the scattered chips popping in, right as the screen appears,
+    /// so nothing sits static before the fly-together.
+    @State private var appeared = false
 
     private struct Chip: Identifiable {
         let id: String
@@ -47,9 +50,13 @@ struct SynthesisView: View {
                     planCard
                 } else {
                     ScatterLayout(height: 300) {
-                        ForEach(eats + cooks + cares) { chip in
+                        ForEach(Array((eats + cooks + cares).enumerated()), id: \.element.id) { index, chip in
                             chipView(chip)
                                 .matchedGeometryEffect(id: chip.id, in: namespace)
+                                .opacity(appeared ? 1 : 0)
+                                .scaleEffect(appeared ? 1 : 0.4)
+                                .animation(.spring(response: 0.45, dampingFraction: 0.7)
+                                    .delay(Double(min(index, 6)) * 0.05), value: appeared)
                         }
                     }
                 }
@@ -70,7 +77,10 @@ struct SynthesisView: View {
                 .background(Theme.Palette.background)
         }
         .task {
-            try? await Task.sleep(for: .milliseconds(700))
+            // The chips pop in immediately; give them just long enough to
+            // land before flying together, so nothing sits static in between.
+            appeared = true
+            try? await Task.sleep(for: .milliseconds(550))
             withAnimation(.spring(response: 0.9, dampingFraction: 0.72)) {
                 assembled = true
             }
