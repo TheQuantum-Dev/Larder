@@ -62,6 +62,17 @@ final class TryItModel {
         phase = .review(.manual())
     }
 
+    /// Barcode results skip the scan entirely: a barcode already names the
+    /// exact product, so there's nothing to run Vision or the model on.
+    /// They still land on the same confirm screen, all pre-checked.
+    func foundByBarcode(_ items: [ResolvedItem]) {
+        scanTask?.cancel()
+        problem = nil
+        let review = ScanReview.manual()
+        for item in items { review.add(item) }
+        phase = .review(review)
+    }
+
     func photoUnusable() {
         scanTask?.cancel()
         problem = "I couldn't open that photo. Want to try another?"

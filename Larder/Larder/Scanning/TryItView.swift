@@ -18,6 +18,7 @@ struct TryItView: View {
     @State private var model = TryItModel()
     @State private var pickerItem: PhotosPickerItem?
     @State private var showCamera = false
+    @State private var showBarcodeScanner = false
 
     var body: some View {
         ZStack {
@@ -49,6 +50,15 @@ struct TryItView: View {
                 if let image { model.begin(with: image) }
             }
             .ignoresSafeArea()
+        }
+        .fullScreenCover(isPresented: $showBarcodeScanner) {
+            BarcodeScanView(
+                onFinish: { items in
+                    showBarcodeScanner = false
+                    model.foundByBarcode(items)
+                },
+                onCancel: { showBarcodeScanner = false })
+                .ignoresSafeArea()
         }
     }
 
@@ -91,6 +101,13 @@ struct TryItView: View {
                     Text(CameraPicker.isAvailable ? "Choose from your photos" : "Choose a photo")
                 }
                 .buttonStyle(PillButtonStyle(fill: CameraPicker.isAvailable ? Theme.Palette.softAmber : Theme.Palette.amber))
+
+                if BarcodeScannerView.isAvailable {
+                    Button("Scan a barcode instead") { showBarcodeScanner = true }
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                        .frame(minHeight: 44)
+                }
 
                 Button("I'll add things by hand") { model.startByHand() }
                     .font(.body.weight(.semibold))
