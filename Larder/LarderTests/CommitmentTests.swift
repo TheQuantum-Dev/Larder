@@ -37,17 +37,23 @@ struct OnboardingStepTests {
     @Test func theEndingScreensStandAloneWithoutAProgressBar() {
         #expect(!OnboardingStep.welcome.showsProgress)
         #expect(!OnboardingStep.paywall.showsProgress)
+        #expect(!OnboardingStep.notifications.showsProgress)
         #expect(!OnboardingStep.allSet.showsProgress)
         #expect(OnboardingStep.commitment.showsProgress)
         #expect(OnboardingStep.founderNote.showsProgress)
     }
 
     @Test func theFlowIsInTheDesignedOrder() {
-        let tail = Array(OnboardingStep.allCases.suffix(6))
-        #expect(tail == [.tryIt, .recipes, .commitment, .founderNote, .paywall, .allSet])
+        let tail = Array(OnboardingStep.allCases.suffix(7))
+        #expect(tail == [.tryIt, .recipes, .commitment, .founderNote, .paywall, .notifications, .allSet])
     }
 
     @Test func theFounderNoteComesRightBeforeThePaywall() {
         #expect(OnboardingStep.founderNote.next == .paywall)
+    }
+
+    @Test func notificationsAreAskedAboutAfterThePaywallNotBefore() {
+        #expect(OnboardingStep.paywall.next == .notifications)
+        #expect(OnboardingStep.notifications.next == .allSet)
     }
 }

@@ -106,6 +106,8 @@ struct OnboardingFlow: View {
                 answers.paywallOutcome = outcome
                 advance()
             }
+        case .notifications:
+            NotificationPreScreen(onContinue: advance)
         case .allSet:
             AllSetView(outcome: answers.paywallOutcome ?? debugOutcome, onFinish: finish)
         }
