@@ -40,8 +40,8 @@ struct CommitmentView: View {
             .padding(.top, Theme.Spacing.xs)
             .background(Theme.Palette.background)
         }
-        .sensoryFeedback(.selection, trigger: goal)
-        .sensoryFeedback(.selection, trigger: budget)
+        .tapFeedback(goal)
+        .tapFeedback(budget)
     }
 
     // MARK: - Pieces

@@ -40,7 +40,7 @@ struct BarcodeScanView: View {
             }
             .padding(Theme.Spacing.s)
         }
-        .sensoryFeedback(.selection, trigger: found.count)
+        .tapFeedback(found.count)
     }
 
     private var topBar: some View {

@@ -34,8 +34,9 @@ struct PaywallView: View {
         // Buy and "not now" stay on screen; only the details above scroll.
         .safeAreaInset(edge: .bottom) { actions }
         .background(Theme.Palette.background.ignoresSafeArea())
-        .sensoryFeedback(.impact(flexibility: .soft), trigger: tapCount)
-        .sensoryFeedback(.selection, trigger: selection)
+        .sensoryFeedback(.impact(flexibility: .solid), trigger: tapCount)
+        .onChange(of: tapCount) { _, _ in SoundPlayer.tap() }
+        .tapFeedback(selection)
         .alert("That didn't go through", isPresented: errorBinding) {
             Button("OK", role: .cancel) {}
         } message: {

@@ -237,7 +237,7 @@ struct HomeView: View {
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))
             }
         }
-        .sensoryFeedback(.selection, trigger: pantry.count)
+        .tapFeedback(pantry.count)
     }
 
     // MARK: - Debug

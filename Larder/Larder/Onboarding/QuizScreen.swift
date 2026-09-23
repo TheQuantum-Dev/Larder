@@ -52,7 +52,7 @@ struct QuizScreen<Option: QuizOption>: View {
                 .background(Theme.Palette.background)
         }
         // A light tick on every tap, select or deselect.
-        .sensoryFeedback(.selection, trigger: selection.items)
+        .tapFeedback(selection.items)
     }
 }
 

@@ -61,7 +61,7 @@ struct ScanConfirmView: View {
         }
         .background(Theme.Palette.background.ignoresSafeArea())
         // A light tick whenever something is checked or unchecked.
-        .sensoryFeedback(.selection, trigger: review.checked)
+        .tapFeedback(review.checked)
     }
 
     // MARK: - Pieces

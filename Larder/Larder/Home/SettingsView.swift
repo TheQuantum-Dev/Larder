@@ -91,7 +91,7 @@ struct SettingsView: View {
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .listRowBackground(Theme.Palette.surface)
         }
-        .sensoryFeedback(.selection, trigger: diets.items)
+        .tapFeedback(diets.items)
     }
 
     private var goalSection: some View {
