@@ -44,8 +44,9 @@ struct CookModeView: View {
         }
         .background(Theme.Palette.background.ignoresSafeArea())
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: session.phase)
-        // A timer going off gets its own buzz, different from a tap.
+        // A timer going off gets its own buzz and chime, different from a tap.
         .sensoryFeedback(.warning, trigger: session.finishedCount)
+        .onChange(of: session.finishedCount) { _, _ in SoundPlayer.timerDone() }
         .alert("Stop cooking?", isPresented: $confirmingExit) {
             Button("Keep cooking", role: .cancel) {}
             Button("Stop", role: .destructive) { onClose() }
@@ -240,8 +241,8 @@ private struct GatherView: View {
                 .padding(.top, Theme.Spacing.xs)
                 .background(Theme.Palette.background)
         }
-        .sensoryFeedback(.selection, trigger: session.checkedEquipment)
-        .sensoryFeedback(.selection, trigger: session.checkedIngredients)
+        .tapFeedback(session.checkedEquipment)
+        .tapFeedback(session.checkedIngredients)
     }
 
     private func group<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -291,29 +292,39 @@ private struct StepView: View {
     private var isLast: Bool { index == session.stepCount - 1 }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                OtherTimersStrip(session: session)
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+                    OtherTimersStrip(session: session)
 
-                Text("Step \(index + 1) of \(session.stepCount)")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    Text("Step \(index + 1) of \(session.stepCount)")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
 
-                Text(step.text)
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    Text(step.text)
+                        .font(.title2.weight(.semibold))
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                if session.timers[index] != nil {
-                    TimerPanel(session: session, step: index)
+                    if session.timers[index] != nil {
+                        TimerPanel(session: session, step: index)
+                    } else {
+                        // Timer steps already fill the screen with the dial;
+                        // a quiet step gets the preview, then Nutmeg keeps
+                        // the rest of the screen from sitting empty.
+                        if index + 1 < session.stepCount {
+                            NextUpCard(text: session.recipe.steps[index + 1].text)
+                        }
+                        Spacer(minLength: Theme.Spacing.m)
+                        NutmegView(mood: .idle)
+                            .frame(height: 150)
+                            .frame(maxWidth: .infinity)
+                        Spacer(minLength: 0)
+                    }
                 }
-
-                // Timer steps already fill the screen, so the preview is for the quieter ones.
-                if session.timers[index] == nil, index + 1 < session.stepCount {
-                    NextUpCard(text: session.recipe.steps[index + 1].text)
-                }
+                .padding(Theme.Spacing.s)
+                .frame(minHeight: proxy.size.height, alignment: .top)
             }
-            .padding(Theme.Spacing.s)
         }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: Theme.Spacing.s) {

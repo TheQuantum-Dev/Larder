@@ -77,11 +77,14 @@ struct MadeItView: View {
                 .padding(.top, Theme.Spacing.xs)
                 .background(Theme.Palette.background)
         }
-        // The first meal gets the full success buzz; later ones a smaller thump.
+        // The first meal gets the full success buzz; later ones a firm thump.
         .sensoryFeedback(trigger: hapticTick) { _, _ in
-            result.isFirstMeal ? SensoryFeedback.success : SensoryFeedback.impact(weight: .medium)
+            result.isFirstMeal ? SensoryFeedback.success : SensoryFeedback.impact(weight: .heavy)
         }
-        .sensoryFeedback(.selection, trigger: usedUp)
+        .onChange(of: hapticTick) { _, _ in
+            if result.isFirstMeal { SoundPlayer.success() }
+        }
+        .tapFeedback(usedUp)
         .onAppear {
             hapticTick += 1
             withAnimation(.easeOut(duration: 1.4)) {
