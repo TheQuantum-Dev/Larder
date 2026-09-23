@@ -33,5 +33,9 @@ struct PillButtonStyle: ButtonStyle {
             .compositingGroup()
             .opacity(isEnabled ? 1 : 0.5)
             .animation(.spring(response: 0.25, dampingFraction: 0.6), value: pressed)
+            // Every pill button gets the same tap, on press rather than
+            // release, so it feels immediate under a thumb.
+            .sensoryFeedback(trigger: pressed) { _, isPressed in isPressed ? .appTap : nil }
+            .onChange(of: pressed) { _, isPressed in if isPressed { SoundPlayer.tap() } }
     }
 }
