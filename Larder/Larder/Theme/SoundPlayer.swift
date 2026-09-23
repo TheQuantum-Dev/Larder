@@ -23,6 +23,8 @@ enum SoundPlayer {
     static func tap() { play("Tap") }
     static func success() { play("Success") }
     static func timerDone() { play("TimerDone") }
+    /// The build-up, pop and settle that goes with the first meal ever made.
+    static func firstMealCelebration() { play("FirstMeal") }
 
     private static func play(_ name: String) {
         configureSessionIfNeeded()

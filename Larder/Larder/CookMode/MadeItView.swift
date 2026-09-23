@@ -27,6 +27,9 @@ struct MadeItView: View {
     @State private var usedUp: Set<String> = []
     @State private var shownSaving = 0.0
     @State private var hapticTick = 0
+    /// Held back until the first-meal haptic build-up peaks, so the confetti
+    /// actually lands with it instead of firing the instant the screen appears.
+    @State private var showConfetti = false
 
     private var summary: MealSummary { result.summary }
 
@@ -34,7 +37,7 @@ struct MadeItView: View {
         ZStack {
             ScrollView {
                 VStack(spacing: Theme.Spacing.m) {
-                    NutmegView(mood: .celebrating)
+                    NutmegView(mood: .celebrating, pose: .bothWave)
                         .frame(height: 160)
                         .padding(.top, Theme.Spacing.l)
 
@@ -66,7 +69,7 @@ struct MadeItView: View {
                 .padding(Theme.Spacing.s)
             }
 
-            if result.isFirstMeal {
+            if showConfetti {
                 ConfettiView()
             }
         }
@@ -77,16 +80,22 @@ struct MadeItView: View {
                 .padding(.top, Theme.Spacing.xs)
                 .background(Theme.Palette.background)
         }
-        // The first meal gets the full success buzz; later ones a firm thump.
-        .sensoryFeedback(trigger: hapticTick) { _, _ in
-            result.isFirstMeal ? SensoryFeedback.success : SensoryFeedback.impact(weight: .heavy)
-        }
-        .onChange(of: hapticTick) { _, _ in
-            if result.isFirstMeal { SoundPlayer.success() }
-        }
+        // Later meals get a firm thump. The first meal's build-up-then-pop
+        // haptic is custom (see Haptics.firstMealCelebration), so this only
+        // ever fires for the plain case.
+        .sensoryFeedback(trigger: hapticTick) { _, _ in .impact(weight: .heavy) }
         .tapFeedback(usedUp)
         .onAppear {
-            hapticTick += 1
+            if result.isFirstMeal {
+                Haptics.firstMealCelebration()
+                SoundPlayer.firstMealCelebration()
+                Task {
+                    try? await Task.sleep(for: .seconds(Haptics.firstMealBuildUp))
+                    withAnimation { showConfetti = true }
+                }
+            } else {
+                hapticTick += 1
+            }
             withAnimation(.easeOut(duration: 1.4)) {
                 shownSaving = summary.saved
             }
