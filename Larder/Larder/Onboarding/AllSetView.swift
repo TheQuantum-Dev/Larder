@@ -18,7 +18,7 @@ struct AllSetView: View {
         VStack(spacing: Theme.Spacing.m) {
             Spacer(minLength: 0)
 
-            NutmegView()
+            NutmegView(pose: .rightWave)
                 .frame(height: 180)
 
             VStack(spacing: Theme.Spacing.xs) {

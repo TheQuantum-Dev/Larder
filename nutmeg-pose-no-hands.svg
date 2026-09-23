@@ -1,0 +1,18 @@
+<svg width="100%" viewBox="0 0 680 530" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Nutmeg, no hands</title>
+<desc>The amber pantry creature with both arms fully tucked in, no visible limbs, just the round body, face, and feet.</desc>
+<ellipse cx="340" cy="335" rx="160" ry="148" fill="#F0A83A"/>
+<ellipse cx="340" cy="385" rx="92" ry="68" fill="#F6C067"/>
+<path d="M340 185 C318 150 330 108 352 85 C362 112 372 148 340 185 Z" fill="#8CAE66"/>
+<ellipse cx="285" cy="300" rx="40" ry="44" fill="#FFFFFF"/>
+<ellipse cx="395" cy="300" rx="40" ry="44" fill="#FFFFFF"/>
+<circle cx="298" cy="308" r="18" fill="#3B2A1A"/>
+<circle cx="408" cy="304" r="18" fill="#3B2A1A"/>
+<circle cx="304" cy="302" r="5" fill="#FFFFFF"/>
+<circle cx="414" cy="298" r="5" fill="#FFFFFF"/>
+<circle cx="248" cy="345" r="16" fill="#E8654A" opacity="0.35"/>
+<circle cx="432" cy="345" r="16" fill="#E8654A" opacity="0.35"/>
+<path d="M296 370 Q340 412 384 370 Q340 386 296 370 Z" fill="#5A3A1E"/>
+<ellipse cx="300" cy="472" rx="30" ry="18" fill="#D98F2A"/>
+<ellipse cx="382" cy="472" rx="30" ry="18" fill="#D98F2A"/>
+</svg>

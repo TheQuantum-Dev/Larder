@@ -7,8 +7,9 @@
 
 import SwiftUI
 
-/// Nutmeg, drawn from nutmeg-reference.svg. Every shape, coordinate and color
-/// below comes straight from that file, in its 680 x 530 coordinate space, and
+/// Nutmeg, drawn from the reference poses in the repo root (nutmeg-reference.svg
+/// and nutmeg-pose-*.svg). Every shape, coordinate and color below comes
+/// straight from those files, in their shared 680 x 530 coordinate space, and
 /// the whole drawing is scaled to fit whatever size the caller gives it.
 struct NutmegView: View {
     /// How Nutmeg is behaving. `idle` is the resting loop; `peeking` is the
@@ -16,7 +17,14 @@ struct NutmegView: View {
     /// `celebrating` is a happy hop with a fast wave.
     enum Mood { case idle, peeking, celebrating }
 
+    /// Which arms are showing. `noHands` is the everyday look — used almost
+    /// everywhere, including the launch screen. The waves and the two-handed
+    /// cheer are saved for moments that actually call for them: a greeting,
+    /// a celebration.
+    enum Pose { case noHands, rightWave, leftWave, bothWave, resting }
+
     var mood: Mood = .idle
+    var pose: Pose = .noHands
 
     private static let artSize = CGSize(width: 680, height: 530)
 
@@ -55,9 +63,9 @@ struct NutmegView: View {
     private var pupilLift: CGFloat { mood == .peeking ? -4 : 0 }
     private var tilt: Double { mood == .peeking ? (looking ? 5 : -5) : 0 }
     private var hop: CGFloat { mood == .celebrating ? (hopping ? -40 : 0) : 0 }
-    /// How far the raised arm swings: a gentle sway at rest, a big wave when celebrating.
+    /// How far a raised arm swings: a gentle sway at rest, a big shake when celebrating.
     private var armSwing: Double { mood == .celebrating ? 18 : 4 }
-    private var swayDuration: Double { mood == .celebrating ? 0.3 : 1.8 }
+    private var swayDuration: Double { mood == .celebrating ? 0.3 : 1.3 }
 
     private var art: some View {
         ZStack {
@@ -103,21 +111,7 @@ struct NutmegView: View {
             }
             .fill(Palette.mouth)
 
-            // Stubby left arm.
-            ellipse(238, 430, 34, 26, Palette.amber)
-
-            // Raised right arm and hand, swaying from the shoulder.
-            ZStack {
-                Path { p in
-                    p.move(to: CGPoint(x: 478, y: 352))
-                    p.addCurve(to: CGPoint(x: 528, y: 245),
-                               control1: CGPoint(x: 500, y: 330), control2: CGPoint(x: 510, y: 280))
-                }
-                .stroke(Palette.amber, style: StrokeStyle(lineWidth: 30, lineCap: .round))
-                circle(530, 238, 34, Palette.amber)
-            }
-            .rotationEffect(.degrees(swaying ? -armSwing : armSwing),
-                            anchor: UnitPoint(x: 478 / Self.artSize.width, y: 352 / Self.artSize.height))
+            arms
 
             // Feet.
             ellipse(300, 472, 30, 18, Palette.foot)
@@ -131,6 +125,75 @@ struct NutmegView: View {
         .rotationEffect(.degrees(tilt), anchor: .bottom)
         .animation(reduceMotion ? nil : .easeInOut(duration: 1.1).repeatForever(autoreverses: true),
                    value: looking)
+    }
+
+    // MARK: - Arms
+
+    @ViewBuilder
+    private var arms: some View {
+        switch pose {
+        case .noHands:
+            EmptyView()
+        case .resting:
+            restingPaw(cx: 238)
+            restingPaw(cx: 442)
+        case .rightWave:
+            restingPaw(cx: 238)
+            rightWavingArm
+        case .leftWave:
+            restingPaw(cx: 442)
+            leftWavingArm
+        case .bothWave:
+            leftWavingArm
+            rightWavingArm
+        }
+    }
+
+    /// A stubby paw at rest, with three small toe-pad marks.
+    private func restingPaw(cx: CGFloat) -> some View {
+        ZStack {
+            ellipse(cx, 430, 34, 26, Palette.amber)
+            ellipse(cx - 13, 417, 6, 7, Palette.foot)
+            ellipse(cx, 414, 6, 7, Palette.foot)
+            ellipse(cx + 13, 417, 6, 7, Palette.foot)
+        }
+    }
+
+    /// The right arm, raised and swinging from the shoulder.
+    private var rightWavingArm: some View {
+        ZStack {
+            Path { p in
+                p.move(to: CGPoint(x: 478, y: 352))
+                p.addCurve(to: CGPoint(x: 528, y: 245),
+                           control1: CGPoint(x: 500, y: 330), control2: CGPoint(x: 510, y: 280))
+            }
+            .stroke(Palette.amber, style: StrokeStyle(lineWidth: 30, lineCap: .round))
+            circle(530, 238, 34, Palette.amber)
+            ellipse(517, 225, 6, 7, Palette.foot)
+            ellipse(530, 222, 6, 7, Palette.foot)
+            ellipse(543, 225, 6, 7, Palette.foot)
+        }
+        .rotationEffect(.degrees(swaying ? -armSwing : armSwing),
+                        anchor: UnitPoint(x: 478 / Self.artSize.width, y: 352 / Self.artSize.height))
+    }
+
+    /// The left arm, raised and swinging — the mirror image of the right,
+    /// swung the opposite way so two-armed poses shake in sync.
+    private var leftWavingArm: some View {
+        ZStack {
+            Path { p in
+                p.move(to: CGPoint(x: 202, y: 352))
+                p.addCurve(to: CGPoint(x: 152, y: 245),
+                           control1: CGPoint(x: 180, y: 330), control2: CGPoint(x: 170, y: 280))
+            }
+            .stroke(Palette.amber, style: StrokeStyle(lineWidth: 30, lineCap: .round))
+            circle(150, 238, 34, Palette.amber)
+            ellipse(163, 225, 6, 7, Palette.foot)
+            ellipse(150, 222, 6, 7, Palette.foot)
+            ellipse(137, 225, 6, 7, Palette.foot)
+        }
+        .rotationEffect(.degrees(swaying ? armSwing : -armSwing),
+                        anchor: UnitPoint(x: 202 / Self.artSize.width, y: 352 / Self.artSize.height))
     }
 
     private func ellipse(_ cx: CGFloat, _ cy: CGFloat, _ rx: CGFloat, _ ry: CGFloat,
@@ -157,8 +220,16 @@ struct NutmegView: View {
 }
 
 #Preview {
-    NutmegView()
-        .frame(height: 300)
+    ScrollView {
+        VStack(spacing: 20) {
+            ForEach([NutmegView.Pose.noHands, .rightWave, .leftWave, .bothWave, .resting], id: \.self) { pose in
+                NutmegView(pose: pose)
+                    .frame(height: 160)
+            }
+        }
         .padding()
-        .background(Theme.Palette.background)
+    }
+    .background(Theme.Palette.background)
 }
+
+extension NutmegView.Pose: Hashable {}
