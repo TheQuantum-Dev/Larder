@@ -34,9 +34,22 @@
 		DDFD43D4306071B700DC37AE /* Larder.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Larder.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DDFD43D5306071B700DC37AE /* Exceptions for "Larder" folder in "Larder" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DDFD439A3060698600DC37AE /* Larder */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DDFD439D3060698600DC37AE /* Larder */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DDFD43D5306071B700DC37AE /* Exceptions for "Larder" folder in "Larder" target */,
+			);
 			path = Larder;
 			sourceTree = "<group>";
 		};
@@ -414,6 +427,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Larder uses the camera to look at your fridge or pantry and spot what you have.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_FILE = Larder/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -447,6 +461,7 @@
 				INFOPLIST_KEY_NSCameraUsageDescription = "Larder uses the camera to look at your fridge or pantry and spot what you have.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_FILE = Larder/Info.plist;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
