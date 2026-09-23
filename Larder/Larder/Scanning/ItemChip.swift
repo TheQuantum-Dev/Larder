@@ -22,11 +22,13 @@ struct ItemChip: View {
                 Text(item.emoji)
                 Text(item.name)
                     .font(.subheadline.weight(.semibold))
-                if isChecked {
-                    Image(systemName: "checkmark")
-                        .font(.caption.bold())
-                        .symbolEffect(.bounce, value: isChecked)
-                }
+                // Always in the layout, just invisible when unchecked, so
+                // checking one item never resizes it and reflows its
+                // neighbors in the flow.
+                Image(systemName: "checkmark")
+                    .font(.caption.bold())
+                    .symbolEffect(.bounce, value: isChecked)
+                    .opacity(isChecked ? 1 : 0)
             }
             .foregroundStyle(Theme.Palette.textPrimary.opacity(isChecked || !isMaybe ? 1 : 0.75))
             .padding(.horizontal, Theme.Spacing.xs)
