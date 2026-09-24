@@ -44,7 +44,7 @@ struct RootView: View {
     private var flow: some View {
         ZStack {
             if hasCompletedOnboarding {
-                HomeView()
+                MainTabView()
                     .transition(.opacity)
             } else {
                 OnboardingFlow { hasCompletedOnboarding = true }
