@@ -37,7 +37,7 @@ struct NotificationPreScreen: View {
 
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
                 reason("refrigerator", "When your pantry's running low")
-                reason("calendar", "If it's been a few days since you've cooked")
+                reason("flame.fill", "A heads-up before your cooking streak ends")
                 reason("dollarsign.circle", "A weekly check-in on your budget")
             }
             .padding(Theme.Spacing.s)

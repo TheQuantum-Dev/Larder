@@ -19,6 +19,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
     @AppStorage(AppSettings.orderOutPriceKey) private var orderOutPrice = AppSettings.defaultOrderOutPrice
+    @AppStorage(AppSettings.streakRemindersKey) private var streakReminders = true
 
     @State private var diets: MultiSelection<Diet>
     @State private var showPaywall = false
@@ -41,6 +42,7 @@ struct SettingsView: View {
                 foodSection
                 goalSection
                 savingsSection
+                remindersSection
                 plusSection
                 aboutSection
             }
@@ -127,6 +129,17 @@ struct SettingsView: View {
             Text("Ordering out costs")
         } footer: {
             Text("Used only to work out how much you save by cooking. It's a rough guess, so set it to what you'd really spend.")
+        }
+    }
+
+    private var remindersSection: some View {
+        Section {
+            Toggle("Streak reminders", isOn: $streakReminders)
+                .listRowBackground(Theme.Palette.surface)
+        } header: {
+            Text("Reminders")
+        } footer: {
+            Text("One nudge at 7pm, only on days your streak is still open. Needs notifications turned on for Larder.")
         }
     }
 
