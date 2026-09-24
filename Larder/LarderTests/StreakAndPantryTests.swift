@@ -160,3 +160,55 @@ struct PantrySetAmountTests {
         #expect(items.first { $0.isCustom }?.category == nil)
     }
 }
+
+struct PantryLowReminderTests {
+    private var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
+    }
+
+    private func at(day: Int, hour: Int) -> Date {
+        calendar.date(from: DateComponents(year: 2026, month: 9, day: day, hour: hour))!
+    }
+
+    @Test func plentyInThePantryMeansNothingToCancelAndNothingToSend() {
+        let outcome = PantryLowReminder.outcome(pantryCount: 10, lastReminded: nil, now: at(day: 24, hour: 9), calendar: calendar)
+        #expect(outcome == .notLow)
+    }
+
+    @Test func aLowPantryWithNoPriorReminderSchedulesTomorrowMorning() {
+        let outcome = PantryLowReminder.outcome(pantryCount: 2, lastReminded: nil, now: at(day: 24, hour: 9), calendar: calendar)
+        guard case .remind(let plan) = outcome else { Issue.record("expected a reminder"); return }
+        #expect(plan.fireDate == at(day: 25, hour: PantryLowReminder.hour))
+        #expect(plan.title.contains("running low"))
+    }
+
+    @Test func emptyGetsItsOwnWording() {
+        let outcome = PantryLowReminder.outcome(pantryCount: 0, lastReminded: nil, now: at(day: 24, hour: 9), calendar: calendar)
+        guard case .remind(let plan) = outcome else { Issue.record("expected a reminder"); return }
+        #expect(plan.title.contains("empty"))
+    }
+
+    /// The case that would otherwise push the reminder a day later every
+    /// time the app opens, so it would never actually arrive.
+    @Test func reopeningTheAppTheSameMorningLeavesTheScheduledOneAlone() {
+        let remindedAt = at(day: 24, hour: 8)
+        let outcome = PantryLowReminder.outcome(pantryCount: 2, lastReminded: remindedAt, now: at(day: 24, hour: 9), calendar: calendar)
+        #expect(outcome == .alreadyReminded)
+    }
+
+    @Test func theCooldownExpiresAfterAFewDays() {
+        let remindedAt = at(day: 20, hour: 8)
+        let stillWaiting = PantryLowReminder.outcome(pantryCount: 2, lastReminded: remindedAt, now: at(day: 22, hour: 9), calendar: calendar)
+        #expect(stillWaiting == .alreadyReminded)
+        let outcome = PantryLowReminder.outcome(pantryCount: 2, lastReminded: remindedAt, now: at(day: 23, hour: 9), calendar: calendar)
+        guard case .remind = outcome else { Issue.record("expected the cooldown to have passed"); return }
+    }
+
+    @Test func fillingThePantryBackUpCancelsEvenDuringACooldown() {
+        let remindedAt = at(day: 24, hour: 8)
+        let outcome = PantryLowReminder.outcome(pantryCount: 12, lastReminded: remindedAt, now: at(day: 24, hour: 9), calendar: calendar)
+        #expect(outcome == .notLow)
+    }
+}

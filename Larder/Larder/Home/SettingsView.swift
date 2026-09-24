@@ -20,6 +20,8 @@ struct SettingsView: View {
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
     @AppStorage(AppSettings.orderOutPriceKey) private var orderOutPrice = AppSettings.defaultOrderOutPrice
     @AppStorage(AppSettings.streakRemindersKey) private var streakReminders = true
+    @AppStorage(AppSettings.pantryRemindersKey) private var pantryReminders = true
+    @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
 
     @State private var diets: MultiSelection<Diet>
     @State private var showPaywall = false
@@ -136,10 +138,14 @@ struct SettingsView: View {
         Section {
             Toggle("Streak reminders", isOn: $streakReminders)
                 .listRowBackground(Theme.Palette.surface)
+            Toggle("Pantry running low", isOn: $pantryReminders)
+                .listRowBackground(Theme.Palette.surface)
+            Toggle("Weekly budget check-in", isOn: $budgetReminders)
+                .listRowBackground(Theme.Palette.surface)
         } header: {
             Text("Reminders")
         } footer: {
-            Text("One nudge at 7pm, only on days your streak is still open. Needs notifications turned on for Larder.")
+            Text("At most one a day: an evening nudge if your streak is still open, a morning one if your pantry's down to a few things, and a Sunday check-in if you've set a budget. Needs notifications turned on for Larder.")
         }
     }
 

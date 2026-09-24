@@ -53,6 +53,12 @@ nonisolated enum AppSettings {
     static let weeklyBudgetKey = "weeklyBudget"
     /// Whether the evening "keep your streak going" nudge is on (default on).
     static let streakRemindersKey = "streakReminders"
+    /// Whether the "your pantry's running low" nudge is on (default on).
+    static let pantryRemindersKey = "pantryReminders"
+    /// Whether the weekly budget touch-point is on (default on).
+    static let budgetRemindersKey = "budgetReminders"
+    /// When the pantry-low nudge was last scheduled, so it doesn't repeat every day.
+    static let lastPantryReminderKey = "lastPantryReminder"
     /// A rough price for one takeout or delivery meal. It's an assumption,
     /// shown as one, and will be adjustable in Settings.
     static let defaultOrderOutPrice = 14.0

@@ -16,7 +16,11 @@ struct MainTabView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @Query private var meals: [CookedMeal]
+    @Query private var pantry: [PantryItem]
     @AppStorage(AppSettings.streakRemindersKey) private var streakReminders = true
+    @AppStorage(AppSettings.pantryRemindersKey) private var pantryReminders = true
+    @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
+    @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
 
     var body: some View {
         TabView(selection: $app.tab) {
@@ -55,16 +59,22 @@ struct MainTabView: View {
             }
             .presentationDragIndicator(.visible)
         }
-        // Any change to the meal log, the setting, or coming back to the app
-        // re-plans tonight's streak reminder.
-        .task(id: reminderKey) {
-            await StreakReminderScheduler.refresh(mealDates: meals.map(\.cookedAt), enabled: streakReminders)
-        }
+        // Any change to the meal log, the pantry, a setting, or coming back to
+        // the app re-plans every reminder.
+        .task(id: reminderKey) { await refreshReminders() }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
-            Task { await StreakReminderScheduler.refresh(mealDates: meals.map(\.cookedAt), enabled: streakReminders) }
+            Task { await refreshReminders() }
         }
     }
 
-    private var reminderKey: String { "\(meals.count)-\(streakReminders)" }
+    private var reminderKey: String {
+        "\(meals.count)-\(pantry.count)-\(streakReminders)-\(pantryReminders)-\(budgetReminders)-\(weeklyBudget)"
+    }
+
+    private func refreshReminders() async {
+        await StreakReminderScheduler.refresh(mealDates: meals.map(\.cookedAt), enabled: streakReminders)
+        await PantryLowReminderScheduler.refresh(pantryCount: pantry.count, enabled: pantryReminders)
+        await BudgetReminderScheduler.refresh(weeklyBudgetIsSet: weeklyBudget > 0, enabled: budgetReminders)
+    }
 }
