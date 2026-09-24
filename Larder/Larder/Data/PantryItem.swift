@@ -8,9 +8,9 @@
 import Foundation
 import SwiftData
 
-/// Something the person has in their kitchen. A pantry is simply which items
-/// are present; amounts aren't tracked, on purpose, to keep this from turning
-/// into inventory software.
+/// Something the person has in their kitchen. An amount is optional: most
+/// things are fine as just "there", and the amount is only for people who
+/// want it ("6 eggs"). Nothing in recipe matching depends on it.
 @Model
 final class PantryItem {
     @Attribute(.unique) var ingredientID: String
@@ -18,6 +18,10 @@ final class PantryItem {
     var emoji: String
     var isCustom: Bool
     var addedAt: Date
+    /// How much is left, in `unit`. Nil means "we have some".
+    var quantity: Double?
+    /// A `PantryUnit` raw value. Stored as text so a new unit never breaks old data.
+    var unit: String?
 
     init(ingredientID: String, name: String, emoji: String, isCustom: Bool, addedAt: Date = Date()) {
         self.ingredientID = ingredientID
@@ -35,4 +39,11 @@ final class PantryItem {
     var resolved: ResolvedItem {
         ResolvedItem(id: ingredientID, name: name, emoji: emoji, isCustom: isCustom)
     }
+
+    /// "6 eggs"-style text for the amount, or nil if none was set.
+    var amountText: String? { PantryAmount.text(quantity: quantity, unit: unit) }
+
+    /// Where it's grouped in the Pantry tab. Custom items have no catalog
+    /// entry, so they get their own group.
+    var category: IngredientCategory? { IngredientCatalog.ingredient(withID: ingredientID)?.category }
 }

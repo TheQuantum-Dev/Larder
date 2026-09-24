@@ -35,6 +35,15 @@ enum PantryRepository {
         try? context.save()
     }
 
+    /// Sets or clears how much of something is left. A nil quantity goes back
+    /// to plain "we have some".
+    static func setAmount(_ quantity: Double?, unit: PantryUnit?, for id: String, in context: ModelContext) {
+        guard let item = all(in: context).first(where: { $0.ingredientID == id }) else { return }
+        item.quantity = quantity
+        item.unit = quantity == nil ? nil : unit?.rawValue
+        try? context.save()
+    }
+
     /// Takes finished-off ingredients out of the pantry.
     static func remove(ids: Set<String>, in context: ModelContext) {
         for item in all(in: context) where ids.contains(item.ingredientID) {
