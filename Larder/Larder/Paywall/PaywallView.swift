@@ -67,9 +67,8 @@ struct PaywallView: View {
                 "Recipes matched to what you have",
             ])
             featureGroup("With Plus", icon: "plus.circle.fill", tint: Theme.Palette.coral, items: [
-                "Craving chat",
+                "Chat with Nutmeg about your kitchen",
                 "Budget and cost insights",
-                "Cook Mode extras",
             ])
         }
         .frame(maxWidth: .infinity, alignment: .leading)
