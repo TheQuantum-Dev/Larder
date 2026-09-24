@@ -27,6 +27,7 @@ struct LarderApp: App {
                 .modelContainer(for: [PantryItem.self, CookedMeal.self])
                 .fontDesign(.rounded)
                 .task { await purchaseStore.start() }
+                .task { SoundPlayer.prepare() }
         }
     }
 }

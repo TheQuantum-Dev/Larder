@@ -42,10 +42,21 @@ enum SoundPlayer {
         return player
     }
 
+    /// Called once at launch: sets up the audio session and loads the sounds
+    /// away from the main thread, so the first tap never waits on audio.
+    static func prepare() {
+        configureSessionIfNeeded()
+        for name in ["Tap", "Success", "TimerDone", "FirstMeal"] { _ = player(named: name) }
+    }
+
     private static func configureSessionIfNeeded() {
         guard !configuredSession else { return }
         configuredSession = true
         try? AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
-        try? AVAudioSession.sharedInstance().setActive(true)
+        // Activating is the slow part; doing it here, off the main thread,
+        // means play() never has to.
+        DispatchQueue.global(qos: .utility).async {
+            try? AVAudioSession.sharedInstance().setActive(true)
+        }
     }
 }
