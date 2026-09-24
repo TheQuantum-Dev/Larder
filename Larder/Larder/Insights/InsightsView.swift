@@ -8,18 +8,15 @@
 import SwiftData
 import SwiftUI
 
-/// Budget and cost insights, the part of Larder Plus that looks back over the
-/// meals you've made. Without Plus it shows what's inside and a way in.
+/// Looking back: the streak, the meals, the money saved. That part is free
+/// for everyone, so this tab is never just a locked wall. Budget tracking
+/// sits underneath as the Larder Plus part.
 struct InsightsView: View {
     @Environment(PurchaseStore.self) private var store
-    @Environment(\.dismiss) private var dismiss
+    @Environment(AppModel.self) private var app
     @Query private var meals: [CookedMeal]
+    @Query private var pantry: [PantryItem]
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
-
-    let matches: [RecipeMatch]
-    let diets: Set<Diet>
-    var priorities: Set<Priority> = []
-    var cooking: Set<CookingConfidence> = []
 
     @State private var selected: RecipeMatch?
     @State private var showPaywall = false
@@ -28,56 +25,159 @@ struct InsightsView: View {
         BudgetInsights.compute(from: meals, budget: weeklyBudget)
     }
 
+    private var matches: [RecipeMatch] {
+        RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
+                                  priorities: app.profile.prioritySet, cooking: app.profile.cookingSet).matches
+    }
+
     var body: some View {
+        let insights = insights
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    if store.isPlusActive {
-                        unlocked
-                    } else {
-                        locked
-                    }
+                    header(insights)
+                    streakCard
+                    statGrid(insights)
+                    mostMadeSection
+                    budgetSection(insights)
                 }
                 .padding(Theme.Spacing.s)
             }
             .background(Theme.Palette.background.ignoresSafeArea())
-            .navigationTitle("Budget insights")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                        .fontWeight(.semibold)
-                }
-            }
+            .navigationTitle("Insights")
         }
-        .tint(Theme.Palette.amber)
-        .recipeCookingFlow(selected: $selected, diets: diets)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet)
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView { _ in showPaywall = false }
         }
     }
 
-    // MARK: - With Plus
+    // MARK: - For everyone
+
+    private func header(_ insights: BudgetInsights) -> some View {
+        HStack(spacing: Theme.Spacing.s) {
+            NutmegView()
+                .frame(width: 80)
+            Text(nutmegLine(insights))
+                .font(.headline)
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private func nutmegLine(_ insights: BudgetInsights) -> String {
+        if insights.mealCount == 0 {
+            return "Cook your first meal and I'll start adding it all up here."
+        }
+        switch insights.standing {
+        case .noBudget, .under: return "Here's how your cooking adds up."
+        case .over: return "A big week of cooking! No stress."
+        }
+    }
+
+    private var streakCard: some View {
+        let dates = meals.map(\.cookedAt)
+        let status = CookingStreak.status(from: dates)
+        let best = CookingStreak.best(from: dates)
+        return HStack(spacing: Theme.Spacing.s) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 40))
+                .foregroundStyle(status == .none ? Theme.Palette.textPrimary.opacity(0.3) : Theme.Palette.amber)
+                .frame(width: 60)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(status.days == 1 ? "1-day streak" : "\(status.days)-day streak")
+                    .font(.title2.bold())
+                Text(streakLine(status, best: best))
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .foregroundStyle(Theme.Palette.textPrimary)
+        .padding(Theme.Spacing.s)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        .accessibilityElement(children: .combine)
+    }
+
+    private func streakLine(_ status: CookingStreak.Status, best: Int) -> String {
+        // Only worth saying when it's a different number from the one above.
+        let bestText = best > status.days ? "Best so far: \(best) \(best == 1 ? "day" : "days")." : ""
+        switch status {
+        case .none: return "Cook anything today to start one. \(bestText)"
+        case .safe: return "You've cooked today. \(bestText)"
+        case .atRisk: return "Cook anything today to keep it going. \(bestText)"
+        }
+    }
+
+    private func statGrid(_ insights: BudgetInsights) -> some View {
+        let columns = [GridItem(.flexible(), spacing: Theme.Spacing.xs), GridItem(.flexible(), spacing: Theme.Spacing.xs)]
+        return LazyVGrid(columns: columns, spacing: Theme.Spacing.xs) {
+            StatTile(title: "Meals made", value: "\(insights.mealCount)")
+            StatTile(title: "Saved so far", value: Money.text(insights.totalSaved))
+            StatTile(title: "Cooked this week", value: "\(insights.weekMeals)")
+            StatTile(title: "Saved this week", value: Money.text(insights.weekSaved))
+        }
+    }
+
+    /// The recipes made most often, most recent first on a tie.
+    @ViewBuilder
+    private var mostMadeSection: some View {
+        let counts = Dictionary(grouping: meals, by: \.recipeID)
+            .map { (meal: $0.value.max { $0.cookedAt < $1.cookedAt }!, count: $0.value.count) }
+            .sorted { $0.count != $1.count ? $0.count > $1.count : $0.meal.cookedAt > $1.meal.cookedAt }
+            .prefix(3)
+        if !counts.isEmpty {
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                Text("Your go-tos")
+                    .font(.headline)
+                ForEach(Array(counts), id: \.meal.recipeID) { entry in
+                    HStack(spacing: Theme.Spacing.s) {
+                        Text(entry.meal.emoji)
+                            .font(.title2)
+                        Text(entry.meal.title)
+                        Spacer()
+                        Text(entry.count == 1 ? "once" : "\(entry.count) times")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    }
+                    .padding(.horizontal, Theme.Spacing.s)
+                    .frame(minHeight: 50)
+                    .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+                }
+            }
+            .foregroundStyle(Theme.Palette.textPrimary)
+        }
+    }
+
+    // MARK: - Budget (Larder Plus)
 
     @ViewBuilder
-    private var unlocked: some View {
-        let insights = insights
-        weekCard(insights)
-        statGrid(insights)
-        weeksChart(insights)
-        cheapestSection
+    private func budgetSection(_ insights: BudgetInsights) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+            HStack {
+                Text("Budget")
+                    .font(.title3.bold())
+                Spacer()
+                if !store.isPlusActive {
+                    Label("Plus", systemImage: "lock.fill")
+                        .font(.caption.bold())
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                }
+            }
+            .foregroundStyle(Theme.Palette.textPrimary)
+
+            if store.isPlusActive {
+                weekCard(insights)
+                weeksChart(insights)
+                cheapestSection
+            } else {
+                locked
+            }
+        }
     }
 
     private func weekCard(_ insights: BudgetInsights) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            HStack(spacing: Theme.Spacing.s) {
-                NutmegView()
-                    .frame(width: 80)
-                Text(nutmegLine(insights))
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-
             Text("Ingredients cooked this week")
                 .font(.subheadline)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
@@ -116,28 +216,6 @@ struct InsightsView: View {
         .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
     }
 
-    private func nutmegLine(_ insights: BudgetInsights) -> String {
-        if insights.mealCount == 0 {
-            return "Cook your first meal and I'll start adding it up here."
-        }
-        switch insights.standing {
-        case .noBudget: return "Here's how your cooking adds up."
-        case .under: return "You're doing great this week."
-        case .over: return "A big week of cooking! No stress."
-        }
-    }
-
-    private func statGrid(_ insights: BudgetInsights) -> some View {
-        let columns = [GridItem(.flexible(), spacing: Theme.Spacing.xs), GridItem(.flexible(), spacing: Theme.Spacing.xs)]
-        return LazyVGrid(columns: columns, spacing: Theme.Spacing.xs) {
-            StatTile(title: "Saved this week", value: Money.text(insights.weekSaved))
-            StatTile(title: "Saved so far", value: Money.text(insights.totalSaved))
-            StatTile(title: "Meals made", value: "\(insights.mealCount)")
-            StatTile(title: "Average per serving",
-                     value: insights.averageCostPerServing.map(Money.text) ?? "None yet")
-        }
-    }
-
     private func weeksChart(_ insights: BudgetInsights) -> some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
             Text("Last 4 weeks")
@@ -165,7 +243,7 @@ struct InsightsView: View {
                 ? Array(matches.sorted { $0.recipe.costPerServing < $1.recipe.costPerServing }.prefix(3))
                 : picks
             ForEach(shown) { match in
-                let badges = RecipeBadges.reasons(for: match, priorities: priorities, cooking: cooking)
+                let badges = RecipeBadges.reasons(for: match, priorities: app.profile.prioritySet, cooking: app.profile.cookingSet)
                 RecipeCard(match: match, badges: badges) { selected = match }
             }
         }
@@ -174,26 +252,19 @@ struct InsightsView: View {
     // MARK: - Without Plus
 
     private var locked: some View {
-        VStack(spacing: Theme.Spacing.s) {
-            NutmegView()
-                .frame(height: 100)
-            Text("See how your cooking adds up")
-                .font(.title2.bold())
-                .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 lockedPoint("chart.bar.fill", "This week's cost against your budget")
-                lockedPoint("dollarsign.circle.fill", "What you've saved by cooking, week by week")
+                lockedPoint("calendar", "Your last four weeks, side by side")
                 lockedPoint("fork.knife", "The cheapest things you can make right now")
             }
-            Text("Budget insights are part of Larder Plus. Scanning and recipes stay free.")
-                .font(.subheadline)
-                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                .multilineTextAlignment(.center)
             Button("See Larder Plus") { showPaywall = true }
-                .buttonStyle(PillButtonStyle())
+                .buttonStyle(PillButtonStyle(fill: Theme.Palette.softAmber))
         }
         .foregroundStyle(Theme.Palette.textPrimary)
-        .frame(maxWidth: .infinity)
+        .padding(Theme.Spacing.s)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
     }
 
     private func lockedPoint(_ symbol: String, _ text: String) -> some View {
