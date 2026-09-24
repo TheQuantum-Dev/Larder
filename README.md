@@ -1,15 +1,15 @@
 # Larder
 
-A pantry companion for students. Photograph what's in your fridge or cupboard and get a recipe you can make right now, with a rough sense of what it costs and how it fits your week. Built for a dorm mini-fridge and a financial-aid budget, not a family kitchen.
+A pantry companion for students. Photograph what's in your fridge or cupboard and get a recipe you can make right now, with a rough sense of what it costs and how it fits your week. Built by students, for students.
 
 ## What it does
 
-- **Scan your pantry** with your camera, a barcode, or by typing things in — manual entry is always right there, never an afterthought
+- **Scan your pantry** with your camera, a barcode, or by typing things in — manual entry is always right there
 - On-device Vision spots what's in a photo, and on Apple Intelligence phones Apple's Foundation Models sharpen that further — either way, you always confirm or fix what it found before it's added
-- **Recipes** ranked by how completely you can make them with what's on hand, filterable by ready-now, quick, cheap, or no-stove-needed, from a bundled book of 30 (not a live database)
+- **Recipes** ranked by how completely you can make them with what's on hand, filterable by ready-now, quick, cheap, or no-stove-needed
 - A rough cost per recipe, a weekly food budget, and a daily cooking streak
 - **Cook Mode** walks you through a recipe step by step, with timers
-- **Chat with Nutmeg** about your kitchen (Larder Plus): ask what to cook, what's running low, or how your week's going, and get answers grounded in your own pantry and stats — never a made-up recipe, never cooking steps it invented itself
+- **Chat with Nutmeg** about your kitchen (Larder Plus): ask what to cook, what's running low, or how your week's going, and get answers grounded in your own pantry and stats 
 - Nothing is uploaded: photos are read on your phone, and a barcode scan only ever sends the barcode number
 
 ## Requirements
