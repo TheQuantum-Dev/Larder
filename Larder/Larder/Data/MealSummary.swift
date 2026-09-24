@@ -51,6 +51,8 @@ nonisolated enum AppSettings {
     static let weeklyMealGoalKey = "weeklyMealGoal"
     /// The weekly food budget in whole dollars (0 = none set).
     static let weeklyBudgetKey = "weeklyBudget"
+    /// Whether the evening "keep your streak going" nudge is on (default on).
+    static let streakRemindersKey = "streakReminders"
     /// A rough price for one takeout or delivery meal. It's an assumption,
     /// shown as one, and will be adjustable in Settings.
     static let defaultOrderOutPrice = 14.0
