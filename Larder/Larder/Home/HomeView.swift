@@ -8,44 +8,41 @@
 import SwiftData
 import SwiftUI
 
-/// Where the app lives after onboarding: Nutmeg, this week's progress, a few
-/// things to cook right now, and the pantry itself.
+/// Today, at a glance. Deliberately short: Nutmeg and the streak, one thing
+/// to cook tonight, how the week's going, and one way to add food. The
+/// pantry, recipes and insights each have their own tab.
 struct HomeView: View {
+    @Environment(AppModel.self) private var app
     @Environment(\.modelContext) private var context
-    @Environment(PurchaseStore.self) private var store
     @Query(sort: \PantryItem.addedAt) private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
-    @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
 
-    @State private var profile = ProfileStore.load()
     @State private var selected: RecipeMatch?
-    @State private var showScan = Self.launchedWith("openScan")
     @State private var showSettings = Self.launchedWith("openSettings")
-    @State private var showInsights = Self.launchedWith("openInsights")
-    @State private var showAllRecipes = false
 
-    private var pantryIDs: Set<String> { Set(pantry.map(\.ingredientID)) }
+    private var matches: [RecipeMatch] {
+        RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
+                                  priorities: app.profile.prioritySet, cooking: app.profile.cookingSet).matches
+    }
 
-    private var results: (matches: [RecipeMatch], stretched: Bool) {
-        RecipeMatcher.bestMatches(pantry: pantryIDs, diets: profile.dietSet,
-                                  priorities: profile.prioritySet, cooking: profile.cookingSet)
+    private var streak: CookingStreak.Status {
+        CookingStreak.status(from: meals.map(\.cookedAt))
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    nutmegCard
-                    progressCard
-                    insightsEntry
-                    cookSection
-                    pantrySection
+                    header
+                    tonightCard
+                    weekCard
+                    Button(pantry.isEmpty ? "Scan my fridge" : "Add groceries") { app.showScan = true }
+                        .buttonStyle(PillButtonStyle(fill: pantry.isEmpty ? Theme.Palette.amber : Theme.Palette.softAmber))
                 }
                 .padding(Theme.Spacing.s)
             }
             .background(Theme.Palette.background.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -56,193 +53,126 @@ struct HomeView: View {
                     .accessibilityLabel("Settings")
                 }
             }
-            .navigationDestination(isPresented: $showAllRecipes) {
-                RecipeResultsView(matches: results.matches, stretched: results.stretched,
-                                  diets: profile.dietSet, priorities: profile.prioritySet, cooking: profile.cookingSet,
-                                  onCooked: { _ in },
-                                  onAddMore: { showAllRecipes = false; showScan = true })
-            }
         }
-        .recipeCookingFlow(selected: $selected, diets: profile.dietSet)
-        .sheet(isPresented: $showScan) {
-            ZStack {
-                Theme.Palette.background.ignoresSafeArea()
-                TryItView { items in
-                    PantryRepository.add(items, in: context)
-                    showScan = false
-                }
-            }
-            .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $showInsights) {
-            InsightsView(matches: results.matches, diets: profile.dietSet,
-                        priorities: profile.prioritySet, cooking: profile.cookingSet)
-        }
-        .sheet(isPresented: $showSettings, onDismiss: { profile = ProfileStore.load() }) {
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet)
+        .sheet(isPresented: $showSettings, onDismiss: app.reloadProfile) {
             SettingsView()
         }
         .task { seedDemoData() }
     }
 
-    // MARK: - Nutmeg
+    // MARK: - Nutmeg and the streak
 
-    private var nutmegCard: some View {
-        VStack(spacing: Theme.Spacing.s) {
-            HStack(spacing: Theme.Spacing.s) {
-                NutmegView()
-                    .frame(width: 100)
+    private var header: some View {
+        HStack(spacing: Theme.Spacing.s) {
+            NutmegView()
+                .frame(width: 100)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text(HomeGreeting.text(pantryCount: pantry.count,
-                                       readyCount: results.matches.filter(\.isReady).count))
+                                       readyCount: matches.filter(\.isReady).count))
                     .font(.title3.bold())
                     .foregroundStyle(Theme.Palette.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                StreakChip(status: streak)
             }
-            Button(pantry.isEmpty ? "Scan my fridge" : "Scan or add more") { showScan = true }
-                .buttonStyle(PillButtonStyle())
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    // MARK: - Tonight's pick
+
+    @ViewBuilder
+    private var tonightCard: some View {
+        if let pick = matches.first {
+            let recipe = pick.recipe
+            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                Text("Tonight's pick")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+
+                HStack(spacing: Theme.Spacing.s) {
+                    Text(recipe.emoji)
+                        .font(.system(size: 50))
+                        .frame(width: 80, height: 80)
+                        .background(Theme.Palette.amber.opacity(0.25), in: Circle())
+                    VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                        Text(recipe.title)
+                            .font(.title3.bold())
+                        Text("\(recipe.minutes) min · \(recipe.costText)")
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                        Text(pick.isReady ? "You have everything" : "Missing " + missingNames(pick))
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(pick.isReady ? Theme.Palette.sage : Theme.Palette.textPrimary.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .foregroundStyle(Theme.Palette.textPrimary)
+
+                HStack(spacing: Theme.Spacing.s) {
+                    Button("Let's cook") { selected = pick }
+                        .buttonStyle(PillButtonStyle())
+                    Button("More ideas") { app.tab = .recipes }
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, Theme.Spacing.xs)
+                }
+            }
+            .padding(Theme.Spacing.s)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        }
+    }
+
+    private func missingNames(_ match: RecipeMatch) -> String {
+        match.missing
+            .map { IngredientCatalog.ingredient(withID: $0.id)?.name.lowercased() ?? $0.id }
+            .joined(separator: ", ")
     }
 
     // MARK: - This week
 
     @ViewBuilder
-    private var progressCard: some View {
+    private var weekCard: some View {
         let stats = MealStats.compute(from: meals)
         if mealGoal > 0 || stats.mealCount > 0 {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                if mealGoal > 0 {
-                    HStack {
-                        Text("This week")
-                            .font(.headline)
-                        Spacer()
-                        if stats.mealsThisWeek >= mealGoal {
-                            Label("Goal reached!", systemImage: "checkmark.circle.fill")
-                                .font(.caption.bold())
-                                .foregroundStyle(Theme.Palette.onAccent)
-                                .padding(.horizontal, Theme.Spacing.xs)
-                                .frame(minHeight: 30)
-                                .background(Theme.Palette.sage, in: Capsule())
-                        }
-                    }
-                    ProgressBar(progress: min(1, Double(stats.mealsThisWeek) / Double(mealGoal)))
-                    Text("\(Commitment.mealsThisWeekText(count: stats.mealsThisWeek, goal: mealGoal)) meals from your pantry")
-                        .font(.subheadline)
-                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                }
-                if stats.mealCount > 0 {
-                    Text("\(stats.mealCount) \(stats.mealCount == 1 ? "meal" : "meals") made · saved about \(Money.text(stats.totalSaved))")
-                        .font(.subheadline.weight(.semibold))
-                }
-            }
-            .foregroundStyle(Theme.Palette.textPrimary)
-            .padding(Theme.Spacing.s)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-        }
-    }
-
-    // MARK: - Budget insights
-
-    private var insightsEntry: some View {
-        Button { showInsights = true } label: {
-            HStack(spacing: Theme.Spacing.s) {
-                Image(systemName: "chart.bar.fill")
-                    .font(.title3)
-                    .foregroundStyle(Theme.Palette.amber)
-                    .frame(width: 30)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Budget insights")
+                HStack {
+                    Text("This week")
                         .font(.headline)
-                    Text(insightsSubtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    Spacer()
+                    if mealGoal > 0, stats.mealsThisWeek >= mealGoal {
+                        Label("Goal reached!", systemImage: "checkmark.circle.fill")
+                            .font(.caption.bold())
+                            .foregroundStyle(Theme.Palette.onAccent)
+                            .padding(.horizontal, Theme.Spacing.xs)
+                            .frame(minHeight: 30)
+                            .background(Theme.Palette.sage, in: Capsule())
+                    }
                 }
-                Spacer()
-                if store.isPlusActive {
-                    Image(systemName: "chevron.right")
-                        .font(.footnote.bold())
-                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.4))
-                } else {
-                    Label("Plus", systemImage: "lock.fill")
-                        .font(.caption.bold())
-                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                if mealGoal > 0 {
+                    ProgressBar(progress: min(1, Double(stats.mealsThisWeek) / Double(mealGoal)))
                 }
-            }
-            .foregroundStyle(Theme.Palette.textPrimary)
-            .padding(Theme.Spacing.s)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var insightsSubtitle: String {
-        guard store.isPlusActive else { return "What your cooking costs and saves" }
-        let insights = BudgetInsights.compute(from: meals, budget: weeklyBudget)
-        return insights.standingHeadline ?? "What your cooking costs and saves"
-    }
-
-    // MARK: - Cook something
-
-    private var cookSection: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            HStack {
-                Text(pantry.isEmpty ? "Easy ideas to start with" : "Cook something")
-                    .font(.headline)
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                Spacer()
-                Button("See all") { showAllRecipes = true }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-            }
-            ForEach(results.matches.prefix(3)) { match in
-                let badges = RecipeBadges.reasons(for: match, priorities: profile.prioritySet, cooking: profile.cookingSet)
-                RecipeCard(match: match, badges: badges) { selected = match }
-            }
-        }
-    }
-
-    // MARK: - Pantry
-
-    private var pantrySection: some View {
-        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            Text(pantry.isEmpty ? "Your pantry" : "Your pantry · \(pantry.count)")
-                .font(.headline)
-                .foregroundStyle(Theme.Palette.textPrimary)
-
-            if pantry.isEmpty {
-                Text("Nothing here yet. Scan your fridge or add things by hand, and they'll show up here.")
+                Text(weekLine(stats))
                     .font(.subheadline)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-            } else {
-                FlowLayout {
-                    ForEach(pantry) { item in
-                        PantryChip(item: item) {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                                PantryRepository.remove(ids: [item.ingredientID], in: context)
-                            }
-                        }
-                    }
-                    Button { showScan = true } label: {
-                        Label("Add", systemImage: "plus")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Theme.Palette.textPrimary)
-                            .padding(.horizontal, Theme.Spacing.xs)
-                            .frame(minHeight: 40)
-                            .overlay(Capsule().strokeBorder(Theme.Palette.textPrimary.opacity(0.3),
-                                                            style: StrokeStyle(lineWidth: 2, dash: [5, 4])))
-                    }
-                }
-                Text("Tap something to take it off your list.")
-                    .font(.footnote)
-                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))
             }
+            .foregroundStyle(Theme.Palette.textPrimary)
+            .padding(Theme.Spacing.s)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
         }
-        .tapFeedback(pantry.count)
+    }
+
+    private func weekLine(_ stats: MealStats) -> String {
+        let meals = "\(Commitment.mealsThisWeekText(count: stats.mealsThisWeek, goal: mealGoal)) meals"
+        guard stats.totalSaved > 0 else { return meals }
+        return "\(meals) · saved about \(Money.text(stats.totalSaved)) so far"
     }
 
     // MARK: - Debug
 
-    /// `-openSettings YES`, `-openScan YES` or `-openInsights YES` opens that sheet on launch (debug builds only).
+    /// `-openSettings YES` opens Settings on launch (debug builds only).
     private static func launchedWith(_ key: String) -> Bool {
         #if DEBUG
         UserDefaults.standard.bool(forKey: key)
@@ -251,42 +181,61 @@ struct HomeView: View {
         #endif
     }
 
-    /// `-seedDemo YES` saves a small pantry, a meal and a profile so home can be
-    /// seen without going through onboarding (debug builds only).
+    /// `-seedDemo YES` saves a small pantry and a meal, so home can be seen
+    /// without going through onboarding. Add `-seedStreak 5` for meals on the
+    /// five days before today as well (debug builds only).
     private func seedDemoData() {
         #if DEBUG
         guard UserDefaults.standard.bool(forKey: "seedDemo") else { return }
         let ids = ["egg", "rice", "onion", "cheese", "bread", "butter", "milk", "pasta", "tomato-sauce", "banana"]
         PantryRepository.replace(with: ids.compactMap { IngredientCatalog.ingredient(withID: $0) }.map(ResolvedItem.init),
                                  in: context)
-        if MealLog.count(in: context) == 0, let recipe = RecipeStore.recipe(withID: "egg-fried-rice") {
-            MealLog.record(MealSummary(recipe: recipe, orderOutPrice: AppSettings.defaultOrderOutPrice), in: context)
+        guard MealLog.count(in: context) == 0, let recipe = RecipeStore.recipe(withID: "egg-fried-rice") else { return }
+        let summary = MealSummary(recipe: recipe, orderOutPrice: AppSettings.defaultOrderOutPrice)
+        MealLog.record(summary, in: context)
+        let extraDays = UserDefaults.standard.integer(forKey: "seedStreak")
+        for day in stride(from: 1, through: extraDays, by: 1) {
+            if let date = Calendar.current.date(byAdding: .day, value: -day, to: Date()) {
+                MealLog.record(summary, at: date, in: context)
+            }
         }
         #endif
     }
 }
 
-/// A pantry item you can tap to take off the list.
-private struct PantryChip: View {
-    let item: PantryItem
-    let onRemove: () -> Void
+/// The streak, in a small chip under Nutmeg's line. Warm in every state,
+/// including when there isn't one yet.
+struct StreakChip: View {
+    let status: CookingStreak.Status
 
     var body: some View {
-        Button(action: onRemove) {
-            HStack(spacing: Theme.Spacing.xs) {
-                Text(item.emoji)
-                Text(item.name)
-                    .font(.subheadline.weight(.semibold))
-                Image(systemName: "xmark")
-                    .font(.caption2.bold())
-                    .opacity(0.45)
-            }
-            .foregroundStyle(Theme.Palette.textPrimary)
-            .padding(.horizontal, Theme.Spacing.xs)
-            .frame(minHeight: 40)
-            .background(Theme.Palette.surface, in: Capsule())
+        Label {
+            Text(text)
+                .foregroundStyle(Theme.Palette.textPrimary)
+        } icon: {
+            Image(systemName: "flame.fill")
+                .foregroundStyle(status == .none ? Theme.Palette.textPrimary.opacity(0.4) : Theme.Palette.amber)
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Remove \(item.name)")
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, Theme.Spacing.xs)
+            .frame(minHeight: 30)
+            .background(background, in: Capsule())
+            .accessibilityElement(children: .combine)
+    }
+
+    private var text: String {
+        switch status {
+        case .none: "Cook today to start a streak"
+        case .safe(let days): "\(days)-day streak"
+        case .atRisk(let days): "\(days) days · cook today to keep it"
+        }
+    }
+
+    private var background: Color {
+        switch status {
+        case .none: Theme.Palette.surface
+        case .safe: Theme.Palette.amber.opacity(0.3)
+        case .atRisk: Theme.Palette.amber.opacity(0.15)
+        }
     }
 }
