@@ -16,6 +16,7 @@ struct HomeView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \PantryItem.addedAt) private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
+    @Query private var listed: [ShoppingItem]
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
 
     @State private var selected: RecipeMatch?
@@ -54,7 +55,8 @@ struct HomeView: View {
                 }
             }
         }
-        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
+                           offersShoppingList: true)
     }
 
     // MARK: - Nutmeg and the streak
@@ -108,6 +110,18 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .foregroundStyle(Theme.Palette.textPrimary)
+
+                if let nudge = RecipeListAction.nudge(for: pick, listed: Set(listed.map(\.ingredientID)), context: context) {
+                    Button(action: nudge.perform) {
+                        Label(nudge.isDone ? "On your shopping list" : nudge.title,
+                              systemImage: nudge.isDone ? "checkmark.circle.fill" : "cart.badge.plus")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Theme.Palette.textPrimary)
+                            .frame(minHeight: 40)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(nudge.isDone)
+                }
 
                 HStack(spacing: Theme.Spacing.s) {
                     Button("Let's cook") { selected = pick }

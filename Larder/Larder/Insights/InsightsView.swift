@@ -52,7 +52,8 @@ struct InsightsView: View {
             .background(Theme.Palette.background.ignoresSafeArea())
             .navigationTitle("Insights")
         }
-        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
+                           offersShoppingList: true)
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView { _ in showPaywall = false }
         }

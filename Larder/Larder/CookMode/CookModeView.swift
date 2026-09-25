@@ -24,6 +24,9 @@ struct CookModeView: View {
     @Query private var pantry: [PantryItem]
     @AppStorage(AppSettings.orderOutPriceKey) private var orderOutPrice = AppSettings.defaultOrderOutPrice
     @AppStorage(AppSettings.healthSyncKey) private var healthSync = false
+    @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
+    /// What the person says ran out, kept here so closing with the X counts it too.
+    @State private var usedUp: Set<String> = []
     @State private var made: MadeResult?
 
     init(recipe: Recipe, diets: Set<Diet>, startAt phase: CookSession.Phase = .gather,
@@ -105,7 +108,7 @@ struct CookModeView: View {
     private func requestClose() {
         switch session.phase {
         case .step: confirmingExit = true
-        case .made: onFinish()   // the meal is already saved
+        case .made: finishMade(usedUp)   // the meal is already saved
         default: onClose()
         }
     }
@@ -126,6 +129,7 @@ struct CookModeView: View {
                                                   isFirstMeal: false,
                                                   stats: MealStats(mealCount: 0, mealsThisWeek: 0, totalSaved: 0)),
                        candidates: runOutCandidates,
+                       usedUp: $usedUp,
                        onDone: finishMade)
         }
     }
@@ -163,7 +167,9 @@ struct CookModeView: View {
 
     /// Takes the finished ingredients off the pantry, then leaves Cook Mode.
     private func finishMade(_ usedUp: Set<String>) {
+        let ranOut = runOutCandidates.filter { usedUp.contains($0.id) }
         PantryRepository.remove(ids: usedUp, in: context)
+        ShoppingRepository.addRunOut(ranOut, enabled: autoAddToShopping, in: context)
         onFinish()
     }
 

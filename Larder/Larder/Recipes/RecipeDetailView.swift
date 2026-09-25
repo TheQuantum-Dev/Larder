@@ -5,6 +5,7 @@
 //  Created by Joshua Samuel on 9/21/26.
 //
 
+import SwiftData
 import SwiftUI
 
 /// A whole recipe: cost, what you need and what you have, the steps, and a
@@ -13,9 +14,12 @@ struct RecipeDetailView: View {
     let match: RecipeMatch
     let diets: Set<Diet>
     var showsNutrition = true
+    var offersShoppingList = false
     let onCook: (Recipe) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var context
+    @State private var addedToList = false
 
     private var recipe: Recipe { match.recipe }
     private var missingIDs: Set<String> { Set(match.missing.map(\.id)) }
@@ -27,6 +31,7 @@ struct RecipeDetailView: View {
                 if showsNutrition { nutrition }
                 if !recipe.equipment.isEmpty { equipment }
                 ingredients
+                if offersShoppingList, !match.isReady { addMissingButton }
                 steps
                 tip
                 footnotes
@@ -114,6 +119,23 @@ struct RecipeDetailView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
         }
+    }
+
+    private var addMissingButton: some View {
+        Button {
+            ShoppingRepository.addMissing(from: match, in: context)
+            addedToList = true
+        } label: {
+            Label(addedToList ? "On your shopping list" : "Add what's missing to my list",
+                  systemImage: addedToList ? "checkmark.circle.fill" : "cart.badge.plus")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(maxWidth: .infinity, minHeight: 50)
+                .background(Theme.Palette.softAmber.opacity(addedToList ? 0.4 : 1), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(addedToList)
+        .sensoryFeedback(.success, trigger: addedToList)
     }
 
     private func ingredientRow(_ line: RecipeIngredient) -> some View {

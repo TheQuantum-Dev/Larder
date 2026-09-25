@@ -143,7 +143,8 @@ struct NutmegChatScreen: View {
             suggestionChips
             inputBar
         }
-        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
+                           offersShoppingList: true)
         .tapFeedback(chat.messages.count)
         .onAppear { chat.showsNutrition = app.profile.showsNutrition }
         .task {

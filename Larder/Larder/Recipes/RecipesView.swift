@@ -73,11 +73,22 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
 /// onboarding results screen shows a shortlist; this is the whole book.
 struct RecipesView: View {
     @Environment(AppModel.self) private var app
+    @Environment(\.modelContext) private var context
     @Query private var pantry: [PantryItem]
+    @Query private var listed: [ShoppingItem]
 
     @State private var filter = RecipeFilter.all
-    @State private var query = ""
+    @State private var query = RecipesView.launchQuery
     @State private var selected: RecipeMatch?
+
+    /// `-recipesQuery fried` starts with that search typed in (debug builds only).
+    private static var launchQuery: String {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "recipesQuery") ?? ""
+        #else
+        ""
+        #endif
+    }
 
     private var allMatches: [RecipeMatch] {
         RecipeMatcher.matches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
@@ -95,7 +106,8 @@ struct RecipesView: View {
                         emptyState
                     } else {
                         section("Ready now", shown.filter(\.isReady))
-                        section("Just a couple of things away", shown.filter { !$0.isReady && $0.missing.count <= 2 })
+                        section("One ingredient away", shown.filter { $0.missing.count == 1 })
+                        section("Just a couple of things away", shown.filter { $0.missing.count == 2 })
                         section("Worth a shop", shown.filter { $0.missing.count > 2 })
                     }
                 }
@@ -105,7 +117,8 @@ struct RecipesView: View {
             .navigationTitle("Recipes")
             .searchable(text: $query, prompt: "Search recipes")
         }
-        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
+                           offersShoppingList: true)
         .tapFeedback(filter)
     }
 
@@ -143,7 +156,9 @@ struct RecipesView: View {
                 ForEach(items) { match in
                     let badges = RecipeBadges.reasons(for: match, priorities: app.profile.prioritySet,
                                                       cooking: app.profile.cookingSet, goal: app.profile.goalContext)
-                    RecipeCard(match: match, badges: badges, showsNutrition: app.profile.showsNutrition) { selected = match }
+                    RecipeCard(match: match, badges: badges, showsNutrition: app.profile.showsNutrition,
+                               listAction: RecipeListAction.nudge(for: match, listed: Set(listed.map(\.ingredientID)),
+                                                                  context: context)) { selected = match }
                 }
             }
         }

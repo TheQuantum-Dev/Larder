@@ -21,10 +21,11 @@ struct MadeItView: View {
     let result: MadeResult
     /// Pantry ingredients this recipe used, which might have run out.
     let candidates: [ResolvedItem]
+    @Binding var usedUp: Set<String>
     let onDone: (Set<String>) -> Void
 
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
-    @State private var usedUp: Set<String> = []
+    @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
     @State private var shownSaving = 0.0
     @State private var hapticTick = 0
     /// Held back until the first-meal haptic build-up peaks, so the confetti
@@ -150,7 +151,9 @@ struct MadeItView: View {
             Text("Anything run out?")
                 .font(.headline)
                 .foregroundStyle(Theme.Palette.textPrimary)
-            Text("Tap what you finished and I'll take it off your list.")
+            Text(autoAddToShopping
+                 ? "Tap what you finished. I'll take it off your pantry and put it on your shopping list."
+                 : "Tap what you finished and I'll take it off your pantry.")
                 .font(.footnote)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
             FlowLayout {
