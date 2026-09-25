@@ -477,11 +477,38 @@ private struct DoneView: View {
     /// Most recipes make one serving. For the ones that make more, ask how
     /// many were eaten, so the calories logged are right.
     @State private var eaten = 1
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
-        VStack(spacing: Theme.Spacing.m) {
-            Spacer(minLength: 0)
+        if typeSize.isAccessibilitySize {
+            // At the biggest text sizes the page scrolls, with the buttons pinned.
+            ScrollView {
+                VStack(spacing: Theme.Spacing.m) {
+                    message
+                    servingsStepper
+                }
+                .padding(Theme.Spacing.s)
+            }
+            .safeAreaInset(edge: .bottom) {
+                actions
+                    .padding(.horizontal, Theme.Spacing.s)
+                    .padding(.top, Theme.Spacing.xs)
+                    .background(Theme.Palette.background)
+            }
+        } else {
+            VStack(spacing: Theme.Spacing.m) {
+                Spacer(minLength: 0)
+                message
+                Spacer(minLength: 0)
+                servingsStepper
+                actions
+            }
+            .padding(Theme.Spacing.s)
+        }
+    }
 
+    private var message: some View {
+        VStack(spacing: Theme.Spacing.m) {
             NutmegView()
                 .frame(height: 180)
 
@@ -494,28 +521,30 @@ private struct DoneView: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
             }
-
-            Spacer(minLength: 0)
-
-            if recipe.servings > 1 {
-                Stepper(value: $eaten, in: 1...recipe.servings) {
-                    Text("Servings you're eating: \(eaten) of \(recipe.servings)")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(Theme.Palette.textPrimary)
-                }
-                .padding(Theme.Spacing.s)
-                .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-            }
-
-            VStack(spacing: Theme.Spacing.xs) {
-                Button("I made it!") { onMade(eaten) }
-                    .buttonStyle(PillButtonStyle())
-                Button("Back to the steps", action: onBack)
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                    .frame(minHeight: 44)
-            }
         }
-        .padding(Theme.Spacing.s)
+    }
+
+    @ViewBuilder
+    private var servingsStepper: some View {
+        if recipe.servings > 1 {
+            Stepper(value: $eaten, in: 1...recipe.servings) {
+                Text("Servings you're eating: \(eaten) of \(recipe.servings)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary)
+            }
+            .padding(Theme.Spacing.s)
+            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        }
+    }
+
+    private var actions: some View {
+        VStack(spacing: Theme.Spacing.xs) {
+            Button("I made it!") { onMade(eaten) }
+                .buttonStyle(PillButtonStyle())
+            Button("Back to the steps", action: onBack)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(minHeight: 44)
+        }
     }
 }

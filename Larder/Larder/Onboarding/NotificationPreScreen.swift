@@ -15,12 +15,42 @@ import UserNotifications
 struct NotificationPreScreen: View {
     let onContinue: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var isRequesting = false
 
     var body: some View {
-        VStack(spacing: Theme.Spacing.m) {
-            Spacer(minLength: 0)
+        if typeSize.isAccessibilitySize {
+            // At the biggest text sizes the page scrolls, with the buttons pinned
+            // where they can always be reached.
+            ScrollView {
+                VStack(spacing: Theme.Spacing.m) {
+                    heading
+                    reasons
+                }
+                .padding(Theme.Spacing.s)
+            }
+            .safeAreaInset(edge: .bottom) {
+                actions
+                    .padding(.horizontal, Theme.Spacing.s)
+                    .padding(.top, Theme.Spacing.xs)
+                    .background(Theme.Palette.background)
+            }
+            .background(Theme.Palette.background.ignoresSafeArea())
+        } else {
+            VStack(spacing: Theme.Spacing.m) {
+                Spacer(minLength: 0)
+                heading
+                reasons
+                Spacer(minLength: 0)
+                actions
+            }
+            .padding(Theme.Spacing.s)
+            .background(Theme.Palette.background.ignoresSafeArea())
+        }
+    }
 
+    private var heading: some View {
+        VStack(spacing: Theme.Spacing.m) {
             NutmegView()
                 .frame(height: 160)
 
@@ -29,36 +59,38 @@ struct NotificationPreScreen: View {
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("Just a few, and only when they're useful.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-            }
-
-            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                reason("refrigerator", "When your pantry's running low")
-                reason("flame.fill", "A heads-up before your cooking streak ends")
-                reason("dollarsign.circle", "A weekly check-in on your budget")
-            }
-            .padding(Theme.Spacing.s)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-
-            Spacer(minLength: 0)
-
-            VStack(spacing: Theme.Spacing.xs) {
-                Button("Turn on notifications") { respond(request: true) }
-                    .buttonStyle(PillButtonStyle())
-                    .disabled(isRequesting)
-                Button("Not now") { respond(request: false) }
-                    .font(.body.weight(.semibold))
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                    .frame(minHeight: 44)
-                    .disabled(isRequesting)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+
+    private var reasons: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+            reason("refrigerator", "When your pantry's running low")
+            reason("flame.fill", "A heads-up before your cooking streak ends")
+            reason("dollarsign.circle", "A weekly check-in on your budget")
+        }
         .padding(Theme.Spacing.s)
-        .background(Theme.Palette.background.ignoresSafeArea())
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+    }
+
+    private var actions: some View {
+        VStack(spacing: Theme.Spacing.xs) {
+            Button("Turn on notifications") { respond(request: true) }
+                .buttonStyle(PillButtonStyle())
+                .disabled(isRequesting)
+            Button("Not now") { respond(request: false) }
+                .font(.body.weight(.semibold))
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(minHeight: 44)
+                .disabled(isRequesting)
+        }
     }
 
     private func reason(_ symbol: String, _ text: String) -> some View {
