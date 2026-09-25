@@ -37,7 +37,8 @@ enum MealLog {
     static func record(_ summary: MealSummary, at date: Date = Date(), in context: ModelContext) -> CookedMeal {
         let meal = CookedMeal(recipeID: summary.recipeID, title: summary.title, emoji: summary.emoji,
                               cookedAt: date, servings: summary.servings,
-                              cost: summary.totalCost, saved: summary.saved)
+                              cost: summary.totalCost, saved: summary.saved,
+                              nutrition: summary.nutritionEaten, servingsEaten: summary.servingsEaten)
         context.insert(meal)
         try? context.save()
         return meal

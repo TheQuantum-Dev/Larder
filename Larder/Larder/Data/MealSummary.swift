@@ -15,15 +15,25 @@ nonisolated struct MealSummary: Equatable, Sendable {
     let servings: Int
     let costPerServing: Double
     let orderOutPrice: Double
+    /// One serving's calories and macros.
+    let nutritionPerServing: Macros
+    /// How many servings were eaten. Cost still counts the whole recipe, since
+    /// the ingredients were all used, but nutrition only counts what was eaten.
+    let servingsEaten: Int
 
-    init(recipe: Recipe, orderOutPrice: Double) {
+    init(recipe: Recipe, orderOutPrice: Double, servingsEaten: Int = 1) {
         recipeID = recipe.id
         title = recipe.title
         emoji = recipe.emoji
         servings = recipe.servings
         costPerServing = recipe.costPerServing
         self.orderOutPrice = orderOutPrice
+        nutritionPerServing = recipe.nutrition
+        self.servingsEaten = min(max(servingsEaten, 1), max(recipe.servings, 1))
     }
+
+    /// What was eaten in total.
+    var nutritionEaten: Macros { nutritionPerServing * Double(servingsEaten) }
 
     var totalCost: Double { costPerServing * Double(servings) }
     var orderOutTotal: Double { orderOutPrice * Double(servings) }
@@ -59,6 +69,8 @@ nonisolated enum AppSettings {
     static let budgetRemindersKey = "budgetReminders"
     /// When the pantry-low nudge was last scheduled, so it doesn't repeat every day.
     static let lastPantryReminderKey = "lastPantryReminder"
+    /// Whether height and weight are typed in metric (true) or feet, inches and pounds.
+    static let useMetricKey = "useMetricUnits"
     /// A rough price for one takeout or delivery meal. It's an assumption,
     /// shown as one, and will be adjustable in Settings.
     static let defaultOrderOutPrice = 14.0
