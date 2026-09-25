@@ -69,6 +69,8 @@ nonisolated enum AppSettings {
     static let budgetRemindersKey = "budgetReminders"
     /// When the pantry-low nudge was last scheduled, so it doesn't repeat every day.
     static let lastPantryReminderKey = "lastPantryReminder"
+    /// Whether cooked meals are saved to Apple Health (off until the person connects it).
+    static let healthSyncKey = "healthSync"
     /// Whether height and weight are typed in metric (true) or feet, inches and pounds.
     static let useMetricKey = "useMetricUnits"
     /// A rough price for one takeout or delivery meal. It's an assumption,

@@ -91,12 +91,14 @@ struct OnboardingFlow: View {
                               priorities: answers.priorities.items,
                               cooking: answers.cooking.items,
                               goal: answers.goalContext,
-                              showsNutrition: answers.fitnessGoal?.showsNutrition ?? true,
+                              showsNutrition: showsNutrition,
                               onCooked: { recipe in
                                   answers.firstRecipeID = recipe.id
                                   advance()
                               },
                               onAddMore: back)
+        case .health:
+            HealthPreScreen(onContinue: advance)
         case .commitment:
             let wantsBudget = answers.priorities.contains(.saveMoney)
             CommitmentView(offersBudget: wantsBudget,
@@ -123,6 +125,8 @@ struct OnboardingFlow: View {
     /// Recipes ranked for what the person confirmed, their diet and priorities.
     /// Recipes for what the person confirmed, widening the search if nothing is
     /// close, so this screen is never empty.
+    private var showsNutrition: Bool { answers.fitnessGoal?.showsNutrition ?? true }
+
     private var recipeResults: (matches: [RecipeMatch], stretched: Bool) {
         #if DEBUG
         if UserDefaults.standard.bool(forKey: "recipesEmpty") { return ([], false) }
@@ -147,7 +151,7 @@ struct OnboardingFlow: View {
     // MARK: - Navigation
 
     private func advance() {
-        guard let next = step.next else {
+        guard let next = step.next(showsNutrition: showsNutrition) else {
             onFinish()
             return
         }
@@ -155,7 +159,7 @@ struct OnboardingFlow: View {
     }
 
     private func back() {
-        guard let previous = step.previous else { return }
+        guard let previous = step.previous(showsNutrition: showsNutrition) else { return }
         move(to: previous, back: true)
     }
 

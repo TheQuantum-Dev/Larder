@@ -41,6 +41,19 @@ nonisolated struct Profile: Codable, Equatable, Sendable {
         self.goal = goal?.rawValue
     }
 
+    /// Fills in body stats from Apple Health. Numbers Health doesn't have are
+    /// left alone; with `overwrite` false, so are ones already entered.
+    mutating func merge(_ stats: BodyStats, overwrite: Bool) {
+        func pick<T>(_ current: T?, _ new: T?) -> T? {
+            guard let new else { return current }
+            return overwrite ? new : (current ?? new)
+        }
+        birthYear = pick(birthYear, stats.birthYear)
+        sex = pick(sex, stats.sex?.rawValue)
+        heightCm = pick(heightCm, stats.heightCm)
+        weightKg = pick(weightKg, stats.weightKg)
+    }
+
     var dietSet: Set<Diet> { Set(diets.compactMap(Diet.init(rawValue:))) }
     var cookingSet: Set<CookingConfidence> { Set(cooking.compactMap(CookingConfidence.init(rawValue:))) }
     var prioritySet: Set<Priority> { Set(priorities.compactMap(Priority.init(rawValue:))) }

@@ -23,6 +23,7 @@ struct CookModeView: View {
     @Environment(\.modelContext) private var context
     @Query private var pantry: [PantryItem]
     @AppStorage(AppSettings.orderOutPriceKey) private var orderOutPrice = AppSettings.defaultOrderOutPrice
+    @AppStorage(AppSettings.healthSyncKey) private var healthSync = false
     @State private var made: MadeResult?
 
     init(recipe: Recipe, diets: Set<Diet>, startAt phase: CookSession.Phase = .gather,
@@ -135,7 +136,12 @@ struct CookModeView: View {
     private func recordMade(servingsEaten: Int) {
         let summary = MealSummary(recipe: session.recipe, orderOutPrice: orderOutPrice, servingsEaten: servingsEaten)
         let isFirst = MealLog.count(in: context) == 0
-        MealLog.record(summary, in: context)
+        let meal = MealLog.record(summary, in: context)
+        if healthSync {
+            let entry = HealthMeal(recipeID: summary.recipeID, title: summary.title, date: meal.cookedAt,
+                                   macros: summary.nutritionEaten)
+            Task { await Health.shared.logMeal(entry) }
+        }
         made = MadeResult(summary: summary, isFirstMeal: isFirst,
                           stats: MealStats.compute(from: MealLog.meals(in: context)))
         session.finish()

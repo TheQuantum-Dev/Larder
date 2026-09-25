@@ -12,6 +12,9 @@ import SwiftUI
 struct GoalSettingsView: View {
     @State private var profile = ProfileStore.load()
     @AppStorage(AppSettings.useMetricKey) private var useMetric = Locale.current.measurementSystem == .metric
+    @AppStorage(AppSettings.healthSyncKey) private var healthSync = false
+    @State private var isFillingFromHealth = false
+    @State private var healthNote: String?
 
     private var goal: FitnessGoal? { profile.fitnessGoal }
 
@@ -20,6 +23,7 @@ struct GoalSettingsView: View {
             goalSection
             if goal?.showsNutrition ?? true {
                 bodySection
+                healthSection
             }
             if let targets = profile.dailyTargets {
                 targetSection(targets)
@@ -155,6 +159,46 @@ struct GoalSettingsView: View {
                     Text("lb")
                 }
             }
+        }
+    }
+
+    private var healthSection: some View {
+        Section {
+            Toggle("Save meals to Apple Health", isOn: Binding(
+                get: { healthSync },
+                set: { on in
+                    healthSync = on
+                    if on { Task { await Health.shared.requestAccess() } }
+                }
+            ))
+            .listRowBackground(Theme.Palette.surface)
+
+            Button { fillFromHealth() } label: {
+                HStack {
+                    Text("Fill in from Apple Health")
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                    Spacer()
+                    if isFillingFromHealth { ProgressView() }
+                }
+            }
+            .disabled(isFillingFromHealth)
+            .listRowBackground(Theme.Palette.surface)
+        } header: {
+            Text("Apple Health")
+        } footer: {
+            Text((healthNote.map { $0 + " " } ?? "")
+                 + "Larder saves the calories and macros of meals you cook, and can read your height, weight and age. Manage what it can see in the Health app, under Sharing.")
+        }
+    }
+
+    private func fillFromHealth() {
+        isFillingFromHealth = true
+        Task {
+            await Health.shared.requestAccess()
+            let stats = await Health.shared.readBodyStats()
+            profile.merge(stats, overwrite: true)
+            healthNote = stats == BodyStats() ? "Health didn't have anything to share yet." : "Filled in from Health."
+            isFillingFromHealth = false
         }
     }
 
