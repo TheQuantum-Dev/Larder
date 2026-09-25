@@ -8,6 +8,7 @@ A pantry companion for students. Photograph what's in your fridge or cupboard an
 - On-device Vision spots what's in a photo, and on Apple Intelligence phones Apple's Foundation Models sharpen that further — either way, you always confirm or fix what it found before it's added
 - **Recipes** ranked by how completely you can make them with what's on hand, filterable by ready-now, quick, cheap, or no-stove-needed
 - A rough cost per recipe, a weekly food budget, and a daily cooking streak
+- **Goals and nutrition:** pick what you're working toward (build muscle, lose weight, gain weight, stay fit) and see calories and macros on every recipe, with an optional Apple Health sync that saves the meals you cook
 - **Cook Mode** walks you through a recipe step by step, with timers
 - **Chat with Nutmeg** about your kitchen (Larder Plus): ask what to cook, what's running low, or how your week's going, and get answers grounded in your own pantry and stats 
 - Nothing is uploaded: photos are read on your phone, and a barcode scan only ever sends the barcode number
@@ -24,6 +25,10 @@ A pantry companion for students. Photograph what's in your fridge or cupboard an
 3. Pick a simulator or a real device running iOS 26.5+ and hit Run. In Xcode's Signing & Capabilities, switch the team to your own if it complains about code signing.
 4. Purchases run on RevenueCat's **Test Store**, so no paid Apple Developer account or App Store listing is needed to try Larder Plus — the flow is real, the purchases are simulated.
 5. No API keys to set up: barcode lookups use the free, public [Open Food Facts](https://world.openfoodfacts.org) API, and the RevenueCat key already in the project is scoped to the Test Store.
+
+## Credits
+
+Nutrition values come from U.S. Department of Agriculture, Agricultural Research Service, Beltsville Human Nutrition Research Center. [FoodData Central](https://fdc.nal.usda.gov) (public domain).
 
 ## License
 
