@@ -49,6 +49,9 @@ struct MainTabView: View {
         .tint(Theme.Palette.amber)
         .environment(app)
         .tapFeedback(app.tab)
+        .sheet(isPresented: $app.showSettings, onDismiss: app.reloadProfile) {
+            SettingsView()
+        }
         .sheet(isPresented: $app.showScan) {
             ZStack {
                 Theme.Palette.background.ignoresSafeArea()
@@ -61,6 +64,11 @@ struct MainTabView: View {
         }
         // Any change to the meal log, the pantry, a setting, or coming back to
         // the app re-plans every reminder.
+        .task {
+            #if DEBUG
+            DebugSeed.run(in: context)
+            #endif
+        }
         .task(id: reminderKey) { await refreshReminders() }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }

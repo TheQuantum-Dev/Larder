@@ -34,15 +34,20 @@ struct InsightsView: View {
     var body: some View {
         let insights = insights
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    header(insights)
-                    streakCard
-                    statGrid(insights)
-                    mostMadeSection
-                    budgetSection(insights)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+                        header(insights)
+                        streakCard
+                        statGrid(insights)
+                        mostMadeSection
+                        NutritionSection(meals: meals) { showPaywall = true }
+                            .id("nutrition")
+                        budgetSection(insights)
+                    }
+                    .padding(Theme.Spacing.s)
                 }
-                .padding(Theme.Spacing.s)
+                .task { scrollForDebug(proxy) }
             }
             .background(Theme.Palette.background.ignoresSafeArea())
             .navigationTitle("Insights")
@@ -51,6 +56,15 @@ struct InsightsView: View {
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView { _ in showPaywall = false }
         }
+    }
+
+    /// `-insightsScroll nutrition` scrolls down to that section (debug builds only).
+    private func scrollForDebug(_ proxy: ScrollViewProxy) {
+        #if DEBUG
+        if UserDefaults.standard.string(forKey: "insightsScroll") == "nutrition" {
+            proxy.scrollTo("nutrition", anchor: .top)
+        }
+        #endif
     }
 
     // MARK: - For everyone

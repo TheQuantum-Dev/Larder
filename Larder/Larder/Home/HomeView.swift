@@ -19,7 +19,6 @@ struct HomeView: View {
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
 
     @State private var selected: RecipeMatch?
-    @State private var showSettings = Self.launchedWith("openSettings")
 
     private var matches: [RecipeMatch] {
         RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
@@ -47,7 +46,7 @@ struct HomeView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showSettings = true } label: {
+                    Button { app.showSettings = true } label: {
                         Image(systemName: "gearshape.fill")
                             .foregroundStyle(Theme.Palette.textPrimary)
                     }
@@ -56,10 +55,6 @@ struct HomeView: View {
             }
         }
         .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
-        .sheet(isPresented: $showSettings, onDismiss: app.reloadProfile) {
-            SettingsView()
-        }
-        .task { seedDemoData() }
     }
 
     // MARK: - Nutmeg and the streak
@@ -174,38 +169,6 @@ struct HomeView: View {
         let meals = "\(Commitment.mealsThisWeekText(count: stats.mealsThisWeek, goal: mealGoal)) meals"
         guard stats.totalSaved > 0 else { return meals }
         return "\(meals) · saved about \(Money.text(stats.totalSaved)) so far"
-    }
-
-    // MARK: - Debug
-
-    /// `-openSettings YES` opens Settings on launch (debug builds only).
-    private static func launchedWith(_ key: String) -> Bool {
-        #if DEBUG
-        UserDefaults.standard.bool(forKey: key)
-        #else
-        false
-        #endif
-    }
-
-    /// `-seedDemo YES` saves a small pantry and a meal, so home can be seen
-    /// without going through onboarding. Add `-seedStreak 5` for meals on the
-    /// five days before today as well (debug builds only).
-    private func seedDemoData() {
-        #if DEBUG
-        guard UserDefaults.standard.bool(forKey: "seedDemo") else { return }
-        let ids = ["egg", "rice", "onion", "cheese", "bread", "butter", "milk", "pasta", "tomato-sauce", "banana"]
-        PantryRepository.replace(with: ids.compactMap { IngredientCatalog.ingredient(withID: $0) }.map(ResolvedItem.init),
-                                 in: context)
-        guard MealLog.count(in: context) == 0, let recipe = RecipeStore.recipe(withID: "egg-fried-rice") else { return }
-        let summary = MealSummary(recipe: recipe, orderOutPrice: AppSettings.defaultOrderOutPrice)
-        MealLog.record(summary, in: context)
-        let extraDays = UserDefaults.standard.integer(forKey: "seedStreak")
-        for day in stride(from: 1, through: extraDays, by: 1) {
-            if let date = Calendar.current.date(byAdding: .day, value: -day, to: Date()) {
-                MealLog.record(summary, at: date, in: context)
-            }
-        }
-        #endif
     }
 }
 

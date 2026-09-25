@@ -19,6 +19,9 @@ nonisolated enum AppTab: String, Hashable, CaseIterable, Sendable {
 final class AppModel {
     var tab: AppTab
     var showScan = false
+    /// Settings opens from Home's gear and from prompts on other tabs, so one
+    /// sheet at the root serves them all.
+    var showSettings = AppModel.launchOpensSettings
     private(set) var profile: Profile
 
     init(tab: AppTab = AppModel.launchTab, profile: Profile = AppModel.launchProfile) {
@@ -29,6 +32,15 @@ final class AppModel {
     /// Called after Settings closes, so diet changes reach every tab.
     func reloadProfile() {
         profile = ProfileStore.load()
+    }
+
+    /// `-openSettings YES` opens Settings on launch (debug builds only).
+    private static var launchOpensSettings: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "openSettings")
+        #else
+        return false
+        #endif
     }
 
     /// `-goal buildMuscle` sets the fitness goal for this launch (debug builds only).
