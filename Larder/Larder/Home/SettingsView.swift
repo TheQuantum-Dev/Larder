@@ -23,7 +23,11 @@ struct SettingsView: View {
     @AppStorage(AppSettings.pantryRemindersKey) private var pantryReminders = true
     @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
 
+    private enum Destination: Hashable { case goal }
+
     @State private var diets: MultiSelection<Diet>
+    @State private var goalName: String
+    @State private var path: [Destination] = SettingsView.launchPath
     @State private var showPaywall = false
     @State private var showResetConfirm = false
     private let profile: Profile
@@ -36,12 +40,27 @@ struct SettingsView: View {
         var selection = MultiSelection<Diet>(exclusive: .noRestrictions)
         for diet in saved.dietSet { selection.toggle(diet) }
         _diets = State(initialValue: selection)
+        _goalName = State(initialValue: Self.goalName(for: saved))
+    }
+
+    /// `-openGoalSettings YES` opens straight onto the goal screen (debug builds only).
+    private static var launchPath: [Destination] {
+        #if DEBUG
+        UserDefaults.standard.bool(forKey: "openGoalSettings") ? [.goal] : []
+        #else
+        []
+        #endif
+    }
+
+    private static func goalName(for profile: Profile) -> String {
+        profile.fitnessGoal?.title ?? "Not set"
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Form {
                 foodSection
+                bodyGoalSection
                 goalSection
                 savingsSection
                 remindersSection
@@ -52,6 +71,7 @@ struct SettingsView: View {
             .background(Theme.Palette.background.ignoresSafeArea())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: Destination.self) { _ in GoalSettingsView() }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
@@ -96,6 +116,19 @@ struct SettingsView: View {
                 .listRowBackground(Theme.Palette.surface)
         }
         .tapFeedback(diets.items)
+    }
+
+    private var bodyGoalSection: some View {
+        Section {
+            NavigationLink(value: Destination.goal) {
+                LabeledContent("Your goal", value: goalName)
+                    .foregroundStyle(Theme.Palette.textPrimary)
+            }
+            .listRowBackground(Theme.Palette.surface)
+        } footer: {
+            Text("Sets which recipes come first and your daily calorie and protein targets.")
+        }
+        .onAppear { goalName = Self.goalName(for: ProfileStore.load()) }
     }
 
     private var goalSection: some View {
@@ -188,6 +221,10 @@ struct SettingsView: View {
             LabeledContent("Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                 .listRowBackground(Theme.Palette.surface)
             Text("Larder is open source under the MIT License. Built by Joshua Samuel.")
+                .font(.footnote)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                .listRowBackground(Theme.Palette.surface)
+            Text("Nutrition data: USDA FoodData Central, public domain. Food facts for barcodes: Open Food Facts.")
                 .font(.footnote)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .listRowBackground(Theme.Palette.surface)
