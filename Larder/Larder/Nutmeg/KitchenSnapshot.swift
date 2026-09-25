@@ -35,6 +35,15 @@ nonisolated struct KitchenSnapshot: Sendable {
     var weekCost = 0.0
     var mealGoal = 0
     var priorities: Set<Priority> = []
+    /// False when the person chose "just cook": Nutmeg keeps to cooking and
+    /// leaves every calorie and macro number out.
+    var showsNutrition = true
+    var goal: FitnessGoal?
+    var targets: DailyTargets?
+    /// What was cooked today in Larder, and the average on days something was.
+    var today = Macros.zero
+    var mealsToday = 0
+    var dailyAverage: Macros?
 
     var readyMatches: [RecipeMatch] { matches.filter(\.isReady) }
     var pantryIDs: Set<String> { Set(pantry.map(\.id)) }
@@ -52,11 +61,12 @@ extension KitchenSnapshot {
         let stats = MealStats.compute(from: meals, now: now)
         let budget = BudgetInsights.compute(from: meals, budget: weeklyBudget, now: now)
         let dates = meals.map(\.cookedAt)
+        let nutrition = NutritionInsights.compute(from: meals, now: now)
         return KitchenSnapshot(
             pantry: pantry.map { Item(id: $0.ingredientID, name: $0.name, emoji: $0.emoji, amount: $0.amountText) },
             matches: RecipeMatcher.matches(pantry: Set(pantry.map(\.ingredientID)), diets: profile.dietSet,
                                            priorities: profile.prioritySet, cooking: profile.cookingSet,
-                                           maxMissing: .max),
+                                           goal: profile.goalContext, maxMissing: .max),
             mealCount: stats.mealCount,
             mealsThisWeek: stats.mealsThisWeek,
             totalSaved: stats.totalSaved,
@@ -66,7 +76,13 @@ extension KitchenSnapshot {
             weeklyBudget: weeklyBudget,
             weekCost: budget.weekCost,
             mealGoal: mealGoal,
-            priorities: profile.prioritySet)
+            priorities: profile.prioritySet,
+            showsNutrition: profile.showsNutrition,
+            goal: profile.fitnessGoal,
+            targets: profile.dailyTargets,
+            today: nutrition.today,
+            mealsToday: nutrition.mealsToday,
+            dailyAverage: nutrition.dailyAverage)
     }
 }
 

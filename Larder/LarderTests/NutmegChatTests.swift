@@ -228,3 +228,138 @@ struct ModelPromptTests {
         #expect(rules.contains("never invent a recipe"))
     }
 }
+
+struct NutmegNutritionTests {
+    private let brain = OfflineBrain(fallback: { _ in nil })
+
+    private func kitchen(showsNutrition: Bool = true, mealsToday: Int = 0, today: Macros = .zero,
+                         targets: DailyTargets? = DailyTargets(kcal: 2_250, protein: 170, carbs: 240, fat: 70, isPersonal: false),
+                         pantry ids: [String] = ["egg", "bread", "cheese", "canned-tuna", "mayo", "chicken", "tortilla", "lettuce"]) -> KitchenSnapshot {
+        var snapshot = KitchenSnapshot()
+        snapshot.pantry = ids.compactMap { IngredientCatalog.ingredient(withID: $0) }
+            .map { KitchenSnapshot.Item(id: $0.id, name: $0.name, emoji: $0.emoji, amount: nil) }
+        snapshot.matches = RecipeMatcher.matches(pantry: Set(ids), maxMissing: .max)
+        snapshot.showsNutrition = showsNutrition
+        snapshot.goal = .buildMuscle
+        snapshot.targets = targets
+        snapshot.mealsToday = mealsToday
+        snapshot.today = today
+        return snapshot
+    }
+
+    // MARK: Understanding
+
+    @Test func recognisesNumberQuestions() {
+        #expect(brain.intent(for: "how many calories have I had today") == .caloriesToday)
+        #expect(brain.intent(for: "what's my calorie budget") == .caloriesToday)
+        #expect(brain.intent(for: "how are my macros") == .caloriesToday)
+        #expect(brain.intent(for: "how much protein today") == .proteinToday)
+        #expect(brain.intent(for: "something high in protein") == .highProtein)
+        #expect(brain.intent(for: "I want something low calorie") == .lowCalorie)
+        #expect(brain.intent(for: "something filling") == .hearty)
+    }
+
+    @Test func questionsAboutAFoodOrARecipeStayAboutIt() {
+        #expect(brain.intent(for: "how much protein is in eggs") == .ingredientNutrition("egg"))
+        #expect(brain.intent(for: "calories in grilled cheese") == .aboutRecipe("grilled-cheese"))
+    }
+
+    // MARK: Answers
+
+    @Test func todaysNumbersAreTheRealOnes() {
+        let today = Macros(kcal: 1_234, protein: 86, carbs: 130, fat: 40)
+        let reply = brain.reply(to: "how many calories today", in: kitchen(mealsToday: 2, today: today))
+        #expect(reply.text.contains("1,230 kcal"))
+        #expect(reply.text.contains("86 g protein"))
+        #expect(reply.text.contains("2,250"))
+        #expect(reply.text.contains("to go"))
+        #expect(reply.text.contains("only meals cooked here"))
+    }
+
+    @Test func aDayWithNothingCookedIsSaidPlainly() {
+        let reply = brain.reply(to: "how many calories today", in: kitchen())
+        #expect(reply.text.contains("Nothing cooked in Larder yet today"))
+        #expect(reply.text.contains("2,250"))
+    }
+
+    @Test func proteinPointsToHighProteinIdeasWhenThereIsRoomLeft() {
+        let reply = brain.reply(to: "how much protein today", in: kitchen(mealsToday: 1, today: Macros(kcal: 500, protein: 30)))
+        #expect(reply.text.contains("30 g protein"))
+        #expect(!reply.recipeIDs.isEmpty)
+        for id in reply.recipeIDs {
+            #expect((RecipeStore.recipe(withID: id)?.nutrition.protein ?? 0) >= RecipeFilter.highProteinGrams)
+        }
+    }
+
+    @Test func highProteinRecipesAreSortedByProtein() {
+        let reply = brain.reply(to: "something high in protein", in: kitchen())
+        let proteins = reply.recipeIDs.compactMap { RecipeStore.recipe(withID: $0)?.nutrition.protein }
+        #expect(!proteins.isEmpty)
+        #expect(proteins == proteins.sorted(by: >))
+    }
+
+    @Test func aFoodComesBackWithItsUSDANumbers() {
+        let reply = brain.reply(to: "how much protein is in eggs", in: kitchen())
+        #expect(reply.text.contains("143"))
+        #expect(reply.text.contains("12.6"))
+        #expect(reply.text.contains("USDA"))
+    }
+
+    @Test func aRecipeAnswerMentionsItsCalories() {
+        let reply = brain.reply(to: "what do I need for tuna melt", in: kitchen())
+        #expect(reply.text.contains("kcal"))
+    }
+
+    // MARK: Numbers off
+
+    @Test func justCookKeepsEveryNumberOut() {
+        let off = kitchen(showsNutrition: false, mealsToday: 1, today: Macros(kcal: 500, protein: 30))
+        for question in ["how many calories today", "how much protein today", "something high in protein",
+                         "how much protein is in eggs"] {
+            let text = brain.reply(to: question, in: off).text
+            let hasDigit = text.contains(where: \.isNumber)
+            #expect(text.contains("turned numbers off"), "\(question)")
+            #expect(hasDigit == false, "\(question) leaked a number")
+        }
+        #expect(!brain.reply(to: "what do I need for tuna melt", in: off).text.contains("kcal"))
+    }
+
+    // MARK: The model's side
+
+    @Test func numbersAreAnsweredFromTheAppNotTheModel() {
+        #expect(ModelBrain.answersFromFacts(.caloriesToday))
+        #expect(ModelBrain.answersFromFacts(.proteinToday))
+        #expect(ModelBrain.answersFromFacts(.ingredientNutrition("egg")))
+        #expect(!ModelBrain.answersFromFacts(.highProtein))
+    }
+
+    @Test func thePromptCarriesTheGoalAndRecipeNumbersOnlyWhenNumbersAreOn() {
+        let on = kitchen()
+        let pickedOn = brain.candidates(for: .highProtein, in: on)
+        let promptOn = ModelBrain.prompt(for: "high protein?", kitchen: on, intent: .highProtein, candidates: pickedOn, history: [])
+        #expect(promptOn.contains("Their goal: build muscle"))
+        #expect(promptOn.contains("kcal and"))
+
+        let off = kitchen(showsNutrition: false)
+        let promptOff = ModelBrain.prompt(for: "ideas?", kitchen: off, candidates: brain.candidates(for: .whatCanIMake, in: off), history: [])
+        #expect(!promptOff.contains("Their goal"))
+        #expect(!promptOff.contains("kcal"))
+    }
+
+    @Test func theModelIsToldNotToInventNumbers() {
+        #expect(ModelBrain.instructions.contains("never work out or invent numbers"))
+    }
+
+    @Test func nutritionAnswersNeverScold() {
+        let today = Macros(kcal: 3_000, protein: 200, carbs: 300, fat: 100)
+        for snapshot in [kitchen(mealsToday: 3, today: today), kitchen()] {
+            for question in ["how many calories today", "how much protein today", "calories left", "something low calorie"] {
+                let text = brain.reply(to: question, in: snapshot).text.lowercased()
+                #expect(!text.contains("should have"))
+                #expect(!text.contains("too much"))
+                #expect(!text.contains("failed"))
+                #expect(!text.contains("over your"))
+            }
+        }
+    }
+}

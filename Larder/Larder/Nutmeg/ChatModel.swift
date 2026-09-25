@@ -80,10 +80,19 @@ final class ChatModel {
     /// Starters at first; afterwards, the ones not asked yet, so the chips
     /// always offer something new.
     var suggestions: [String] {
+        let all = Self.starters + (showsNutrition ? Self.nutritionStarters : [])
         let asked = Set(messages.filter { $0.role == .person }.map { $0.text.lowercased() })
-        let fresh = Self.starters.filter { !asked.contains($0.lowercased()) }
-        return fresh.isEmpty ? Self.starters : fresh
+        let fresh = all.filter { !asked.contains($0.lowercased()) }
+        return fresh.isEmpty ? all : fresh
     }
+
+    /// Set from the person's goal; "just cook" keeps the number questions out.
+    var showsNutrition = false
+
+    static let nutritionStarters = [
+        "How's my protein today?",
+        "Something high in protein",
+    ]
 
     static let starters = [
         "What can I make tonight?",

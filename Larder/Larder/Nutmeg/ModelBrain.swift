@@ -78,7 +78,7 @@ actor ModelBrain: NutmegBrain {
     /// conversation: they come from the offline Nutmeg, word for word.
     static func answersFromFacts(_ intent: NutmegIntent) -> Bool {
         switch intent {
-        case .savings, .streak, .budget, .pantryContents: true
+        case .savings, .streak, .budget, .pantryContents, .caloriesToday, .proteinToday, .ingredientNutrition: true
         default: false
         }
     }
@@ -116,7 +116,8 @@ actor ModelBrain: NutmegBrain {
         Don't mention numbers about their savings, streak or budget; the app answers those itself.
         Stay on food, cooking plans, their pantry and the app. For anything else, say kindly that \
         you're best with food things and offer an idea for tonight.
-        Don't give medical, allergy or nutrition advice.
+        Quote calories and protein only exactly as listed for a recipe; never work out or invent numbers. \
+        Don't give medical, allergy or dieting advice.
         Keep answers to one to three short sentences. Be encouraging, never judgmental about money, \
         an empty fridge, or a broken streak.
         """
@@ -127,11 +128,14 @@ actor ModelBrain: NutmegBrain {
         var lines: [String] = []
         let pantry = kitchen.pantry.map { item in item.amount.map { "\(item.name) (\($0))" } ?? item.name }
         lines.append("Pantry: " + (pantry.isEmpty ? "empty." : pantry.joined(separator: ", ") + "."))
+        if kitchen.showsNutrition, let goal = kitchen.goal {
+            lines.append("Their goal: \(goal.title.lowercased()). Favor recipes that suit it.")
+        }
         if candidates.isEmpty {
             lines.append("Recipes to choose from: none fit this.")
         } else {
             lines.append("Recipes to choose from, most relevant first:")
-            lines += candidates.prefix(recipesInSummary).map(recipeLine)
+            lines += candidates.prefix(recipesInSummary).map { recipeLine($0, nutrition: kitchen.showsNutrition) }
         }
         if let focus = focus(for: intent) { lines.append(focus) }
         if !history.isEmpty {
@@ -153,6 +157,9 @@ actor ModelBrain: NutmegBrain {
         case .cheap: return "They want something cheap; the list is sorted cheapest first. Mention the cost."
         case .noStove: return "They can't use a stove; every recipe in the list works without one."
         case .healthier: return "They want something on the lighter side."
+        case .highProtein: return "They want lots of protein; the list is sorted most protein first. Mention the protein."
+        case .lowCalorie: return "They want something lower in calories; the list is sorted lightest first. Mention the calories."
+        case .hearty: return "They want something filling; the list is sorted biggest first. Mention the calories."
         case .withIngredients(let ids):
             let names = ids.compactMap { IngredientCatalog.ingredient(withID: $0)?.name.lowercased() }
             return "They want to use \(OfflineBrain.list(names))."
@@ -163,7 +170,7 @@ actor ModelBrain: NutmegBrain {
     }
 
     /// "- Grilled cheese: 10 min, about $1.28 a serving, needs cheese"
-    static func recipeLine(_ match: RecipeMatch) -> String {
+    static func recipeLine(_ match: RecipeMatch, nutrition: Bool = false) -> String {
         let recipe = match.recipe
         var parts = ["\(recipe.minutes) min", "\(recipe.costText) a serving"]
         if match.isReady {
@@ -171,6 +178,9 @@ actor ModelBrain: NutmegBrain {
         } else {
             let names = match.missing.map { IngredientCatalog.ingredient(withID: $0.id)?.name.lowercased() ?? $0.id }
             parts.append("needs " + OfflineBrain.list(names))
+        }
+        if nutrition {
+            parts.append("about \(recipe.nutrition.roundedKcal) kcal and \(recipe.nutrition.roundedProtein) g protein")
         }
         if recipe.needsNoStove { parts.append("no stove") }
         if recipe.healthy { parts.append("on the lighter side") }

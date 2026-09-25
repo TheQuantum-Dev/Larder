@@ -122,7 +122,7 @@ struct NutmegChatScreen: View {
                     LazyVStack(spacing: Theme.Spacing.s) {
                         if chat.messages.isEmpty { welcome }
                         ForEach(chat.messages) { message in
-                            MessageRow(message: message) { open($0) }
+                            MessageRow(message: message, showsNutrition: app.profile.showsNutrition) { open($0) }
                                 .id(message.id)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                         }
@@ -145,6 +145,7 @@ struct NutmegChatScreen: View {
         }
         .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
         .tapFeedback(chat.messages.count)
+        .onAppear { chat.showsNutrition = app.profile.showsNutrition }
         .task {
             await chat.prewarm()
             await askDebugQuestions()
@@ -260,6 +261,7 @@ struct NutmegChatScreen: View {
 /// suggested as compact cards underneath.
 private struct MessageRow: View {
     let message: ChatMessage
+    let showsNutrition: Bool
     let onOpen: (String) -> Void
 
     var body: some View {
@@ -274,7 +276,7 @@ private struct MessageRow: View {
                     ChatBubble(text: message.text, fromNutmeg: true)
                     ForEach(message.recipeIDs, id: \.self) { id in
                         if let recipe = RecipeStore.recipe(withID: id) {
-                            ChatRecipeCard(recipe: recipe) { onOpen(id) }
+                            ChatRecipeCard(recipe: recipe, showsNutrition: showsNutrition) { onOpen(id) }
                         }
                     }
                 }
@@ -285,6 +287,7 @@ private struct MessageRow: View {
 
 private struct ChatRecipeCard: View {
     let recipe: Recipe
+    let showsNutrition: Bool
     let action: () -> Void
 
     var body: some View {
@@ -300,6 +303,11 @@ private struct ChatRecipeCard: View {
                     Text("\(recipe.minutes) min · \(recipe.costText)")
                         .font(.caption)
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    if showsNutrition {
+                        Text(recipe.nutrition.summaryText)
+                            .font(.caption)
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    }
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
