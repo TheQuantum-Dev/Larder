@@ -70,6 +70,18 @@ nonisolated enum IngredientPrices {
         "ginger": Price(unit: "1 thumb", usd: 0.15),
         "mushroom": Price(unit: "1 cup", usd: 0.70),
         "cabbage": Price(unit: "1 cup", usd: 0.20),
+        "beef": Price(unit: "100 g", usd: 1.10),
+        "turkey": Price(unit: "100 g", usd: 1.00),
+        "pork": Price(unit: "100 g", usd: 0.80),
+        "bacon": Price(unit: "1 slice", usd: 0.35),
+        "fish": Price(unit: "100 g", usd: 1.30),
+        "shrimp": Price(unit: "100 g", usd: 1.80),
+        "nuts": Price(unit: "1/4 cup", usd: 0.55),
+        "sour-cream": Price(unit: "2 tbsp", usd: 0.20),
+        "sweet-potato": Price(unit: "1 medium", usd: 0.80),
+        "zucchini": Price(unit: "1 medium", usd: 0.80),
+        "green-bean": Price(unit: "1 cup", usd: 0.60),
+        "bagel": Price(unit: "1 bagel", usd: 0.60),
     ]
 
     /// Dollars for one recipe line. Staples and unpriced lines count as free.

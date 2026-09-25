@@ -1862,5 +1862,2280 @@
     ],
     "tip": "It keeps in the fridge for 3 days, so make extra for tomorrow.",
     "healthy": true
+  },
+  {
+    "id": "chicken-burrito-bowl",
+    "title": "Chicken burrito bowl",
+    "emoji": "🌯",
+    "minutes": 25,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "150 g chicken breast, cut in strips",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice",
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
+      },
+      {
+        "id": "beans",
+        "amount": "½ can beans, drained",
+        "qty": 1,
+        "grams": 125
+      },
+      {
+        "id": "salsa",
+        "amount": "¼ cup salsa",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of shredded cheese",
+        "qty": 1,
+        "grams": 28
+      },
+      {
+        "id": "lettuce",
+        "amount": "a handful of lettuce",
+        "qty": 1,
+        "optional": true,
+        "grams": 30
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw chicken."
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat. Cook the chicken strips 6 to 8 minutes, turning now and then.",
+        "timer": 420
+      },
+      {
+        "text": "Check that the chicken has reached 74°C (165°F) with no pink inside."
+      },
+      {
+        "text": "Warm the rice and beans together in the microwave for 1 to 2 minutes.",
+        "timer": 90
+      },
+      {
+        "text": "Pile the rice, beans and chicken into a bowl. Top with salsa, cheese and lettuce."
+      }
+    ],
+    "tip": "Salsa counts as a sauce and a vegetable. A squeeze of lime on top is great if you have one.",
+    "healthy": true
+  },
+  {
+    "id": "turkey-taco-skillet",
+    "title": "Turkey taco skillet",
+    "emoji": "🌮",
+    "minutes": 30,
+    "servings": 2,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "turkey",
+        "amount": "250 g ground turkey",
+        "qty": 2.5,
+        "grams": 250
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, diced",
+        "qty": 0.5,
+        "grams": 55
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "beans",
+        "amount": "1 can of beans, drained",
+        "qty": 2,
+        "grams": 250
+      },
+      {
+        "id": "salsa",
+        "amount": "½ cup salsa",
+        "qty": 2,
+        "grams": 130
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of shredded cheese",
+        "qty": 2,
+        "grams": 56
+      },
+      {
+        "id": "tortilla",
+        "amount": "2 large tortillas",
+        "qty": 2,
+        "grams": 130
+      },
+      {
+        "id": "corn",
+        "amount": "a handful of corn",
+        "qty": 1,
+        "optional": true,
+        "alt": [
+          "frozen-veg"
+        ],
+        "grams": 40
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw turkey."
+      },
+      {
+        "text": "Heat the oil in a large pan over medium heat. Cook the onion and garlic for 2 minutes.",
+        "timer": 120
+      },
+      {
+        "text": "Add the turkey and break it up with a spoon. Cook 8 to 10 minutes, stirring now and then, until no pink is left.",
+        "timer": 540
+      },
+      {
+        "text": "Check that the turkey has reached 74°C (165°F)."
+      },
+      {
+        "text": "Stir in the beans, salsa and corn and simmer 5 minutes.",
+        "timer": 300
+      },
+      {
+        "text": "Sprinkle on the cheese and let it melt for a minute. Serve in warm tortillas.",
+        "timer": 60
+      }
+    ],
+    "tip": "It makes two servings. Reheat leftovers until steaming hot, and eat them within 3 days.",
+    "healthy": true
+  },
+  {
+    "id": "beef-broccoli-rice-bowl",
+    "title": "Beef and broccoli rice bowl",
+    "emoji": "🥦",
+    "minutes": 25,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "beef",
+        "amount": "150 g ground beef",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "broccoli",
+        "amount": "1½ cups broccoli florets",
+        "qty": 1.5,
+        "alt": [
+          "green-bean",
+          "frozen-veg",
+          "cabbage"
+        ],
+        "grams": 135
+      },
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice",
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "2 tbsp soy sauce",
+        "qty": 2,
+        "grams": 32
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "ginger",
+        "amount": "a little grated ginger",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw beef."
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat. Cook the beef 5 to 6 minutes, breaking it up, until no pink is left.",
+        "timer": 330
+      },
+      {
+        "text": "Check that the beef has reached 71°C (160°F)."
+      },
+      {
+        "text": "Add the garlic, broccoli and 3 tablespoons of water. Cover and cook 4 minutes until the broccoli is bright green and tender.",
+        "timer": 240
+      },
+      {
+        "text": "Stir in the soy sauce. Warm the rice in the microwave for 1 minute.",
+        "timer": 60
+      },
+      {
+        "text": "Serve the beef and broccoli over the rice."
+      }
+    ],
+    "tip": "Use the leanest ground beef you can find so there's less grease to drain.",
+    "healthy": true
+  },
+  {
+    "id": "garlic-shrimp-pasta",
+    "title": "Garlic shrimp pasta",
+    "emoji": "🍤",
+    "minutes": 25,
+    "servings": 1,
+    "equipment": [
+      "pot",
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "pasta",
+        "amount": "100 g pasta",
+        "qty": 1,
+        "grams": 100
+      },
+      {
+        "id": "shrimp",
+        "amount": "150 g peeled shrimp",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "garlic",
+        "amount": "3 garlic cloves, sliced",
+        "qty": 3,
+        "grams": 9
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Boil the pasta in salted water for 9 to 11 minutes, until tender. Save a splash of the pasta water, then drain.",
+        "timer": 600
+      },
+      {
+        "text": "Meanwhile, pat the shrimp dry. Melt the butter with the oil in a pan over medium heat."
+      },
+      {
+        "text": "Add the garlic for 30 seconds, then the shrimp in a single layer. Cook 2 to 3 minutes per side, until pink and opaque all the way through.",
+        "timer": 300
+      },
+      {
+        "text": "Toss the pasta into the pan with a splash of the pasta water and a squeeze of lemon."
+      }
+    ],
+    "tip": "Shrimp go from perfect to rubbery fast. Take them off the heat as soon as they turn pink and opaque.",
+    "healthy": false
+  },
+  {
+    "id": "sheet-pan-chicken-veg",
+    "title": "Sheet-pan chicken and veg",
+    "emoji": "🍗",
+    "minutes": 45,
+    "servings": 2,
+    "equipment": [
+      "oven"
+    ],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "300 g chicken breast, cut in chunks",
+        "qty": 3,
+        "grams": 300
+      },
+      {
+        "id": "potato",
+        "amount": "2 potatoes, cut in small chunks",
+        "qty": 1.75,
+        "grams": 300
+      },
+      {
+        "id": "broccoli",
+        "amount": "2 cups broccoli florets",
+        "qty": 2,
+        "alt": [
+          "green-bean",
+          "carrot"
+        ],
+        "grams": 180
+      },
+      {
+        "id": "olive-oil",
+        "amount": "2 tbsp olive oil",
+        "qty": 2,
+        "grams": 27
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Heat the oven to 220°C (425°F)."
+      },
+      {
+        "text": "Wash your hands and the cutting board after touching raw chicken."
+      },
+      {
+        "text": "Toss the potato with half the oil, salt and pepper on a sheet pan. Roast 15 minutes.",
+        "timer": 900
+      },
+      {
+        "text": "Add the chicken, broccoli, garlic and the rest of the oil to the pan and stir. Roast 20 to 25 minutes more.",
+        "timer": 1320
+      },
+      {
+        "text": "Check that the chicken has reached 74°C (165°F) with no pink inside. Let it rest 5 minutes.",
+        "timer": 300
+      }
+    ],
+    "tip": "Cut everything about the same size so it all finishes together. Eat leftovers within 3 days.",
+    "healthy": true
+  },
+  {
+    "id": "lemon-salmon-rice-beans",
+    "title": "Lemon salmon with rice and green beans",
+    "emoji": "🐟",
+    "minutes": 25,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "fish",
+        "amount": "150 g salmon fillet",
+        "qty": 1.5,
+        "grams": 150,
+        "nutri": "salmon"
+      },
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice",
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
+      },
+      {
+        "id": "green-bean",
+        "amount": "1 cup green beans",
+        "qty": 1,
+        "alt": [
+          "broccoli",
+          "frozen-veg"
+        ],
+        "grams": 100
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Pat the salmon dry and season it with salt and pepper."
+      },
+      {
+        "text": "Heat the oil in a pan over medium heat. Cook the salmon skin side down for 4 minutes.",
+        "timer": 240
+      },
+      {
+        "text": "Flip it and cook 3 to 4 minutes more. Check that it has reached 63°C (145°F) and flakes easily with a fork.",
+        "timer": 210
+      },
+      {
+        "text": "Add the green beans to the pan for the last 4 minutes, or microwave them for 3 minutes.",
+        "timer": 240
+      },
+      {
+        "text": "Warm the rice in the microwave for 1 minute. Serve everything with a squeeze of lemon.",
+        "timer": 60
+      }
+    ],
+    "tip": "Frozen salmon works well. Thaw it in the fridge overnight, not on the counter.",
+    "healthy": true
+  },
+  {
+    "id": "tuna-bean-wrap",
+    "title": "Tuna and bean wrap",
+    "emoji": "🌯",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "canned-tuna",
+        "amount": "1 can of tuna, drained",
+        "qty": 1,
+        "grams": 112
+      },
+      {
+        "id": "beans",
+        "amount": "¼ can beans, drained",
+        "qty": 0.5,
+        "grams": 60
+      },
+      {
+        "id": "tortilla",
+        "amount": "1 large tortilla",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "lettuce",
+        "amount": "a handful of lettuce",
+        "qty": 1,
+        "grams": 30
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Mash the beans with a fork in a bowl. Stir in the tuna, olive oil, and a little salt and pepper."
+      },
+      {
+        "text": "Lay the lettuce on the tortilla and spoon the tuna mix down the middle."
+      },
+      {
+        "text": "Fold in the sides, roll it up tightly, and cut it in half."
+      }
+    ],
+    "tip": "No stove and about 10 minutes, so it works from a dorm room.",
+    "healthy": true
+  },
+  {
+    "id": "greek-yogurt-power-bowl",
+    "title": "Greek yogurt power bowl",
+    "emoji": "🥣",
+    "minutes": 5,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "yogurt",
+        "amount": "1 cup thick Greek yogurt",
+        "qty": 1.4,
+        "grams": 250,
+        "nutri": "greek-yogurt"
+      },
+      {
+        "id": "oats",
+        "amount": "¼ cup rolled oats",
+        "qty": 0.5,
+        "grams": 20
+      },
+      {
+        "id": "banana",
+        "amount": "1 banana, sliced",
+        "qty": 1,
+        "alt": [
+          "apple",
+          "strawberry",
+          "blueberry"
+        ],
+        "grams": 118
+      },
+      {
+        "id": "peanut-butter",
+        "amount": "1 tbsp peanut butter",
+        "qty": 1,
+        "grams": 16
+      },
+      {
+        "id": "nuts",
+        "amount": "2 tbsp chopped nuts",
+        "qty": 0.5,
+        "optional": true,
+        "grams": 30
+      },
+      {
+        "id": "honey",
+        "amount": "a drizzle of honey",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Spoon the yogurt into a bowl."
+      },
+      {
+        "text": "Slice the banana over the top and add the peanut butter."
+      },
+      {
+        "text": "Sprinkle on the oats and nuts, and drizzle with honey if you like."
+      }
+    ],
+    "tip": "Plain Greek yogurt has about twice the protein of regular yogurt.",
+    "healthy": true
+  },
+  {
+    "id": "breakfast-burrito",
+    "title": "Egg and cheese breakfast burrito",
+    "emoji": "🌯",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "egg",
+        "amount": "3 eggs",
+        "qty": 3,
+        "grams": 150
+      },
+      {
+        "id": "tortilla",
+        "amount": "1 large tortilla",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of shredded cheese",
+        "qty": 1,
+        "grams": 28
+      },
+      {
+        "id": "salsa",
+        "amount": "¼ cup salsa",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter",
+        "qty": 1,
+        "alt": [
+          "cooking-oil"
+        ],
+        "grams": 14
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Beat the eggs in a bowl with a pinch of salt."
+      },
+      {
+        "text": "Melt the butter in a pan over medium heat. Pour in the eggs and stir gently for 2 to 3 minutes, until cooked through with no liquid left.",
+        "timer": 180
+      },
+      {
+        "text": "Warm the tortilla in the microwave for 15 seconds so it doesn't crack."
+      },
+      {
+        "text": "Fill it with the eggs, cheese, salsa and spinach, then roll it up and tuck in the ends."
+      }
+    ],
+    "tip": "Wrap it in foil or paper to eat on the move. It stays warm for about 10 minutes.",
+    "healthy": false
+  },
+  {
+    "id": "chicken-broccoli-stir-fry",
+    "title": "Chicken and broccoli stir-fry",
+    "emoji": "🥦",
+    "minutes": 25,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "150 g chicken breast, sliced thin",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "broccoli",
+        "amount": "1 cup broccoli florets",
+        "qty": 1,
+        "alt": [
+          "green-bean",
+          "frozen-veg",
+          "cabbage"
+        ],
+        "grams": 90
+      },
+      {
+        "id": "bell-pepper",
+        "amount": "½ bell pepper, sliced",
+        "qty": 0.5,
+        "alt": [
+          "carrot",
+          "zucchini"
+        ],
+        "grams": 60
+      },
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice",
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "2 tbsp soy sauce",
+        "qty": 2,
+        "grams": 32
+      },
+      {
+        "id": "garlic",
+        "amount": "1 garlic clove, minced",
+        "qty": 1,
+        "grams": 3
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw chicken."
+      },
+      {
+        "text": "Heat the oil in a pan over high heat. Cook the chicken 5 to 6 minutes, stirring often, until no pink is left.",
+        "timer": 330
+      },
+      {
+        "text": "Add the broccoli, pepper and garlic with a splash of water. Stir-fry 3 to 4 minutes until the vegetables are just tender.",
+        "timer": 210
+      },
+      {
+        "text": "Check that the chicken has reached 74°C (165°F). Stir in the soy sauce."
+      },
+      {
+        "text": "Warm the rice in the microwave for 1 minute and serve the stir-fry over it.",
+        "timer": 60
+      }
+    ],
+    "tip": "Slice the chicken thin and across the grain so it cooks fast and stays tender.",
+    "healthy": true
+  },
+  {
+    "id": "crispy-tofu-peanut-bowl",
+    "title": "Crispy tofu peanut bowl",
+    "emoji": "🥜",
+    "minutes": 30,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "tofu",
+        "amount": "200 g firm tofu, cubed",
+        "qty": 2,
+        "grams": 200
+      },
+      {
+        "id": "rice",
+        "amount": "1 cup cooked rice",
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
+      },
+      {
+        "id": "broccoli",
+        "amount": "1 cup broccoli florets",
+        "qty": 1,
+        "alt": [
+          "green-bean",
+          "frozen-veg",
+          "cabbage"
+        ],
+        "grams": 90
+      },
+      {
+        "id": "peanut-butter",
+        "amount": "1 tbsp peanut butter",
+        "qty": 1,
+        "grams": 16
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tbsp soy sauce",
+        "qty": 1,
+        "grams": 16
+      },
+      {
+        "id": "garlic",
+        "amount": "1 garlic clove, minced",
+        "qty": 1,
+        "grams": 3
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Press the tofu between paper towels for 10 minutes to squeeze out water, then cut it into cubes.",
+        "timer": 600
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat. Fry the tofu 8 to 10 minutes, turning until golden on most sides.",
+        "timer": 540
+      },
+      {
+        "text": "Add the broccoli and garlic with a splash of water. Cover and cook 3 minutes.",
+        "timer": 180
+      },
+      {
+        "text": "Stir the peanut butter and soy sauce with 1 tablespoon of hot water until smooth. Pour it over the pan and toss."
+      },
+      {
+        "text": "Warm the rice in the microwave for 1 minute and serve the tofu over it.",
+        "timer": 60
+      }
+    ],
+    "tip": "Pressing the tofu is the trick to getting it crispy.",
+    "healthy": true
+  },
+  {
+    "id": "turkey-chili",
+    "title": "Turkey chili",
+    "emoji": "🌶️",
+    "minutes": 40,
+    "servings": 2,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "turkey",
+        "amount": "250 g ground turkey",
+        "qty": 2.5,
+        "grams": 250
+      },
+      {
+        "id": "beans",
+        "amount": "1 can of beans, drained",
+        "qty": 2,
+        "grams": 250
+      },
+      {
+        "id": "tomato-sauce",
+        "amount": "1 cup tomato sauce",
+        "qty": 2,
+        "grams": 245
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, diced",
+        "qty": 0.5,
+        "grams": 55
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "bell-pepper",
+        "amount": "½ bell pepper, diced",
+        "qty": 0.5,
+        "optional": true,
+        "grams": 60
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw turkey."
+      },
+      {
+        "text": "Heat the oil in a pot over medium heat. Cook the onion and garlic for 3 minutes.",
+        "timer": 180
+      },
+      {
+        "text": "Add the turkey and break it up. Cook about 8 minutes, stirring, until no pink is left.",
+        "timer": 480
+      },
+      {
+        "text": "Stir in the beans, tomato sauce and pepper with ½ cup of water. Simmer on low for 20 minutes, stirring now and then.",
+        "timer": 1200
+      },
+      {
+        "text": "Check that the turkey has reached 74°C (165°F) before serving."
+      }
+    ],
+    "tip": "It keeps in the fridge for 3 days and tastes even better on day two. Reheat until steaming hot.",
+    "healthy": true
+  },
+  {
+    "id": "egg-white-veggie-scramble",
+    "title": "Egg white veggie scramble",
+    "emoji": "🍳",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "pan",
+      "toaster"
+    ],
+    "ingredients": [
+      {
+        "id": "egg",
+        "amount": "6 egg whites (or 1 cup liquid egg whites)",
+        "qty": 3,
+        "grams": 200,
+        "nutri": "egg-white"
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "grams": 30
+      },
+      {
+        "id": "tomato",
+        "amount": "½ tomato, diced",
+        "qty": 0.5,
+        "alt": [
+          "bell-pepper",
+          "mushroom"
+        ],
+        "grams": 60
+      },
+      {
+        "id": "bread",
+        "amount": "1 slice of toast",
+        "qty": 1,
+        "grams": 28
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "½ tbsp oil",
+        "qty": 0,
+        "grams": 7
+      }
+    ],
+    "steps": [
+      {
+        "text": "Heat the oil in a pan over medium heat. Add the spinach and tomato and cook 1 minute.",
+        "timer": 60
+      },
+      {
+        "text": "Pour in the egg whites and stir gently for 2 to 3 minutes, until they're set with no liquid left.",
+        "timer": 150
+      },
+      {
+        "text": "Toast the bread and serve the scramble on the side or on top."
+      }
+    ],
+    "tip": "Save the yolks for tomorrow's omelette, or just use whole eggs if you'd like more flavour.",
+    "healthy": true
+  },
+  {
+    "id": "chicken-lettuce-wraps",
+    "title": "Chicken lettuce wraps",
+    "emoji": "🥬",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "150 g chicken breast, chopped small",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "lettuce",
+        "amount": "3 big lettuce leaves",
+        "qty": 3,
+        "grams": 90
+      },
+      {
+        "id": "carrot",
+        "amount": "1 carrot, grated",
+        "qty": 1,
+        "grams": 61
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tbsp soy sauce",
+        "qty": 1,
+        "grams": 16
+      },
+      {
+        "id": "garlic",
+        "amount": "1 garlic clove, minced",
+        "qty": 1,
+        "grams": 3
+      },
+      {
+        "id": "ginger",
+        "amount": "a little grated ginger",
+        "qty": 0.5,
+        "optional": true
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw chicken."
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat. Cook the chicken and garlic 6 to 7 minutes, stirring, until no pink is left.",
+        "timer": 400
+      },
+      {
+        "text": "Check that the chicken has reached 74°C (165°F). Stir in the soy sauce."
+      },
+      {
+        "text": "Spoon the chicken into the lettuce leaves and top with the grated carrot."
+      }
+    ],
+    "tip": "Romaine or iceberg leaves work best. Crisp ones hold the filling better.",
+    "healthy": true
+  },
+  {
+    "id": "shrimp-zucchini-stir-fry",
+    "title": "Shrimp and zucchini stir-fry",
+    "emoji": "🍤",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "shrimp",
+        "amount": "150 g peeled shrimp",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "zucchini",
+        "amount": "1 zucchini, sliced",
+        "qty": 1,
+        "alt": [
+          "bell-pepper",
+          "broccoli"
+        ],
+        "grams": 200
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tbsp soy sauce",
+        "qty": 1,
+        "grams": 16
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Pat the shrimp dry. Heat the oil in a pan over high heat."
+      },
+      {
+        "text": "Add the zucchini and garlic and stir-fry 3 minutes.",
+        "timer": 180
+      },
+      {
+        "text": "Add the shrimp and cook 2 to 3 minutes, turning once, until pink and opaque all the way through.",
+        "timer": 150
+      },
+      {
+        "text": "Stir in the soy sauce and serve straight away."
+      }
+    ],
+    "tip": "Nice on its own, or over rice if you want it to fill you up more.",
+    "healthy": true
+  },
+  {
+    "id": "tuna-tomato-cucumber-bowl",
+    "title": "Tuna tomato cucumber bowl",
+    "emoji": "🥗",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "canned-tuna",
+        "amount": "1 can of tuna, drained",
+        "qty": 1,
+        "grams": 112
+      },
+      {
+        "id": "tomato",
+        "amount": "1 tomato, chopped",
+        "qty": 1,
+        "grams": 120
+      },
+      {
+        "id": "cucumber",
+        "amount": "½ cucumber, chopped",
+        "qty": 0.5,
+        "grams": 150
+      },
+      {
+        "id": "lettuce",
+        "amount": "a handful of lettuce",
+        "qty": 1,
+        "grams": 30
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Chop the tomato and cucumber and put them in a bowl with the lettuce."
+      },
+      {
+        "text": "Flake the tuna over the top."
+      },
+      {
+        "text": "Drizzle with the olive oil and lemon, and season with salt and pepper."
+      }
+    ],
+    "tip": "Nothing to cook, and nearly 25 g of protein for about $2.",
+    "healthy": true
+  },
+  {
+    "id": "chickpea-cucumber-salad",
+    "title": "Chickpea cucumber salad",
+    "emoji": "🥒",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "beans",
+        "amount": "½ can of chickpeas, drained",
+        "qty": 1,
+        "grams": 120,
+        "nutri": "chickpeas"
+      },
+      {
+        "id": "cucumber",
+        "amount": "½ cucumber, chopped",
+        "qty": 0.5,
+        "grams": 150
+      },
+      {
+        "id": "tomato",
+        "amount": "1 tomato, chopped",
+        "qty": 1,
+        "grams": 120
+      },
+      {
+        "id": "hummus",
+        "amount": "2 tbsp hummus",
+        "qty": 0.5,
+        "grams": 30
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Rinse and drain the chickpeas. Chop the cucumber and tomato."
+      },
+      {
+        "text": "Toss everything in a bowl with the olive oil, salt and pepper."
+      },
+      {
+        "text": "Spoon the hummus on top and squeeze over the lemon if you have it."
+      }
+    ],
+    "tip": "Vegan, no cooking, and it keeps in the fridge for a day for tomorrow's lunch.",
+    "healthy": true
+  },
+  {
+    "id": "chicken-cabbage-soup",
+    "title": "Chicken cabbage soup",
+    "emoji": "🍲",
+    "minutes": 35,
+    "servings": 2,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "200 g chicken breast, cut in small pieces",
+        "qty": 2,
+        "grams": 200
+      },
+      {
+        "id": "cabbage",
+        "amount": "2 cups shredded cabbage",
+        "qty": 2,
+        "alt": [
+          "broccoli",
+          "green-bean"
+        ],
+        "grams": 140
+      },
+      {
+        "id": "carrot",
+        "amount": "1 carrot, sliced",
+        "qty": 1,
+        "grams": 61
+      },
+      {
+        "id": "onion",
+        "amount": "½ onion, diced",
+        "qty": 0.5,
+        "grams": 55
+      },
+      {
+        "id": "broth",
+        "amount": "3 cups broth",
+        "qty": 3,
+        "grams": 720
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw chicken."
+      },
+      {
+        "text": "Heat the oil in a pot over medium heat. Cook the onion, carrot and garlic for 4 minutes.",
+        "timer": 240
+      },
+      {
+        "text": "Add the broth and bring it to a boil. Add the chicken and cabbage.",
+        "timer": 300
+      },
+      {
+        "text": "Simmer 15 minutes, until the cabbage is soft.",
+        "timer": 900
+      },
+      {
+        "text": "Check that the chicken has reached 74°C (165°F) with no pink inside. Season with salt and pepper."
+      }
+    ],
+    "tip": "It makes two servings and is easy on the budget. Reheat leftovers until steaming hot.",
+    "healthy": true
+  },
+  {
+    "id": "lemon-garlic-fish-green-beans",
+    "title": "Lemon garlic fish with green beans",
+    "emoji": "🐟",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "fish",
+        "amount": "170 g white fish fillet",
+        "qty": 1.7,
+        "grams": 170
+      },
+      {
+        "id": "green-bean",
+        "amount": "1½ cups green beans",
+        "qty": 1.5,
+        "alt": [
+          "broccoli",
+          "frozen-veg"
+        ],
+        "grams": 150
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, sliced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "lemon",
+        "amount": "a squeeze of lemon",
+        "qty": 0.25,
+        "optional": true
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Pat the fish dry and season with salt and pepper."
+      },
+      {
+        "text": "Heat the oil in a pan over medium heat. Add the green beans and garlic and cook 4 minutes.",
+        "timer": 240
+      },
+      {
+        "text": "Push the beans aside and lay the fish in the pan. Cook 3 to 4 minutes per side, until it reaches 63°C (145°F) and flakes easily with a fork.",
+        "timer": 420
+      },
+      {
+        "text": "Finish with a squeeze of lemon."
+      }
+    ],
+    "tip": "Cod, pollock or tilapia all work, and frozen fillets are cheapest. Thaw them in the fridge first.",
+    "healthy": true
+  },
+  {
+    "id": "pb-banana-overnight-oats",
+    "title": "Peanut butter banana overnight oats",
+    "emoji": "🥜",
+    "minutes": 5,
+    "servings": 1,
+    "equipment": [],
+    "ingredients": [
+      {
+        "id": "oats",
+        "amount": "1 cup rolled oats",
+        "qty": 2,
+        "grams": 80
+      },
+      {
+        "id": "milk",
+        "amount": "1 cup milk",
+        "qty": 1,
+        "alt": [
+          "yogurt"
+        ],
+        "grams": 244
+      },
+      {
+        "id": "peanut-butter",
+        "amount": "2 tbsp peanut butter",
+        "qty": 2,
+        "grams": 32
+      },
+      {
+        "id": "banana",
+        "amount": "1 banana, sliced",
+        "qty": 1,
+        "grams": 118
+      },
+      {
+        "id": "yogurt",
+        "amount": "½ cup yogurt",
+        "qty": 0.7,
+        "optional": true,
+        "grams": 120
+      },
+      {
+        "id": "honey",
+        "amount": "a drizzle of honey",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Stir the oats, milk and peanut butter together in a jar or bowl until smooth."
+      },
+      {
+        "text": "Cover and put it in the fridge for at least 4 hours, or overnight."
+      },
+      {
+        "text": "In the morning, stir it and top with the sliced banana and yogurt."
+      }
+    ],
+    "tip": "Set it up before bed and breakfast is already made. It keeps 2 days in the fridge.",
+    "healthy": false
+  },
+  {
+    "id": "loaded-beef-burrito",
+    "title": "Loaded beef burrito",
+    "emoji": "🌯",
+    "minutes": 30,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "beef",
+        "amount": "150 g ground beef",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "tortilla",
+        "amount": "1 large tortilla",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "rice",
+        "amount": "½ cup cooked rice",
+        "qty": 0.5,
+        "grams": 80,
+        "nutri": "rice-cooked"
+      },
+      {
+        "id": "beans",
+        "amount": "½ can beans, drained",
+        "qty": 1,
+        "grams": 125
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of shredded cheese",
+        "qty": 1,
+        "grams": 28
+      },
+      {
+        "id": "sour-cream",
+        "amount": "2 tbsp sour cream",
+        "qty": 1,
+        "alt": [
+          "yogurt"
+        ],
+        "grams": 30
+      },
+      {
+        "id": "salsa",
+        "amount": "¼ cup salsa",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "a little oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw beef."
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat. Cook the beef 5 to 6 minutes, breaking it up, until no pink is left.",
+        "timer": 330
+      },
+      {
+        "text": "Check that the beef has reached 71°C (160°F). Stir in the beans and salsa and warm through 2 minutes.",
+        "timer": 120
+      },
+      {
+        "text": "Warm the tortilla in the microwave for 15 seconds."
+      },
+      {
+        "text": "Fill it with the beef mix, rice, cheese and sour cream. Roll it up and tuck in the ends."
+      }
+    ],
+    "tip": "Wrap it tightly in foil and it's easy to eat with one hand.",
+    "healthy": false
+  },
+  {
+    "id": "creamy-chicken-pasta",
+    "title": "Creamy chicken pasta",
+    "emoji": "🍝",
+    "minutes": 30,
+    "servings": 1,
+    "equipment": [
+      "pot",
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "chicken",
+        "amount": "150 g chicken breast, cut in small pieces",
+        "qty": 1.5,
+        "grams": 150
+      },
+      {
+        "id": "pasta",
+        "amount": "100 g pasta",
+        "qty": 1,
+        "grams": 100
+      },
+      {
+        "id": "milk",
+        "amount": "½ cup milk",
+        "qty": 0.5,
+        "grams": 122
+      },
+      {
+        "id": "cheese",
+        "amount": "a big handful of cheese",
+        "qty": 1,
+        "grams": 30
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "optional": true,
+        "grams": 30
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw chicken."
+      },
+      {
+        "text": "Boil the pasta in salted water for 9 to 11 minutes, then drain.",
+        "timer": 600
+      },
+      {
+        "text": "Meanwhile, melt the butter in a pan over medium heat. Cook the chicken 6 to 7 minutes, until no pink is left.",
+        "timer": 400
+      },
+      {
+        "text": "Check that the chicken has reached 74°C (165°F). Add the garlic for 30 seconds."
+      },
+      {
+        "text": "Pour in the milk and stir in the cheese until it melts into a sauce, about 2 minutes. Toss in the pasta and spinach.",
+        "timer": 120
+      }
+    ],
+    "tip": "If the sauce gets too thick, stir in a splash of the pasta water.",
+    "healthy": false
+  },
+  {
+    "id": "sausage-egg-potato-skillet",
+    "title": "Sausage, egg and potato skillet",
+    "emoji": "🍳",
+    "minutes": 35,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "sausage",
+        "amount": "1 sausage, sliced",
+        "qty": 1,
+        "grams": 85
+      },
+      {
+        "id": "potato",
+        "amount": "1 potato, diced small",
+        "qty": 1,
+        "grams": 200
+      },
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2,
+        "grams": 100
+      },
+      {
+        "id": "onion",
+        "amount": "¼ onion, diced",
+        "qty": 0.25,
+        "grams": 28
+      },
+      {
+        "id": "cheese",
+        "amount": "a handful of cheese",
+        "qty": 1,
+        "optional": true,
+        "grams": 28
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      }
+    ],
+    "steps": [
+      {
+        "text": "Heat the oil in a pan over medium heat. Cook the potato 10 minutes, stirring now and then, until golden and soft.",
+        "timer": 600
+      },
+      {
+        "text": "Add the sausage and onion and cook 6 to 8 minutes, until browned all over.",
+        "timer": 420
+      },
+      {
+        "text": "Check that the sausage has reached 71°C (160°F)."
+      },
+      {
+        "text": "Make two gaps in the pan and crack in the eggs. Cover and cook 3 to 4 minutes, until the whites and yolks are firm.",
+        "timer": 210
+      },
+      {
+        "text": "Scatter the cheese over the top and let it melt for a minute."
+      }
+    ],
+    "tip": "Cook the potato before the sausage so it gets properly crisp.",
+    "healthy": false
+  },
+  {
+    "id": "bacon-egg-cheese-bagel",
+    "title": "Bacon, egg and cheese bagel",
+    "emoji": "🥓",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "pan",
+      "toaster"
+    ],
+    "ingredients": [
+      {
+        "id": "bacon",
+        "amount": "3 slices of bacon",
+        "qty": 3,
+        "grams": 24
+      },
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2,
+        "grams": 100
+      },
+      {
+        "id": "cheese",
+        "amount": "1 slice of cheese",
+        "qty": 1,
+        "grams": 21
+      },
+      {
+        "id": "bagel",
+        "amount": "1 bagel",
+        "qty": 1,
+        "alt": [
+          "bread"
+        ],
+        "grams": 95
+      },
+      {
+        "id": "butter",
+        "amount": "½ tbsp butter",
+        "qty": 0.5,
+        "grams": 7
+      }
+    ],
+    "steps": [
+      {
+        "text": "Cook the bacon in a pan over medium heat for 6 to 8 minutes, turning, until crisp. Set it on paper towels.",
+        "timer": 420
+      },
+      {
+        "text": "Toast the bagel and butter both halves."
+      },
+      {
+        "text": "Crack the eggs into the pan and cook 3 to 4 minutes, flipping once, until the whites and yolks are firm.",
+        "timer": 210
+      },
+      {
+        "text": "Build the bagel with the eggs, cheese and bacon while everything's hot."
+      }
+    ],
+    "tip": "Use the bacon fat to cook the eggs and skip the extra oil.",
+    "healthy": false
+  },
+  {
+    "id": "tuna-mac",
+    "title": "Tuna mac and cheese",
+    "emoji": "🧀",
+    "minutes": 25,
+    "servings": 1,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "pasta",
+        "amount": "100 g macaroni or pasta",
+        "qty": 1,
+        "grams": 100
+      },
+      {
+        "id": "canned-tuna",
+        "amount": "1 can of tuna, drained",
+        "qty": 1,
+        "grams": 112
+      },
+      {
+        "id": "cheese",
+        "amount": "60 g cheese, grated",
+        "qty": 2,
+        "grams": 60
+      },
+      {
+        "id": "milk",
+        "amount": "½ cup milk",
+        "qty": 0.5,
+        "grams": 122
+      },
+      {
+        "id": "butter",
+        "amount": "1 tbsp butter",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "peas",
+        "amount": "½ cup frozen peas",
+        "qty": 1,
+        "optional": true,
+        "alt": [
+          "frozen-veg"
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "text": "Boil the pasta in salted water for 9 to 11 minutes, then drain and return it to the pot.",
+        "timer": 600
+      },
+      {
+        "text": "Add the butter, milk and cheese and stir over low heat until the cheese melts into a sauce, about 2 minutes.",
+        "timer": 120
+      },
+      {
+        "text": "Stir in the tuna and peas and warm through for 1 minute.",
+        "timer": 60
+      }
+    ],
+    "tip": "A can of tuna turns a side dish into a real meal, with about 50 g of protein.",
+    "healthy": false
+  },
+  {
+    "id": "rice-bean-egg-bowl",
+    "title": "Rice, beans and egg power bowl",
+    "emoji": "🍚",
+    "minutes": 20,
+    "servings": 1,
+    "equipment": [
+      "pan"
+    ],
+    "ingredients": [
+      {
+        "id": "rice",
+        "amount": "1½ cups cooked rice",
+        "qty": 1.5,
+        "grams": 237,
+        "nutri": "rice-cooked"
+      },
+      {
+        "id": "beans",
+        "amount": "½ can beans, drained",
+        "qty": 1,
+        "grams": 125
+      },
+      {
+        "id": "egg",
+        "amount": "2 eggs",
+        "qty": 2,
+        "grams": 100
+      },
+      {
+        "id": "avocado",
+        "amount": "½ an avocado",
+        "qty": 0.5,
+        "grams": 68
+      },
+      {
+        "id": "salsa",
+        "amount": "¼ cup salsa",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "½ tbsp oil",
+        "qty": 0,
+        "grams": 7
+      }
+    ],
+    "steps": [
+      {
+        "text": "Warm the rice and beans together in the microwave for 2 minutes.",
+        "timer": 120
+      },
+      {
+        "text": "Heat the oil in a pan over medium heat. Crack in the eggs and cook 3 to 4 minutes, until the whites and yolks are firm.",
+        "timer": 210
+      },
+      {
+        "text": "Pile the rice and beans in a bowl. Top with the eggs, sliced avocado and salsa."
+      }
+    ],
+    "tip": "Cheap, filling, and it's a full meal in one bowl.",
+    "healthy": true
+  },
+  {
+    "id": "kettle-oats-pb",
+    "title": "Kettle oats with peanut butter",
+    "emoji": "☕",
+    "minutes": 5,
+    "servings": 1,
+    "equipment": [
+      "kettle"
+    ],
+    "ingredients": [
+      {
+        "id": "oats",
+        "amount": "1 cup rolled oats",
+        "qty": 2,
+        "grams": 80
+      },
+      {
+        "id": "peanut-butter",
+        "amount": "2 tbsp peanut butter",
+        "qty": 2,
+        "grams": 32
+      },
+      {
+        "id": "banana",
+        "amount": "1 banana, sliced",
+        "qty": 1,
+        "grams": 118
+      },
+      {
+        "id": "nuts",
+        "amount": "2 tbsp chopped nuts",
+        "qty": 0.5,
+        "optional": true,
+        "grams": 15
+      },
+      {
+        "id": "honey",
+        "amount": "a drizzle of honey",
+        "qty": 1,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Boil the kettle."
+      },
+      {
+        "text": "Put the oats in a bowl and pour over about 1 cup of hot water. Stir, then cover and wait 3 minutes.",
+        "timer": 180
+      },
+      {
+        "text": "Stir in the peanut butter and top with the banana and nuts."
+      }
+    ],
+    "tip": "All you need is a kettle and a bowl. Careful, the water is very hot.",
+    "healthy": false
+  },
+  {
+    "id": "kettle-ramen-tofu",
+    "title": "Kettle ramen with tofu and greens",
+    "emoji": "🍜",
+    "minutes": 10,
+    "servings": 1,
+    "equipment": [
+      "kettle"
+    ],
+    "ingredients": [
+      {
+        "id": "ramen",
+        "amount": "1 pack of instant ramen",
+        "qty": 1,
+        "grams": 85
+      },
+      {
+        "id": "tofu",
+        "amount": "100 g firm tofu, cubed",
+        "qty": 1,
+        "grams": 100
+      },
+      {
+        "id": "spinach",
+        "amount": "a handful of spinach",
+        "qty": 1,
+        "alt": [
+          "kale",
+          "frozen-veg"
+        ],
+        "grams": 30
+      },
+      {
+        "id": "soy-sauce",
+        "amount": "1 tsp soy sauce",
+        "qty": 0.3,
+        "optional": true
+      }
+    ],
+    "steps": [
+      {
+        "text": "Boil the kettle."
+      },
+      {
+        "text": "Put the noodles, seasoning, cubed tofu and spinach in a big bowl."
+      },
+      {
+        "text": "Pour boiling water over everything until it's covered. Cover with a plate and wait 4 minutes, then stir.",
+        "timer": 240
+      }
+    ],
+    "tip": "The tofu adds about 17 g of protein to a pack of ramen. Careful, the water is very hot.",
+    "healthy": false
+  },
+  {
+    "id": "sweet-potato-black-bean-bowl",
+    "title": "Sweet potato black bean bowl",
+    "emoji": "🍠",
+    "minutes": 15,
+    "servings": 1,
+    "equipment": [
+      "microwave"
+    ],
+    "ingredients": [
+      {
+        "id": "sweet-potato",
+        "amount": "1 sweet potato",
+        "qty": 1,
+        "grams": 200
+      },
+      {
+        "id": "beans",
+        "amount": "½ can black beans, drained",
+        "qty": 1,
+        "grams": 125
+      },
+      {
+        "id": "salsa",
+        "amount": "¼ cup salsa",
+        "qty": 1,
+        "grams": 65
+      },
+      {
+        "id": "avocado",
+        "amount": "½ an avocado",
+        "qty": 0.5,
+        "optional": true,
+        "grams": 68
+      },
+      {
+        "id": "corn",
+        "amount": "a handful of corn",
+        "qty": 1,
+        "optional": true,
+        "alt": [
+          "frozen-veg"
+        ],
+        "grams": 40
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash the sweet potato and pierce it all over with a fork."
+      },
+      {
+        "text": "Microwave it 5 to 7 minutes, turning once, until it's soft all the way through.",
+        "timer": 360
+      },
+      {
+        "text": "Warm the beans for 1 minute. Split the sweet potato open and fill it with the beans, salsa and avocado.",
+        "timer": 60
+      }
+    ],
+    "tip": "Vegan, gluten-free and made entirely in the microwave.",
+    "healthy": true
+  },
+  {
+    "id": "spiced-lentil-rice-stew",
+    "title": "Lentil and rice stew",
+    "emoji": "🍛",
+    "minutes": 40,
+    "servings": 2,
+    "equipment": [
+      "pot"
+    ],
+    "ingredients": [
+      {
+        "id": "lentils",
+        "amount": "½ cup dry lentils, rinsed",
+        "qty": 2,
+        "grams": 96
+      },
+      {
+        "id": "rice",
+        "amount": "½ cup dry rice",
+        "qty": 1,
+        "grams": 92
+      },
+      {
+        "id": "onion",
+        "amount": "1 onion, diced",
+        "qty": 1,
+        "grams": 110
+      },
+      {
+        "id": "carrot",
+        "amount": "1 carrot, diced",
+        "qty": 1,
+        "grams": 61
+      },
+      {
+        "id": "garlic",
+        "amount": "2 garlic cloves, minced",
+        "qty": 2,
+        "grams": 6
+      },
+      {
+        "id": "tomato-sauce",
+        "amount": "½ cup tomato sauce",
+        "qty": 1,
+        "grams": 122
+      },
+      {
+        "id": "cooking-oil",
+        "amount": "1 tbsp oil",
+        "qty": 0,
+        "grams": 14
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Heat the oil in a pot over medium heat. Cook the onion, carrot and garlic for 5 minutes.",
+        "timer": 300
+      },
+      {
+        "text": "Add the lentils, tomato sauce and 3 cups of water. Bring to a boil, then simmer 10 minutes.",
+        "timer": 600
+      },
+      {
+        "text": "Stir in the rice, cover, and simmer another 20 minutes, stirring now and then and adding water if it sticks.",
+        "timer": 1200
+      },
+      {
+        "text": "Season with salt and let it stand 5 minutes before serving.",
+        "timer": 300
+      }
+    ],
+    "tip": "Vegan, filling and about a dollar a serving. Reheat leftovers until steaming hot.",
+    "healthy": true
+  },
+  {
+    "id": "pork-chop-sweet-potato",
+    "title": "Pork chop with sweet potato",
+    "emoji": "🥩",
+    "minutes": 30,
+    "servings": 1,
+    "equipment": [
+      "pan",
+      "microwave"
+    ],
+    "ingredients": [
+      {
+        "id": "pork",
+        "amount": "200 g boneless pork chop",
+        "qty": 2,
+        "grams": 200
+      },
+      {
+        "id": "sweet-potato",
+        "amount": "1 sweet potato",
+        "qty": 1,
+        "grams": 200
+      },
+      {
+        "id": "green-bean",
+        "amount": "1 cup green beans",
+        "qty": 1,
+        "alt": [
+          "broccoli",
+          "frozen-veg"
+        ],
+        "grams": 100
+      },
+      {
+        "id": "olive-oil",
+        "amount": "1 tbsp olive oil",
+        "qty": 1,
+        "grams": 14
+      },
+      {
+        "id": "salt",
+        "amount": "a pinch of salt",
+        "qty": 0
+      },
+      {
+        "id": "black-pepper",
+        "amount": "black pepper",
+        "qty": 0
+      }
+    ],
+    "steps": [
+      {
+        "text": "Wash your hands and the cutting board after touching raw pork."
+      },
+      {
+        "text": "Pierce the sweet potato and microwave it 5 to 7 minutes until soft.",
+        "timer": 360
+      },
+      {
+        "text": "Pat the pork dry and season it with salt and pepper on both sides."
+      },
+      {
+        "text": "Heat the oil in a pan over medium-high heat. Cook the pork 4 to 5 minutes per side.",
+        "timer": 540
+      },
+      {
+        "text": "Check that the pork has reached 63°C (145°F), then let it rest 3 minutes.",
+        "timer": 180
+      },
+      {
+        "text": "Cook the green beans in the pan for 3 minutes, or microwave them. Serve everything together.",
+        "timer": 180
+      }
+    ],
+    "tip": "Resting the pork keeps it juicy, so don't skip it.",
+    "healthy": true
   }
 ]
