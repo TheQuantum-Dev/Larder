@@ -24,7 +24,7 @@ struct LarderApp: App {
         WindowGroup {
             RootView()
                 .environment(purchaseStore)
-                .modelContainer(for: [PantryItem.self, CookedMeal.self])
+                .modelContainer(for: [PantryItem.self, CookedMeal.self, ShoppingItem.self])
                 .fontDesign(.rounded)
                 .task { await purchaseStore.start() }
                 .task { SoundPlayer.prepare() }

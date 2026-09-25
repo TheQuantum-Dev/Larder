@@ -5,7 +5,27 @@
 //  Created by Joshua Samuel on 9/21/26.
 //
 
+import SwiftData
 import SwiftUI
+
+/// A one-tap way to put what a recipe is missing on the shopping list.
+struct RecipeListAction {
+    let title: String
+    let isDone: Bool
+    let perform: () -> Void
+
+    /// For a recipe that's only one or two things away.
+    static func nudge(for match: RecipeMatch, listed: Set<String>, context: ModelContext) -> RecipeListAction? {
+        guard !match.isReady, (1...2).contains(match.missing.count) else { return nil }
+        let items = match.missing.compactMap { IngredientCatalog.ingredient(withID: $0.id).map(ResolvedItem.init) }
+        guard !items.isEmpty else { return nil }
+        let title = items.count == 1 ? "Add \(items[0].name.lowercased()) to my list" : "Add both to my list"
+        return RecipeListAction(title: title,
+                                isDone: items.allSatisfy { listed.contains($0.id) }) {
+            ShoppingRepository.add(items, in: context)
+        }
+    }
+}
 
 /// One recipe in a list: what it is, how long and how much, and whether the
 /// pantry already covers it.
@@ -16,11 +36,38 @@ struct RecipeCard: View {
     var badges: [String] = []
     /// Adds calories and protein under the time and cost.
     var showsNutrition = false
+    var listAction: RecipeListAction?
     let action: () -> Void
 
     private var recipe: Recipe { match.recipe }
 
     var body: some View {
+        VStack(spacing: 0) {
+            mainButton
+            if let listAction { listButton(listAction) }
+        }
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+    }
+
+    private func listButton(_ listAction: RecipeListAction) -> some View {
+        Button(action: listAction.perform) {
+            Label(listAction.isDone ? "On your shopping list" : listAction.title,
+                  systemImage: listAction.isDone ? "checkmark.circle.fill" : "cart.badge.plus")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Theme.Spacing.s)
+                .padding(.vertical, Theme.Spacing.xs)
+                .frame(maxWidth: .infinity, minHeight: 40)
+                .background(Theme.Palette.softAmber.opacity(listAction.isDone ? 0.4 : 1), in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .disabled(listAction.isDone)
+        .padding(.horizontal, Theme.Spacing.s)
+        .padding(.bottom, Theme.Spacing.s)
+    }
+
+    private var mainButton: some View {
         Button(action: action) {
             HStack(spacing: Theme.Spacing.s) {
                 Text(recipe.emoji)
@@ -53,7 +100,7 @@ struct RecipeCard: View {
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.4))
             }
             .padding(Theme.Spacing.s)
-            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)

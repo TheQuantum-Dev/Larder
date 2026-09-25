@@ -18,7 +18,7 @@ final class TestDatabase {
 
     init() throws {
         container = try ModelContainer(
-            for: PantryItem.self, CookedMeal.self,
+            for: PantryItem.self, CookedMeal.self, ShoppingItem.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true))
     }
 }
