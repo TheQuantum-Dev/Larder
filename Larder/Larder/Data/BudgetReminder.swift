@@ -19,6 +19,17 @@ nonisolated enum BudgetReminder {
     static let hour = 18
     static let title = "How did this week's food budget go?"
     static let body = "Take a look in Insights to see where you landed."
+
+    enum Outcome: Equatable {
+        /// Off, or no budget to check in on: clear anything pending.
+        case cancel
+        case schedule(weekday: Int, hour: Int, title: String, body: String)
+    }
+
+    static func outcome(weeklyBudgetIsSet: Bool, enabled: Bool) -> Outcome {
+        guard enabled, weeklyBudgetIsSet else { return .cancel }
+        return .schedule(weekday: weekday, hour: hour, title: title, body: body)
+    }
 }
 
 /// The system repeats this on its own once it's set, so there's no
@@ -26,7 +37,8 @@ nonisolated enum BudgetReminder {
 enum BudgetReminderScheduler {
     static func refresh(weeklyBudgetIsSet: Bool, enabled: Bool) async {
         let center = UNUserNotificationCenter.current()
-        guard enabled, weeklyBudgetIsSet else {
+        guard case .schedule(let weekday, let hour, let title, let body) =
+                BudgetReminder.outcome(weeklyBudgetIsSet: weeklyBudgetIsSet, enabled: enabled) else {
             center.removePendingNotificationRequests(withIdentifiers: [BudgetReminder.identifier])
             return
         }
@@ -34,12 +46,12 @@ enum BudgetReminderScheduler {
         guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
 
         let content = UNMutableNotificationContent()
-        content.title = BudgetReminder.title
-        content.body = BudgetReminder.body
+        content.title = title
+        content.body = body
         content.sound = .default
         var when = DateComponents()
-        when.weekday = BudgetReminder.weekday
-        when.hour = BudgetReminder.hour
+        when.weekday = weekday
+        when.hour = hour
         when.minute = 0
         let request = UNNotificationRequest(identifier: BudgetReminder.identifier, content: content,
                                             trigger: UNCalendarNotificationTrigger(dateMatching: when, repeats: true))

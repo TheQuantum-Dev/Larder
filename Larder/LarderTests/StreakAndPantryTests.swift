@@ -212,3 +212,29 @@ struct PantryLowReminderTests {
         #expect(outcome == .notLow)
     }
 }
+
+struct BudgetReminderTests {
+    @Test func aBudgetWithRemindersOnSchedulesTheSundayCheckIn() {
+        let outcome = BudgetReminder.outcome(weeklyBudgetIsSet: true, enabled: true)
+        #expect(outcome == .schedule(weekday: 1, hour: 18, title: BudgetReminder.title, body: BudgetReminder.body))
+    }
+
+    @Test func noBudgetOrRemindersOffClearsIt() {
+        #expect(BudgetReminder.outcome(weeklyBudgetIsSet: false, enabled: true) == .cancel)
+        #expect(BudgetReminder.outcome(weeklyBudgetIsSet: true, enabled: false) == .cancel)
+        #expect(BudgetReminder.outcome(weeklyBudgetIsSet: false, enabled: false) == .cancel)
+    }
+
+    @Test func itLandsOnASundayEveningNotInTheMiddleOfTheDay() {
+        #expect(BudgetReminder.weekday == 1)
+        #expect((17...20).contains(BudgetReminder.hour))
+    }
+
+    @Test func theCopyNeverScoldsAndNeverPromisesANumber() {
+        let text = (BudgetReminder.title + " " + BudgetReminder.body).lowercased()
+        for word in ["over", "overspent", "failed", "don't", "should have", "too much"] {
+            #expect(!text.contains(word), "'\(word)' has no place in the reminder")
+        }
+        #expect(text.contains("$") == false, "a scheduled reminder can't know the real number")
+    }
+}
