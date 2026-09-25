@@ -14,6 +14,8 @@ struct RecipeCard: View {
     /// Short "picked for you" reasons, worked out from onboarding answers.
     /// Empty when nothing stands out, or when the caller has no profile to draw from.
     var badges: [String] = []
+    /// Adds calories and protein under the time and cost.
+    var showsNutrition = false
     let action: () -> Void
 
     private var recipe: Recipe { match.recipe }
@@ -34,6 +36,11 @@ struct RecipeCard: View {
                     Text(details)
                         .font(.subheadline)
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    if showsNutrition {
+                        Text(recipe.nutrition.summaryText)
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    }
                     if !badges.isEmpty {
                         badgeRow
                     }

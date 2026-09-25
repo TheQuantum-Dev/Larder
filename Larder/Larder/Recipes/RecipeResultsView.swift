@@ -16,6 +16,9 @@ struct RecipeResultsView: View {
     let diets: Set<Diet>
     var priorities: Set<Priority> = []
     var cooking: Set<CookingConfidence> = []
+    /// What they're working toward, if they picked something with numbers.
+    var goal: GoalContext?
+    var showsNutrition = false
     /// Called once the person has cooked a recipe all the way through.
     let onCooked: (Recipe) -> Void
     let onAddMore: () -> Void
@@ -35,7 +38,7 @@ struct RecipeResultsView: View {
             }
         }
         .background(Theme.Palette.background.ignoresSafeArea())
-        .recipeCookingFlow(selected: $selected, diets: diets, onCooked: onCooked)
+        .recipeCookingFlow(selected: $selected, diets: diets, showsNutrition: showsNutrition, onCooked: onCooked)
         .onAppear {
             appeared = true
             openDebugRecipe()
@@ -130,8 +133,8 @@ struct RecipeResultsView: View {
                 .font(.headline)
                 .foregroundStyle(Theme.Palette.textPrimary)
             ForEach(Array(items.enumerated()), id: \.element.id) { offset, match in
-                let badges = RecipeBadges.reasons(for: match, priorities: priorities, cooking: cooking)
-                RecipeCard(match: match, badges: badges) { selected = match }
+                let badges = RecipeBadges.reasons(for: match, priorities: priorities, cooking: cooking, goal: goal)
+                RecipeCard(match: match, badges: badges, showsNutrition: showsNutrition) { selected = match }
                     .opacity(appeared ? 1 : 0)
                     .offset(y: appeared ? 0 : 30)
                     .animation(.spring(response: 0.55, dampingFraction: 0.75)

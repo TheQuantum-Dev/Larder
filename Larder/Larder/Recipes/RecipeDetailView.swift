@@ -12,6 +12,7 @@ import SwiftUI
 struct RecipeDetailView: View {
     let match: RecipeMatch
     let diets: Set<Diet>
+    var showsNutrition = true
     let onCook: (Recipe) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -23,6 +24,7 @@ struct RecipeDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                 header
+                if showsNutrition { nutrition }
                 if !recipe.equipment.isEmpty { equipment }
                 ingredients
                 steps
@@ -61,6 +63,33 @@ struct RecipeDetailView: View {
             .padding(.horizontal, Theme.Spacing.xs)
             .frame(minHeight: 40)
             .background(Theme.Palette.surface, in: Capsule())
+    }
+
+    private var nutrition: some View {
+        let macros = recipe.nutrition
+        return VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            heading("Per serving")
+            HStack(spacing: Theme.Spacing.xs) {
+                macroTile("\(macros.roundedKcal)", "kcal")
+                macroTile("\(macros.roundedProtein) g", "protein")
+                macroTile("\(macros.roundedCarbs) g", "carbs")
+                macroTile("\(macros.roundedFat) g", "fat")
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func macroTile(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 0) {
+            Text(value)
+                .font(.headline)
+                .foregroundStyle(Theme.Palette.textPrimary)
+            Text(label)
+                .font(.caption)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+        }
+        .frame(maxWidth: .infinity, minHeight: 60)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
     }
 
     private var equipment: some View {
@@ -155,6 +184,9 @@ struct RecipeDetailView: View {
                 Text("This recipe has no pork or alcohol. Use halal-certified meat.")
             }
             Text("Costs are rough estimates and vary by store.")
+            if showsNutrition {
+                Text("Calories and macros are estimates from USDA FoodData Central. Optional ingredients aren't counted.")
+            }
         }
         .font(.footnote)
         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))

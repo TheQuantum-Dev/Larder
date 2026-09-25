@@ -23,7 +23,8 @@ struct HomeView: View {
 
     private var matches: [RecipeMatch] {
         RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
-                                  priorities: app.profile.prioritySet, cooking: app.profile.cookingSet).matches
+                                  priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
+                                  goal: app.profile.goalContext).matches
     }
 
     private var streak: CookingStreak.Status {
@@ -54,7 +55,7 @@ struct HomeView: View {
                 }
             }
         }
-        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
         .sheet(isPresented: $showSettings, onDismiss: app.reloadProfile) {
             SettingsView()
         }
@@ -100,6 +101,11 @@ struct HomeView: View {
                         Text("\(recipe.minutes) min · \(recipe.costText)")
                             .font(.subheadline)
                             .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                        if app.profile.showsNutrition {
+                            Text(recipe.nutrition.summaryText)
+                                .font(.subheadline)
+                                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                        }
                         Text(pick.isReady ? "You have everything" : "Missing " + missingNames(pick))
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(pick.isReady ? Theme.Palette.sage : Theme.Palette.textPrimary.opacity(0.6))

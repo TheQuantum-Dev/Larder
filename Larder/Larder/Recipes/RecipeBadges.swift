@@ -11,9 +11,15 @@ import Foundation
 /// answers feel like they actually did something. Only shown when a badge is
 /// clearly true, never guessed.
 nonisolated enum RecipeBadges {
-    static func reasons(for match: RecipeMatch, priorities: Set<Priority>, cooking: Set<CookingConfidence>) -> [String] {
+    static func reasons(for match: RecipeMatch, priorities: Set<Priority>, cooking: Set<CookingConfidence>,
+                        goal: GoalContext? = nil) -> [String] {
         var badges: [String] = []
         let recipe = match.recipe
+
+        // What they're working toward comes first, so the two-badge cap keeps it.
+        if let goal, let badge = GoalFit.badge(for: recipe.nutrition, in: goal) {
+            badges.append(badge)
+        }
 
         if priorities.contains(.saveMoney) && recipe.costPerServing <= 1 {
             badges.append("💸 Cheap")

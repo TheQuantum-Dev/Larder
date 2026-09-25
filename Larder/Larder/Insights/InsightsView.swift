@@ -27,7 +27,8 @@ struct InsightsView: View {
 
     private var matches: [RecipeMatch] {
         RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
-                                  priorities: app.profile.prioritySet, cooking: app.profile.cookingSet).matches
+                                  priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
+                                  goal: app.profile.goalContext).matches
     }
 
     var body: some View {
@@ -46,7 +47,7 @@ struct InsightsView: View {
             .background(Theme.Palette.background.ignoresSafeArea())
             .navigationTitle("Insights")
         }
-        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView { _ in showPaywall = false }
         }
@@ -243,8 +244,9 @@ struct InsightsView: View {
                 ? Array(matches.sorted { $0.recipe.costPerServing < $1.recipe.costPerServing }.prefix(3))
                 : picks
             ForEach(shown) { match in
-                let badges = RecipeBadges.reasons(for: match, priorities: app.profile.prioritySet, cooking: app.profile.cookingSet)
-                RecipeCard(match: match, badges: badges) { selected = match }
+                let badges = RecipeBadges.reasons(for: match, priorities: app.profile.prioritySet,
+                                                  cooking: app.profile.cookingSet, goal: app.profile.goalContext)
+                RecipeCard(match: match, badges: badges, showsNutrition: app.profile.showsNutrition) { selected = match }
             }
         }
     }

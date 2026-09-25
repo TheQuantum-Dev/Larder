@@ -30,6 +30,7 @@ nonisolated enum RecipeMatcher {
                         diets: Set<Diet> = [],
                         priorities: Set<Priority> = [],
                         cooking: Set<CookingConfidence> = [],
+                        goal: GoalContext? = nil,
                         maxMissing: Int = 3) -> [RecipeMatch] {
         let forbidden = Diet.forbiddenTraits(for: diets)
         var result: [RecipeMatch] = []
@@ -55,7 +56,7 @@ nonisolated enum RecipeMatcher {
         return result.sorted { a, b in
             if a.isReady != b.isReady { return a.isReady }
             if a.missing.count != b.missing.count { return a.missing.count < b.missing.count }
-            let prefA = preference(a, priorities, cooking), prefB = preference(b, priorities, cooking)
+            let prefA = preference(a, priorities, cooking, goal), prefB = preference(b, priorities, cooking, goal)
             if prefA != prefB { return prefA < prefB }
             // Otherwise the cheaper meal first: this is a student budget app.
             if a.recipe.costPerServing != b.recipe.costPerServing { return a.recipe.costPerServing < b.recipe.costPerServing }
@@ -70,10 +71,13 @@ nonisolated enum RecipeMatcher {
                             pantry: Set<String>,
                             diets: Set<Diet> = [],
                             priorities: Set<Priority> = [],
-                            cooking: Set<CookingConfidence> = []) -> (matches: [RecipeMatch], stretched: Bool) {
-        let close = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, cooking: cooking, maxMissing: 3)
+                            cooking: Set<CookingConfidence> = [],
+                            goal: GoalContext? = nil) -> (matches: [RecipeMatch], stretched: Bool) {
+        let close = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, cooking: cooking,
+                            goal: goal, maxMissing: 3)
         if !close.isEmpty { return (close, false) }
-        let wider = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, cooking: cooking, maxMissing: 6)
+        let wider = matches(recipes: recipes, pantry: pantry, diets: diets, priorities: priorities, cooking: cooking,
+                            goal: goal, maxMissing: 6)
         return (wider, !wider.isEmpty)
     }
 
@@ -83,8 +87,9 @@ nonisolated enum RecipeMatcher {
 
     /// Lower is better.
     private static func preference(_ match: RecipeMatch, _ priorities: Set<Priority>,
-                                   _ cooking: Set<CookingConfidence>) -> Double {
+                                   _ cooking: Set<CookingConfidence>, _ goal: GoalContext?) -> Double {
         var score = 0.0
+        if let goal { score += GoalFit.penalty(for: match.recipe.nutrition, in: goal) }
         if priorities.contains(.saveMoney) { score += match.recipe.costPerServing }
         if priorities.contains(.fast) { score += Double(match.recipe.minutes) / 10 }
         if priorities.contains(.cutWaste) { score -= Double(match.haveCount) * 0.25 }

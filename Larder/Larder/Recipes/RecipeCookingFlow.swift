@@ -13,6 +13,7 @@ import SwiftUI
 private struct RecipeCookingFlow: ViewModifier {
     @Binding var selected: RecipeMatch?
     let diets: Set<Diet>
+    let showsNutrition: Bool
     let onCooked: (Recipe) -> Void
 
     @State private var cooking: Recipe?
@@ -20,7 +21,7 @@ private struct RecipeCookingFlow: ViewModifier {
     func body(content: Content) -> some View {
         content
             .sheet(item: $selected) { match in
-                RecipeDetailView(match: match, diets: diets) { recipe in
+                RecipeDetailView(match: match, diets: diets, showsNutrition: showsNutrition) { recipe in
                     selected = nil
                     // Let the sheet finish closing before Cook Mode takes over.
                     Task {
@@ -41,8 +42,8 @@ private struct RecipeCookingFlow: ViewModifier {
 }
 
 extension View {
-    func recipeCookingFlow(selected: Binding<RecipeMatch?>, diets: Set<Diet>,
+    func recipeCookingFlow(selected: Binding<RecipeMatch?>, diets: Set<Diet>, showsNutrition: Bool = true,
                            onCooked: @escaping (Recipe) -> Void = { _ in }) -> some View {
-        modifier(RecipeCookingFlow(selected: selected, diets: diets, onCooked: onCooked))
+        modifier(RecipeCookingFlow(selected: selected, diets: diets, showsNutrition: showsNutrition, onCooked: onCooked))
     }
 }

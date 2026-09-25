@@ -11,9 +11,17 @@ import SwiftUI
 /// Quick ways to narrow the list. One at a time, so it's always obvious why
 /// something is or isn't showing.
 nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
-    case all, ready, quick, cheap, noStove
+    case all, ready, quick, cheap, noStove, highProtein, lighter, hearty
 
     var id: String { rawValue }
+
+    /// The chips to offer. The calorie and protein ones go away entirely when
+    /// someone has chosen not to see numbers.
+    static func available(showsNutrition: Bool) -> [RecipeFilter] {
+        showsNutrition ? allCases : allCases.filter { !$0.needsNutrition }
+    }
+
+    var needsNutrition: Bool { [.highProtein, .lighter, .hearty].contains(self) }
 
     var title: String {
         switch self {
@@ -22,6 +30,9 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
         case .quick: "Quick"
         case .cheap: "Cheap"
         case .noStove: "No stove"
+        case .highProtein: "High protein"
+        case .lighter: "Lighter"
+        case .hearty: "Hearty"
         }
     }
 
@@ -29,6 +40,11 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
     static let quickMinutes = 15
     /// About a dollar a serving or less.
     static let cheapPerServing = 1.0
+    /// Grams of protein per serving for "high protein".
+    static let highProteinGrams = 25.0
+    /// Calories per serving for "lighter", and for "hearty".
+    static let lighterKcal = 450.0
+    static let heartyKcal = 650.0
 
     func includes(_ match: RecipeMatch) -> Bool {
         switch self {
@@ -37,6 +53,9 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
         case .quick: match.recipe.minutes <= Self.quickMinutes
         case .cheap: match.recipe.costPerServing <= Self.cheapPerServing
         case .noStove: match.recipe.needsNoStove
+        case .highProtein: match.recipe.nutrition.protein >= Self.highProteinGrams
+        case .lighter: match.recipe.nutrition.kcal <= Self.lighterKcal
+        case .hearty: match.recipe.nutrition.kcal >= Self.heartyKcal
         }
     }
 
@@ -63,7 +82,7 @@ struct RecipesView: View {
     private var allMatches: [RecipeMatch] {
         RecipeMatcher.matches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
                               priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
-                              maxMissing: .max)
+                              goal: app.profile.goalContext, maxMissing: .max)
     }
 
     var body: some View {
@@ -86,14 +105,14 @@ struct RecipesView: View {
             .navigationTitle("Recipes")
             .searchable(text: $query, prompt: "Search recipes")
         }
-        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet)
+        .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition)
         .tapFeedback(filter)
     }
 
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Theme.Spacing.xs) {
-                ForEach(RecipeFilter.allCases) { option in
+                ForEach(RecipeFilter.available(showsNutrition: app.profile.showsNutrition)) { option in
                     Button { filter = option } label: {
                         Text(option.title)
                             .font(.subheadline.weight(.semibold))
@@ -123,8 +142,8 @@ struct RecipesView: View {
                     .foregroundStyle(Theme.Palette.textPrimary)
                 ForEach(items) { match in
                     let badges = RecipeBadges.reasons(for: match, priorities: app.profile.prioritySet,
-                                                      cooking: app.profile.cookingSet)
-                    RecipeCard(match: match, badges: badges) { selected = match }
+                                                      cooking: app.profile.cookingSet, goal: app.profile.goalContext)
+                    RecipeCard(match: match, badges: badges, showsNutrition: app.profile.showsNutrition) { selected = match }
                 }
             }
         }
