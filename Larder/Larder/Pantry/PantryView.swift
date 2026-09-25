@@ -11,31 +11,47 @@ import SwiftUI
 /// Everything in the kitchen, grouped the way a shop is: produce, dairy,
 /// and so on. Tap something to set how much is left, swipe to take it off.
 struct PantryView: View {
+    private enum Mode { case pantry, shopping }
+
     @Environment(AppModel.self) private var app
     @Environment(\.modelContext) private var context
     @Query(sort: \PantryItem.name) private var pantry: [PantryItem]
+    @Query private var shopping: [ShoppingItem]
 
     @State private var query = ""
     @State private var editing: PantryItem?
+    @State private var mode = Self.launchMode
+    @State private var showAddToList = false
+
+    private var toGetCount: Int { shopping.filter { !$0.isBought }.count }
 
     var body: some View {
         NavigationStack {
             Group {
-                if pantry.isEmpty {
-                    emptyState
-                } else {
-                    list
+                switch mode {
+                case .pantry:
+                    if pantry.isEmpty {
+                        emptyState
+                    } else {
+                        list
+                    }
+                case .shopping:
+                    ShoppingListView { showAddToList = true }
                 }
             }
             .background(Theme.Palette.background.ignoresSafeArea())
-            .navigationTitle("Pantry")
+            .navigationTitle(mode == .pantry ? "Pantry" : "Shopping list")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) { modePicker }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { app.showScan = true } label: {
+                    Button {
+                        if mode == .pantry { app.showScan = true } else { showAddToList = true }
+                    } label: {
                         Image(systemName: "plus")
                             .foregroundStyle(Theme.Palette.textPrimary)
                     }
-                    .accessibilityLabel("Add to pantry")
+                    .accessibilityLabel(mode == .pantry ? "Add to pantry" : "Add to shopping list")
                 }
             }
         }
@@ -44,7 +60,30 @@ struct PantryView: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $showAddToList) {
+            AddToListSheet()
+                .presentationDragIndicator(.visible)
+        }
         .tapFeedback(pantry.count)
+        .tapFeedback(mode)
+    }
+
+    private var modePicker: some View {
+        Picker("Show", selection: $mode) {
+            Text("Pantry").tag(Mode.pantry)
+            Text(toGetCount > 0 ? "Shopping list · \(toGetCount)" : "Shopping list").tag(Mode.shopping)
+        }
+        .pickerStyle(.segmented)
+        .frame(width: 260)
+    }
+
+    /// `-pantryMode shopping` opens the shopping list (debug builds only).
+    private static var launchMode: Mode {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "pantryMode") == "shopping" ? .shopping : .pantry
+        #else
+        .pantry
+        #endif
     }
 
     // MARK: - The list
@@ -159,6 +198,7 @@ struct PantryAmountEditor: View {
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
     @State private var quantity: Double?
     @State private var unit: PantryUnit
 
@@ -195,7 +235,9 @@ struct PantryAmountEditor: View {
             Spacer(minLength: 0)
 
             Button("All gone, take it off", role: .destructive) {
+                let gone = item.resolved
                 PantryRepository.remove(ids: [item.ingredientID], in: context)
+                ShoppingRepository.addRunOut([gone], enabled: autoAddToShopping, in: context)
                 dismiss()
             }
             .font(.body.weight(.semibold))

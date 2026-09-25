@@ -22,6 +22,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.streakRemindersKey) private var streakReminders = true
     @AppStorage(AppSettings.pantryRemindersKey) private var pantryReminders = true
     @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
+    @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
 
     private enum Destination: Hashable { case goal }
 
@@ -64,6 +65,7 @@ struct SettingsView: View {
                 goalSection
                 savingsSection
                 remindersSection
+                shoppingSection
                 plusSection
                 aboutSection
             }
@@ -182,6 +184,17 @@ struct SettingsView: View {
         }
     }
 
+    private var shoppingSection: some View {
+        Section {
+            Toggle("Add what I run out of", isOn: $autoAddToShopping)
+                .listRowBackground(Theme.Palette.surface)
+        } header: {
+            Text("Shopping list")
+        } footer: {
+            Text("When you tell me something ran out after cooking, or take it off your pantry as all gone, it goes on your shopping list.")
+        }
+    }
+
     private var plusSection: some View {
         Section("Larder Plus") {
             Button { showPaywall = true } label: {
@@ -244,6 +257,7 @@ struct SettingsView: View {
     private func resetAllData() {
         PantryRepository.remove(ids: Set(PantryRepository.all(in: context).map(\.ingredientID)), in: context)
         for meal in MealLog.meals(in: context) { context.delete(meal) }
+        for item in ShoppingRepository.all(in: context) { context.delete(item) }
         try? context.save()
         ProfileStore.save(Profile())
         mealGoal = 0
