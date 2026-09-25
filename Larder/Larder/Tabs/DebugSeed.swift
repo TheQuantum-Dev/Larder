@@ -9,6 +9,7 @@
 import Foundation
 import SwiftData
 
+/// `-seedPantry a,b,c` chooses the pantry by ingredient id.
 /// `-seedShopping YES` also puts a few things on the shopping list, one already ticked off.
 /// `-seedDemo YES` saves a small pantry and a cooked meal, so the app can be
 /// seen without going through onboarding. Add `-seedStreak 5` for meals on the
@@ -23,7 +24,9 @@ enum DebugSeed {
     @MainActor
     static func run(in context: ModelContext) {
         guard UserDefaults.standard.bool(forKey: "seedDemo") else { return }
-        PantryRepository.replace(with: pantry.compactMap { IngredientCatalog.ingredient(withID: $0) }.map(ResolvedItem.init),
+        // `-seedPantry chicken,rice,beans` overrides the pantry that gets saved.
+        let ids = UserDefaults.standard.string(forKey: "seedPantry")?.split(separator: ",").map(String.init) ?? pantry
+        PantryRepository.replace(with: ids.compactMap { IngredientCatalog.ingredient(withID: $0) }.map(ResolvedItem.init),
                                  in: context)
         if UserDefaults.standard.bool(forKey: "seedShopping"), ShoppingRepository.all(in: context).isEmpty {
             let items = ["eggs", "spinach", "soy-sauce", "yogurt"].compactMap { id -> ResolvedItem? in
