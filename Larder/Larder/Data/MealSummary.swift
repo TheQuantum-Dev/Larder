@@ -69,6 +69,14 @@ nonisolated enum AppSettings {
     static let budgetRemindersKey = "budgetReminders"
     /// When the pantry-low nudge was last scheduled, so it doesn't repeat every day.
     static let lastPantryReminderKey = "lastPantryReminder"
+    /// Which `NutmegLook` he's wearing.
+    static let nutmegLookKey = "nutmegLook"
+    /// Whether the app icon follows his look (default on).
+    static let matchAppIconKey = "matchAppIcon"
+    /// Earned looks the person has already been told about, comma separated.
+    static let seenLooksKey = "seenLooks"
+    /// The week the meal-goal cheer last played, so it happens once a week.
+    static let lastGoalCheerKey = "lastGoalCheerWeek"
     /// Whether things that run out are added to the shopping list (default on).
     static let autoAddToShoppingKey = "autoAddToShoppingList"
     /// Whether cooked meals are saved to Apple Health (off until the person connects it).
