@@ -71,6 +71,11 @@ struct OnboardingFlow: View {
                        subtitle: "Pick as many as you like.",
                        selection: Bindable(answers).priorities,
                        onContinue: advance)
+        case .goal:
+            QuizScreen(title: "What are you working toward?",
+                       subtitle: "I'll pick recipes to match. You can change this anytime.",
+                       selection: Bindable(answers).goal,
+                       onContinue: advance)
         case .synthesis:
             SynthesisView(answers: answers, onContinue: advance)
         case .tryIt:
@@ -85,6 +90,8 @@ struct OnboardingFlow: View {
                               diets: answers.diets.items,
                               priorities: answers.priorities.items,
                               cooking: answers.cooking.items,
+                              goal: answers.goalContext,
+                              showsNutrition: answers.fitnessGoal?.showsNutrition ?? true,
                               onCooked: { recipe in
                                   answers.firstRecipeID = recipe.id
                                   advance()
@@ -123,15 +130,17 @@ struct OnboardingFlow: View {
         return RecipeMatcher.bestMatches(pantry: Set(answers.pantry.map(\.id)),
                                          diets: answers.diets.items,
                                          priorities: answers.priorities.items,
-                                         cooking: answers.cooking.items)
+                                         cooking: answers.cooking.items,
+                                         goal: answers.goalContext)
     }
 
     /// Saves what the person told us, so recipes stay matched to them, then
     /// leaves onboarding.
     private func finish() {
-        ProfileStore.save(Profile(diets: answers.diets.items,
-                                  cooking: answers.cooking.items,
-                                  priorities: answers.priorities.items))
+        var profile = ProfileStore.load()
+        profile.update(diets: answers.diets.items, cooking: answers.cooking.items,
+                       priorities: answers.priorities.items, goal: answers.fitnessGoal)
+        ProfileStore.save(profile)
         onFinish()
     }
 
@@ -193,6 +202,7 @@ struct OnboardingFlow: View {
             answers.cooking.toggle(.followRecipe)
             answers.priorities.toggle(.saveMoney)
             answers.priorities.toggle(.fast)
+            answers.goal.toggle(.buildMuscle)
         }
         if let ids = UserDefaults.standard.string(forKey: "onboardingPantry") {
             answers.pantry = ids.split(separator: ",")

@@ -36,6 +36,7 @@ struct QuizScreen<Option: QuizOption>: View {
                 ForEach(Array(Option.allCases)) { option in
                     OptionRow(emoji: option.emoji,
                               title: option.title,
+                              detail: option.detail,
                               isSelected: selection.contains(option)) {
                         selection.toggle(option)
                     }
@@ -59,6 +60,7 @@ struct QuizScreen<Option: QuizOption>: View {
 private struct OptionRow: View {
     let emoji: String
     let title: String
+    let detail: String?
     let isSelected: Bool
     let action: () -> Void
 
@@ -66,9 +68,17 @@ private struct OptionRow: View {
         Button(action: action) {
             HStack(spacing: Theme.Spacing.s) {
                 Text(emoji).font(.title2)
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(Theme.Palette.textPrimary)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                    if let detail {
+                        Text(detail)
+                            .font(.subheadline)
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                            .multilineTextAlignment(.leading)
+                    }
+                }
                 Spacer(minLength: Theme.Spacing.xs)
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title2)

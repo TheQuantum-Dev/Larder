@@ -9,7 +9,7 @@ import Foundation
 
 /// The screens of onboarding, in order.
 enum OnboardingStep: Int, CaseIterable {
-    case welcome, diet, cooking, priorities, synthesis, tryIt, recipes, commitment, founderNote, paywall, notifications, allSet
+    case welcome, diet, cooking, priorities, goal, synthesis, tryIt, recipes, commitment, founderNote, paywall, notifications, allSet
 
     var next: OnboardingStep? { OnboardingStep(rawValue: rawValue + 1) }
     var previous: OnboardingStep? { OnboardingStep(rawValue: rawValue - 1) }

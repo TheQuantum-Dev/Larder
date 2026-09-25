@@ -28,6 +28,7 @@ struct SynthesisView: View {
     private var eats: [Chip] { chips(from: answers.diets.ordered, prefix: "diet") }
     private var cooks: [Chip] { chips(from: answers.cooking.ordered, prefix: "cooking") }
     private var cares: [Chip] { chips(from: answers.priorities.ordered, prefix: "priority") }
+    private var aims: [Chip] { chips(from: answers.goal.ordered, prefix: "goal") }
 
     var body: some View {
         ScrollView {
@@ -50,7 +51,7 @@ struct SynthesisView: View {
                     planCard
                 } else {
                     ScatterLayout(height: 300) {
-                        ForEach(Array((eats + cooks + cares).enumerated()), id: \.element.id) { index, chip in
+                        ForEach(Array((eats + cooks + cares + aims).enumerated()), id: \.element.id) { index, chip in
                             chipView(chip)
                                 .matchedGeometryEffect(id: chip.id, in: namespace)
                                 .opacity(appeared ? 1 : 0)
@@ -95,6 +96,9 @@ struct SynthesisView: View {
             group("Eats", chips: eats)
             group("Cooks", chips: cooks)
             group("Cares about", chips: cares)
+            if !aims.isEmpty {
+                group("Working toward", chips: aims)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Theme.Spacing.s)
@@ -133,12 +137,15 @@ struct SynthesisView: View {
     /// Nutmeg's one-line read of what matters to this person.
     private var summary: String {
         let blurbs = answers.priorities.ordered.map(\.blurb)
+        let base: String
         switch blurbs.count {
-        case 0: return "I'll find dinners that fit your week."
-        case 1: return "I'll hunt for dinners that are \(blurbs[0])."
+        case 0: base = "I'll find dinners that fit your week."
+        case 1: base = "I'll hunt for dinners that are \(blurbs[0])."
         default:
             let head = blurbs.dropLast().joined(separator: ", ")
-            return "I'll hunt for dinners that are \(head) and \(blurbs.last!)."
+            base = "I'll hunt for dinners that are \(head) and \(blurbs.last!)."
         }
+        guard let promise = answers.fitnessGoal?.promise else { return base }
+        return base + " " + promise
     }
 }
