@@ -21,6 +21,7 @@ struct MainTabView: View {
     @AppStorage(AppSettings.pantryRemindersKey) private var pantryReminders = true
     @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
+    @AppStorage(AppSettings.seenLooksKey) private var seenLooks = ""
 
     var body: some View {
         TabView(selection: $app.tab) {
@@ -69,11 +70,28 @@ struct MainTabView: View {
             DebugSeed.run(in: context)
             #endif
         }
+        .task(id: meals.count) { announceNewLooks() }
         .task(id: reminderKey) { await refreshReminders() }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
             Task { await refreshReminders() }
         }
+    }
+
+    /// Tells the person once when cooking earns Nutmeg a new look.
+    private func announceNewLooks() {
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "unlockCoral"), app.unlockedLook == nil {
+            app.unlockedLook = .coral
+            return
+        }
+        #endif
+        let earned = NutmegLook.earned(bestStreak: CookingStreak.best(from: meals.map(\.cookedAt)),
+                                       mealCount: meals.count)
+        let seen = Set(seenLooks.split(separator: ",").map(String.init))
+        guard let fresh = NutmegLook.allCases.first(where: { earned.contains($0) && !seen.contains($0.rawValue) }) else { return }
+        seenLooks = (seen.union([fresh.rawValue])).sorted().joined(separator: ",")
+        app.unlockedLook = fresh
     }
 
     private var reminderKey: String {

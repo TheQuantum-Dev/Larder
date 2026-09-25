@@ -18,6 +18,7 @@ struct HomeView: View {
     @Query private var meals: [CookedMeal]
     @Query private var listed: [ShoppingItem]
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
+    @AppStorage(AppSettings.lastGoalCheerKey) private var lastGoalCheer = ""
 
     @State private var selected: RecipeMatch?
 
@@ -36,6 +37,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     header
+                    if let look = app.unlockedLook { unlockCard(look) }
                     tonightCard
                     weekCard
                     Button(pantry.isEmpty ? "Scan my fridge" : "Add groceries") { app.showScan = true }
@@ -57,13 +59,66 @@ struct HomeView: View {
         }
         .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
                            offersShoppingList: true)
+        .onChange(of: app.unlockedLook) { _, look in
+            guard look != nil else { return }
+            app.homeCheer += 1
+            SoundPlayer.success()
+        }
+        .task(id: "\(goalReached)-\(app.tab == .home)") { celebrateGoalIfNew() }
+    }
+
+    // MARK: - Small celebrations
+
+    private var goalReached: Bool {
+        mealGoal > 0 && MealStats.compute(from: meals).mealsThisWeek >= mealGoal
+    }
+
+    /// Once a week, when the meal goal is met while Home is showing.
+    private func celebrateGoalIfNew() {
+        guard goalReached, app.tab == .home else { return }
+        let parts = Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())
+        let week = "\(parts.yearForWeekOfYear ?? 0)-\(parts.weekOfYear ?? 0)"
+        guard lastGoalCheer != week else { return }
+        lastGoalCheer = week
+        app.homeCheer += 1
+        SoundPlayer.success()
+    }
+
+    private func unlockCard(_ look: NutmegLook) -> some View {
+        HStack(spacing: Theme.Spacing.s) {
+            NutmegView(skin: look.skin, cheer: app.homeCheer)
+                .frame(width: 80)
+            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                Text("You unlocked \(look.title)!")
+                    .font(.title3.bold())
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                Text("Nutmeg has a new look, thanks to all that cooking.")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                HStack(spacing: Theme.Spacing.xs) {
+                    Button("Try it on") {
+                        app.unlockedLook = nil
+                        app.showSettings = true
+                    }
+                    .buttonStyle(PillButtonStyle())
+                    Button("Later") { app.unlockedLook = nil }
+                        .font(.body.weight(.semibold))
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                        .frame(minHeight: 44)
+                        .padding(.horizontal, Theme.Spacing.xs)
+                }
+            }
+        }
+        .padding(Theme.Spacing.s)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
     }
 
     // MARK: - Nutmeg and the streak
 
     private var header: some View {
         HStack(spacing: Theme.Spacing.s) {
-            NutmegView()
+            NutmegView(cheer: app.homeCheer)
                 .frame(width: 100)
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text(HomeGreeting.text(pantryCount: pantry.count,

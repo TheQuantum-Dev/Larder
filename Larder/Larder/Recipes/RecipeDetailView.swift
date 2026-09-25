@@ -20,6 +20,7 @@ struct RecipeDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
     @State private var addedToList = false
+    @State private var nod = 0
 
     private var recipe: Recipe { match.recipe }
     private var missingIDs: Set<String> { Set(match.missing.map(\.id)) }
@@ -189,7 +190,7 @@ struct RecipeDetailView: View {
 
     private var tip: some View {
         HStack(alignment: .top, spacing: Theme.Spacing.s) {
-            NutmegView()
+            NutmegView(nod: nod)
                 .frame(width: 60)
             Text(recipe.tip)
                 .font(.subheadline)
@@ -198,6 +199,9 @@ struct RecipeDetailView: View {
         }
         .padding(Theme.Spacing.s)
         .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        .onScrollVisibilityChange(threshold: 0.6) { visible in
+            if visible, nod == 0 { nod = 1 }
+        }
     }
 
     private var footnotes: some View {

@@ -24,10 +24,11 @@ struct SettingsView: View {
     @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
     @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
 
-    private enum Destination: Hashable { case goal }
+    private enum Destination: Hashable { case goal, looks }
 
     @State private var diets: MultiSelection<Diet>
     @State private var goalName: String
+    @AppStorage(AppSettings.nutmegLookKey) private var lookName = NutmegLook.amber.rawValue
     @State private var path: [Destination] = SettingsView.launchPath
     @State private var showPaywall = false
     @State private var showResetConfirm = false
@@ -47,7 +48,8 @@ struct SettingsView: View {
     /// `-openGoalSettings YES` opens straight onto the goal screen (debug builds only).
     private static var launchPath: [Destination] {
         #if DEBUG
-        UserDefaults.standard.bool(forKey: "openGoalSettings") ? [.goal] : []
+        if UserDefaults.standard.bool(forKey: "openLooks") { return [.looks] }
+        return UserDefaults.standard.bool(forKey: "openGoalSettings") ? [.goal] : []
         #else
         []
         #endif
@@ -62,6 +64,7 @@ struct SettingsView: View {
             Form {
                 foodSection
                 bodyGoalSection
+                looksSection
                 goalSection
                 savingsSection
                 remindersSection
@@ -73,7 +76,12 @@ struct SettingsView: View {
             .background(Theme.Palette.background.ignoresSafeArea())
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: Destination.self) { _ in GoalSettingsView() }
+            .navigationDestination(for: Destination.self) { destination in
+                switch destination {
+                case .goal: GoalSettingsView()
+                case .looks: LooksView()
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
@@ -131,6 +139,18 @@ struct SettingsView: View {
             Text("Sets which recipes come first and your daily calorie and protein targets.")
         }
         .onAppear { goalName = Self.goalName(for: ProfileStore.load()) }
+    }
+
+    private var looksSection: some View {
+        Section {
+            NavigationLink(value: Destination.looks) {
+                LabeledContent("Nutmeg's look", value: (NutmegLook(rawValue: lookName) ?? .amber).title)
+                    .foregroundStyle(Theme.Palette.textPrimary)
+            }
+            .listRowBackground(Theme.Palette.surface)
+        } footer: {
+            Text("Change how Nutmeg looks, and the app icon with him.")
+        }
     }
 
     private var goalSection: some View {

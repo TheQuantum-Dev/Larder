@@ -68,7 +68,8 @@ struct PaywallView: View {
             ])
             featureGroup("With Plus", icon: "plus.circle.fill", tint: Theme.Palette.coral, items: [
                 "Chat with Nutmeg about your kitchen",
-                "Budget and cost insights",
+                "Budget and nutrition insights",
+                "Seasonal looks and app icons for Nutmeg",
             ])
         }
         .frame(maxWidth: .infinity, alignment: .leading)

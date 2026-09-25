@@ -19,6 +19,10 @@ nonisolated enum AppTab: String, Hashable, CaseIterable, Sendable {
 final class AppModel {
     var tab: AppTab
     var showScan = false
+    /// A look that was just earned and hasn't been shown off yet.
+    var unlockedLook: NutmegLook?
+    /// Goes up when Nutmeg has something to cheer about on Home.
+    var homeCheer = 0
     /// Settings opens from Home's gear and from prompts on other tabs, so one
     /// sheet at the root serves them all.
     var showSettings = AppModel.launchOpensSettings

@@ -207,12 +207,19 @@ private struct GatherView: View {
     let diets: Set<Diet>
     let onStart: () -> Void
 
+    /// Nutmeg gives an approving nod as Cook Mode opens: you picked a good one.
+    @State private var nod = 0
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                 HStack(spacing: Theme.Spacing.s) {
-                    NutmegView()
+                    NutmegView(nod: nod)
                         .frame(width: 80)
+                        .task {
+                            try? await Task.sleep(for: .milliseconds(500))
+                            nod += 1
+                        }
                     VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                         Text("Let's get set up")
                             .font(.title2.bold())

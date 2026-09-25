@@ -18,6 +18,8 @@ struct SynthesisView: View {
     /// Drives the scattered chips popping in, right as the screen appears,
     /// so nothing sits static before the fly-together.
     @State private var appeared = false
+    /// A little cheer when the picks land in "your plan".
+    @State private var cheer = 0
 
     private struct Chip: Identifiable {
         let id: String
@@ -34,7 +36,7 @@ struct SynthesisView: View {
         ScrollView {
             VStack(spacing: Theme.Spacing.s) {
                 HStack(spacing: Theme.Spacing.s) {
-                    NutmegView()
+                    NutmegView(cheer: cheer)
                         .frame(width: 80)
                     VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                         Text("Here's what I know about your week")
@@ -85,6 +87,9 @@ struct SynthesisView: View {
             withAnimation(.spring(response: 0.9, dampingFraction: 0.72)) {
                 assembled = true
             }
+            try? await Task.sleep(for: .milliseconds(450))
+            cheer += 1
+            SoundPlayer.success()
         }
     }
 
