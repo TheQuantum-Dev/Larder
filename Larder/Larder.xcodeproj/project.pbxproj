@@ -39,7 +39,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Larder.entitlements,
 			);
 			target = DDFD439A3060698600DC37AE /* Larder */;
 		};
