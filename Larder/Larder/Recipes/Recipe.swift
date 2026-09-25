@@ -33,9 +33,17 @@ nonisolated struct RecipeIngredient: Codable, Hashable, Sendable {
     let optional: Bool?
     /// Other ingredients that can stand in for this one.
     let alt: [String]?
+    /// What the whole line weighs, for calories and macros. Salt, pepper and
+    /// water leave it out. `var` with a default so older hand-built lines
+    /// still compile.
+    var grams: Double? = nil
+    /// Which nutrition entry to use when it isn't the ingredient itself, like
+    /// cooked rice for a line that uses cooked rice.
+    var nutri: String? = nil
 
     var isOptional: Bool { optional ?? false }
     var alternatives: [String] { alt ?? [] }
+    var nutritionKey: String { nutri ?? id }
 }
 
 nonisolated struct RecipeStep: Codable, Hashable, Sendable {

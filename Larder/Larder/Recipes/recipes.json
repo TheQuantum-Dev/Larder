@@ -12,12 +12,15 @@
       {
         "id": "rice",
         "amount": "1 cup cooked rice (day-old is best)",
-        "qty": 1
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
       },
       {
         "id": "egg",
         "amount": "2 eggs",
-        "qty": 2
+        "qty": 2,
+        "grams": 100
       },
       {
         "id": "frozen-veg",
@@ -27,12 +30,14 @@
           "peas",
           "carrot",
           "corn"
-        ]
+        ],
+        "grams": 70
       },
       {
         "id": "soy-sauce",
         "amount": "1 tbsp soy sauce",
-        "qty": 1
+        "qty": 1,
+        "grams": 16
       },
       {
         "id": "onion",
@@ -49,7 +54,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       }
     ],
     "steps": [
@@ -86,12 +92,14 @@
       {
         "id": "ramen",
         "amount": "1 pack instant ramen",
-        "qty": 1
+        "qty": 1,
+        "grams": 85
       },
       {
         "id": "egg",
         "amount": "1 egg",
-        "qty": 1
+        "qty": 1,
+        "grams": 50
       },
       {
         "id": "spinach",
@@ -100,7 +108,8 @@
         "alt": [
           "kale",
           "frozen-veg"
-        ]
+        ],
+        "grams": 30
       },
       {
         "id": "soy-sauce",
@@ -143,17 +152,20 @@
       {
         "id": "bread",
         "amount": "2 slices of bread",
-        "qty": 2
+        "qty": 2,
+        "grams": 56
       },
       {
         "id": "peanut-butter",
         "amount": "2 tbsp peanut butter",
-        "qty": 2
+        "qty": 2,
+        "grams": 32
       },
       {
         "id": "banana",
         "amount": "1 banana",
-        "qty": 1
+        "qty": 1,
+        "grams": 118
       },
       {
         "id": "honey",
@@ -191,17 +203,20 @@
       {
         "id": "egg",
         "amount": "2 eggs",
-        "qty": 2
+        "qty": 2,
+        "grams": 100
       },
       {
         "id": "cheese",
         "amount": "a handful of shredded cheese",
-        "qty": 1
+        "qty": 1,
+        "grams": 28
       },
       {
         "id": "bread",
         "amount": "2 slices of bread",
-        "qty": 2
+        "qty": 2,
+        "grams": 56
       },
       {
         "id": "butter",
@@ -209,7 +224,8 @@
         "qty": 1,
         "alt": [
           "cooking-oil"
-        ]
+        ],
+        "grams": 14
       }
     ],
     "steps": [
@@ -242,17 +258,20 @@
       {
         "id": "bread",
         "amount": "2 slices of bread",
-        "qty": 2
+        "qty": 2,
+        "grams": 56
       },
       {
         "id": "cheese",
         "amount": "2 slices of cheese",
-        "qty": 1.5
+        "qty": 1.5,
+        "grams": 42
       },
       {
         "id": "butter",
         "amount": "1 tbsp butter, softened",
-        "qty": 1
+        "qty": 1,
+        "grams": 14
       }
     ],
     "steps": [
@@ -284,12 +303,14 @@
       {
         "id": "pasta",
         "amount": "100 g pasta (a big handful)",
-        "qty": 1
+        "qty": 1,
+        "grams": 100
       },
       {
         "id": "tomato-sauce",
         "amount": "½ cup tomato sauce",
-        "qty": 1
+        "qty": 1,
+        "grams": 122
       },
       {
         "id": "garlic",
@@ -344,12 +365,14 @@
       {
         "id": "pasta",
         "amount": "100 g pasta",
-        "qty": 1
+        "qty": 1,
+        "grams": 100
       },
       {
         "id": "garlic",
         "amount": "3 garlic cloves, sliced",
-        "qty": 3
+        "qty": 3,
+        "grams": 9
       },
       {
         "id": "olive-oil",
@@ -357,7 +380,8 @@
         "qty": 3,
         "alt": [
           "butter"
-        ]
+        ],
+        "grams": 40
       },
       {
         "id": "cheese",
@@ -401,17 +425,20 @@
       {
         "id": "tortilla",
         "amount": "1 large tortilla",
-        "qty": 1
+        "qty": 1,
+        "grams": 65
       },
       {
         "id": "beans",
         "amount": "½ can beans, drained",
-        "qty": 1
+        "qty": 1,
+        "grams": 125
       },
       {
         "id": "cheese",
         "amount": "a handful of cheese",
-        "qty": 1
+        "qty": 1,
+        "grams": 28
       },
       {
         "id": "salsa",
@@ -449,17 +476,21 @@
       {
         "id": "rice",
         "amount": "1 cup cooked rice",
-        "qty": 1
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
       },
       {
         "id": "beans",
         "amount": "½ can black beans, drained",
-        "qty": 1
+        "qty": 1,
+        "grams": 125
       },
       {
         "id": "salsa",
         "amount": "¼ cup salsa",
-        "qty": 1
+        "qty": 1,
+        "grams": 65
       },
       {
         "id": "avocado",
@@ -512,7 +543,9 @@
       {
         "id": "rice",
         "amount": "1 cup cooked rice",
-        "qty": 1
+        "qty": 1,
+        "grams": 158,
+        "nutri": "rice-cooked"
       },
       {
         "id": "bell-pepper",
@@ -522,7 +555,8 @@
           "carrot",
           "cabbage",
           "mushroom"
-        ]
+        ],
+        "grams": 60
       },
       {
         "id": "broccoli",
@@ -532,17 +566,20 @@
           "frozen-veg",
           "green-bean",
           "cabbage"
-        ]
+        ],
+        "grams": 90
       },
       {
         "id": "soy-sauce",
         "amount": "2 tbsp soy sauce",
-        "qty": 2
+        "qty": 2,
+        "grams": 32
       },
       {
         "id": "garlic",
         "amount": "1 garlic clove, minced",
-        "qty": 1
+        "qty": 1,
+        "grams": 3
       },
       {
         "id": "ginger",
@@ -553,7 +590,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       }
     ],
     "steps": [
@@ -590,7 +628,8 @@
       {
         "id": "oats",
         "amount": "½ cup rolled oats",
-        "qty": 1
+        "qty": 1,
+        "grams": 40
       },
       {
         "id": "water",
@@ -605,7 +644,8 @@
           "apple",
           "blueberry",
           "strawberry"
-        ]
+        ],
+        "grams": 118
       },
       {
         "id": "milk",
@@ -647,7 +687,8 @@
       {
         "id": "yogurt",
         "amount": "¾ cup yogurt",
-        "qty": 1
+        "qty": 1,
+        "grams": 184
       },
       {
         "id": "banana",
@@ -659,7 +700,8 @@
           "blueberry",
           "grape",
           "orange"
-        ]
+        ],
+        "grams": 118
       },
       {
         "id": "cereal",
@@ -704,7 +746,8 @@
       {
         "id": "egg",
         "amount": "3 eggs",
-        "qty": 3
+        "qty": 3,
+        "grams": 150
       },
       {
         "id": "spinach",
@@ -716,7 +759,8 @@
           "mushroom",
           "tomato",
           "kale"
-        ]
+        ],
+        "grams": 30
       },
       {
         "id": "cheese",
@@ -727,7 +771,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       },
       {
         "id": "salt",
@@ -768,22 +813,26 @@
       {
         "id": "chicken",
         "amount": "200 g chicken breast or thigh, cut in small pieces",
-        "qty": 2
+        "qty": 2,
+        "grams": 200
       },
       {
         "id": "rice",
         "amount": "½ cup dry rice",
-        "qty": 1
+        "qty": 1,
+        "grams": 92
       },
       {
         "id": "onion",
         "amount": "½ onion, diced",
-        "qty": 0.5
+        "qty": 0.5,
+        "grams": 55
       },
       {
         "id": "garlic",
         "amount": "2 garlic cloves, minced",
-        "qty": 2
+        "qty": 2,
+        "grams": 6
       },
       {
         "id": "frozen-veg",
@@ -794,7 +843,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       },
       {
         "id": "salt",
@@ -837,17 +887,21 @@
       {
         "id": "chicken",
         "amount": "100 g cooked chicken (leftover or rotisserie)",
-        "qty": 1
+        "qty": 1,
+        "grams": 100,
+        "nutri": "chicken-cooked"
       },
       {
         "id": "tortilla",
         "amount": "1 large tortilla",
-        "qty": 1
+        "qty": 1,
+        "grams": 65
       },
       {
         "id": "lettuce",
         "amount": "a handful of lettuce",
-        "qty": 1
+        "qty": 1,
+        "grams": 30
       },
       {
         "id": "mayo",
@@ -856,7 +910,8 @@
         "alt": [
           "yogurt",
           "hummus"
-        ]
+        ],
+        "grams": 14
       },
       {
         "id": "tomato",
@@ -893,22 +948,26 @@
       {
         "id": "bread",
         "amount": "2 slices of bread",
-        "qty": 2
+        "qty": 2,
+        "grams": 56
       },
       {
         "id": "canned-tuna",
         "amount": "1 can of tuna, drained",
-        "qty": 1
+        "qty": 1,
+        "grams": 112
       },
       {
         "id": "mayo",
         "amount": "1 tbsp mayo",
-        "qty": 1
+        "qty": 1,
+        "grams": 14
       },
       {
         "id": "cheese",
         "amount": "1 slice of cheese",
-        "qty": 1
+        "qty": 1,
+        "grams": 21
       },
       {
         "id": "pickles",
@@ -946,12 +1005,14 @@
       {
         "id": "pasta",
         "amount": "100 g pasta",
-        "qty": 1
+        "qty": 1,
+        "grams": 100
       },
       {
         "id": "canned-tuna",
         "amount": "1 can of tuna, drained",
-        "qty": 1
+        "qty": 1,
+        "grams": 112
       },
       {
         "id": "olive-oil",
@@ -959,7 +1020,8 @@
         "qty": 1,
         "alt": [
           "mayo"
-        ]
+        ],
+        "grams": 14
       },
       {
         "id": "peas",
@@ -1005,22 +1067,26 @@
       {
         "id": "lentils",
         "amount": "½ cup dry lentils, rinsed",
-        "qty": 2
+        "qty": 2,
+        "grams": 96
       },
       {
         "id": "onion",
         "amount": "1 onion, diced",
-        "qty": 1
+        "qty": 1,
+        "grams": 110
       },
       {
         "id": "carrot",
         "amount": "1 carrot, diced",
-        "qty": 1
+        "qty": 1,
+        "grams": 61
       },
       {
         "id": "garlic",
         "amount": "2 garlic cloves, minced",
-        "qty": 2
+        "qty": 2,
+        "grams": 6
       },
       {
         "id": "tomato-sauce",
@@ -1031,7 +1097,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       },
       {
         "id": "salt",
@@ -1072,22 +1139,26 @@
       {
         "id": "beans",
         "amount": "1 can of beans, drained",
-        "qty": 2
+        "qty": 2,
+        "grams": 250
       },
       {
         "id": "tomato-sauce",
         "amount": "1 cup tomato sauce",
-        "qty": 2
+        "qty": 2,
+        "grams": 245
       },
       {
         "id": "onion",
         "amount": "½ onion, diced",
-        "qty": 0.5
+        "qty": 0.5,
+        "grams": 55
       },
       {
         "id": "garlic",
         "amount": "2 garlic cloves, minced",
-        "qty": 2
+        "qty": 2,
+        "grams": 6
       },
       {
         "id": "bell-pepper",
@@ -1107,7 +1178,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       },
       {
         "id": "salt",
@@ -1146,17 +1218,20 @@
       {
         "id": "potato",
         "amount": "1 potato, diced small",
-        "qty": 1
+        "qty": 1,
+        "grams": 200
       },
       {
         "id": "egg",
         "amount": "2 eggs",
-        "qty": 2
+        "qty": 2,
+        "grams": 100
       },
       {
         "id": "onion",
         "amount": "½ onion, diced",
-        "qty": 0.5
+        "qty": 0.5,
+        "grams": 55
       },
       {
         "id": "bell-pepper",
@@ -1167,7 +1242,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       },
       {
         "id": "salt",
@@ -1205,7 +1281,8 @@
       {
         "id": "potato",
         "amount": "1 large potato",
-        "qty": 1
+        "qty": 1,
+        "grams": 300
       },
       {
         "id": "butter",
@@ -1214,12 +1291,14 @@
         "alt": [
           "sour-cream",
           "yogurt"
-        ]
+        ],
+        "grams": 14
       },
       {
         "id": "cheese",
         "amount": "a handful of cheese",
-        "qty": 1
+        "qty": 1,
+        "grams": 28
       },
       {
         "id": "broccoli",
@@ -1265,17 +1344,20 @@
       {
         "id": "bread",
         "amount": "2 slices of bread",
-        "qty": 2
+        "qty": 2,
+        "grams": 56
       },
       {
         "id": "avocado",
         "amount": "1 avocado",
-        "qty": 1
+        "qty": 1,
+        "grams": 136
       },
       {
         "id": "egg",
         "amount": "1 egg",
-        "qty": 1
+        "qty": 1,
+        "grams": 50
       },
       {
         "id": "lemon",
@@ -1286,7 +1368,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       },
       {
         "id": "salt",
@@ -1321,12 +1404,14 @@
       {
         "id": "tortilla",
         "amount": "1 large tortilla",
-        "qty": 1
+        "qty": 1,
+        "grams": 65
       },
       {
         "id": "hummus",
         "amount": "¼ cup hummus",
-        "qty": 1
+        "qty": 1,
+        "grams": 62
       },
       {
         "id": "cucumber",
@@ -1337,7 +1422,8 @@
           "lettuce",
           "bell-pepper",
           "spinach"
-        ]
+        ],
+        "grams": 150
       },
       {
         "id": "spinach",
@@ -1373,12 +1459,14 @@
       {
         "id": "banana",
         "amount": "1 ripe banana",
-        "qty": 1
+        "qty": 1,
+        "grams": 118
       },
       {
         "id": "egg",
         "amount": "2 eggs",
-        "qty": 2
+        "qty": 2,
+        "grams": 100
       },
       {
         "id": "oats",
@@ -1389,7 +1477,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       }
     ],
     "steps": [
@@ -1421,22 +1510,26 @@
       {
         "id": "pasta",
         "amount": "100 g macaroni or pasta",
-        "qty": 1
+        "qty": 1,
+        "grams": 100
       },
       {
         "id": "cheese",
         "amount": "60 g cheese, grated",
-        "qty": 2
+        "qty": 2,
+        "grams": 60
       },
       {
         "id": "milk",
         "amount": "½ cup milk",
-        "qty": 0.5
+        "qty": 0.5,
+        "grams": 122
       },
       {
         "id": "butter",
         "amount": "1 tbsp butter",
-        "qty": 1
+        "qty": 1,
+        "grams": 14
       }
     ],
     "steps": [
@@ -1471,17 +1564,20 @@
         "qty": 1,
         "alt": [
           "pasta"
-        ]
+        ],
+        "grams": 75
       },
       {
         "id": "peanut-butter",
         "amount": "2 tbsp peanut butter",
-        "qty": 2
+        "qty": 2,
+        "grams": 32
       },
       {
         "id": "soy-sauce",
         "amount": "1 tbsp soy sauce",
-        "qty": 1
+        "qty": 1,
+        "grams": 16
       },
       {
         "id": "honey",
@@ -1524,22 +1620,26 @@
       {
         "id": "tomato-sauce",
         "amount": "1 cup tomato sauce",
-        "qty": 2
+        "qty": 2,
+        "grams": 245
       },
       {
         "id": "egg",
         "amount": "2 eggs",
-        "qty": 2
+        "qty": 2,
+        "grams": 100
       },
       {
         "id": "onion",
         "amount": "½ onion, diced",
-        "qty": 0.5
+        "qty": 0.5,
+        "grams": 55
       },
       {
         "id": "garlic",
         "amount": "1 garlic clove, minced",
-        "qty": 1
+        "qty": 1,
+        "grams": 3
       },
       {
         "id": "bread",
@@ -1550,7 +1650,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       }
     ],
     "steps": [
@@ -1584,22 +1685,26 @@
       {
         "id": "pasta",
         "amount": "200 g pasta",
-        "qty": 2
+        "qty": 2,
+        "grams": 200
       },
       {
         "id": "sausage",
         "amount": "2 sausages",
-        "qty": 2
+        "qty": 2,
+        "grams": 170
       },
       {
         "id": "bell-pepper",
         "amount": "1 bell pepper, sliced",
-        "qty": 1
+        "qty": 1,
+        "grams": 120
       },
       {
         "id": "onion",
         "amount": "½ onion, sliced",
-        "qty": 0.5
+        "qty": 0.5,
+        "grams": 55
       },
       {
         "id": "tomato-sauce",
@@ -1610,7 +1715,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       }
     ],
     "steps": [
@@ -1646,7 +1752,8 @@
       {
         "id": "tofu",
         "amount": "150 g firm tofu",
-        "qty": 1.5
+        "qty": 1.5,
+        "grams": 150
       },
       {
         "id": "spinach",
@@ -1656,12 +1763,14 @@
           "kale",
           "bell-pepper",
           "onion"
-        ]
+        ],
+        "grams": 30
       },
       {
         "id": "soy-sauce",
         "amount": "1 tbsp soy sauce",
-        "qty": 1
+        "qty": 1,
+        "grams": 16
       },
       {
         "id": "onion",
@@ -1672,7 +1781,8 @@
       {
         "id": "cooking-oil",
         "amount": "1 tbsp oil",
-        "qty": 0
+        "qty": 0,
+        "grams": 14
       }
     ],
     "steps": [
@@ -1706,7 +1816,9 @@
       {
         "id": "beans",
         "amount": "½ can of chickpeas, drained",
-        "qty": 1
+        "qty": 1,
+        "grams": 120,
+        "nutri": "chickpeas"
       },
       {
         "id": "mayo",
@@ -1715,12 +1827,14 @@
         "alt": [
           "yogurt",
           "hummus"
-        ]
+        ],
+        "grams": 14
       },
       {
         "id": "bread",
         "amount": "2 slices of bread",
-        "qty": 2
+        "qty": 2,
+        "grams": 56
       },
       {
         "id": "celery",
