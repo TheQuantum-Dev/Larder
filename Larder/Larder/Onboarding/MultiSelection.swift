@@ -9,13 +9,17 @@ import Foundation
 
 /// A set of picked options for a multi-select question. One option can be
 /// marked exclusive, like "No restrictions": choosing it clears everything
-/// else, and choosing anything else clears it.
+/// else, and choosing anything else clears it. With `single`, it behaves like
+/// radio buttons: a new pick replaces the old one, and tapping the picked
+/// option again leaves it picked.
 struct MultiSelection<Option: Hashable> {
     private(set) var items: Set<Option> = []
     let exclusive: Option?
+    let single: Bool
 
-    init(exclusive: Option? = nil) {
+    init(exclusive: Option? = nil, single: Bool = false) {
         self.exclusive = exclusive
+        self.single = single
     }
 
     var isEmpty: Bool { items.isEmpty }
@@ -23,7 +27,9 @@ struct MultiSelection<Option: Hashable> {
     func contains(_ option: Option) -> Bool { items.contains(option) }
 
     mutating func toggle(_ option: Option) {
-        if items.contains(option) {
+        if single {
+            items = [option]
+        } else if items.contains(option) {
             items.remove(option)
         } else if option == exclusive {
             items = [option]

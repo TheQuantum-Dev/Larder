@@ -12,10 +12,13 @@ import Foundation
 nonisolated protocol QuizOption: Hashable, Identifiable, CaseIterable {
     var title: String { get }
     var emoji: String { get }
+    /// A line under the title, for options that need explaining.
+    var detail: String? { get }
 }
 
 nonisolated extension QuizOption {
     var id: Self { self }
+    var detail: String? { nil }
 }
 
 nonisolated enum Diet: String, QuizOption {
