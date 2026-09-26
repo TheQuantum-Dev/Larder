@@ -22,5 +22,5 @@ Pods/
 CLAUDE.md
 .claude/
 
-# Local secrets: never commit an API key
+# Local secrets:
 Larder/Larder/Config/spoonacular.key
