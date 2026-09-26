@@ -14,10 +14,10 @@ nonisolated struct OnlineQuota: Codable, Equatable, Sendable {
     static let dailyPoints = 50.0
     /// Lookups stop here, leaving a few points spare for fetching a saved recipe.
     static let stopAt = 45.0
-    /// A search costs 1 point, plus this much for each recipe returned with its
-    /// details, nutrition and ingredients, plus 1 more when it filters on
-    /// calories or protein.
-    static let perRecipe = 0.085
+    /// A search costs 1 point, plus this much for each recipe returned, plus 1
+    /// more when it filters on calories or protein. (Measured against the real
+    /// service: ten recipes with a protein filter cost 2.1.)
+    static let perRecipe = 0.01
     /// Fetching one saved recipe, with its nutrition.
     static let recipeFetch = 1.1
 

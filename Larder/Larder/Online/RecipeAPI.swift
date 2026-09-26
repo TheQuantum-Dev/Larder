@@ -16,6 +16,8 @@ nonisolated struct OnlineRequest: Hashable, Sendable {
     var diets: Set<Diet>
     var slot: MealSlot
     var number = 10
+    /// The longest a recipe may take, in minutes. Something to cook now, not overnight.
+    var maxMinutes = 90
 }
 
 nonisolated struct OnlineSearchOutcome: Sendable {

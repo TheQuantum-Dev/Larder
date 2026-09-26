@@ -175,7 +175,8 @@ struct RecipesView: View {
     private func scrollForDebug(_ proxy: ScrollViewProxy) async {
         #if DEBUG
         guard UserDefaults.standard.string(forKey: "recipesScroll") == "online" else { return }
-        try? await Task.sleep(for: .seconds(3))
+        // A real lookup can take a few seconds, so wait for it rather than scrolling to a gap.
+        try? await Task.sleep(for: .seconds(8))
         withAnimation { proxy.scrollTo("online", anchor: .top) }
         #endif
     }

@@ -123,6 +123,20 @@ struct OnlineRecipeMapperTests {
         #expect(OnlineRecipeMapper.recipe(from: try variant { $0["nutrition"] = ["nutrients": []] }) == nil)
     }
 
+    @Test func aRecipeThatTakesMostOfADayIsLeftOut() throws {
+        func minutes(_ value: Int) throws -> Recipe? {
+            let json = """
+            {"id": 5, "title": "Slow", "servings": 2, "readyInMinutes": \(value), "pricePerServing": 200,
+             "extendedIngredients": [{"nameClean": "chicken", "original": "1 chicken"}],
+             "analyzedInstructions": [{"steps": [{"number": 1, "step": "Cook it."}]}],
+             "nutrition": {"nutrients": [{"name": "Calories", "amount": 400, "unit": "kcal"}]}}
+            """
+            return OnlineRecipeMapper.recipe(from: try JSONDecoder().decode(OnlineRecipeDTO.self, from: Data(json.utf8)))
+        }
+        #expect(try minutes(180) != nil)
+        #expect(try minutes(660) == nil)
+    }
+
     @Test func timersAreConvertedAndKeptInRange() {
         func seconds(_ number: Double, _ unit: String) -> Int? {
             OnlineRecipeMapper.seconds(from: OnlineLengthDTO(number: number, unit: unit))
@@ -218,6 +232,13 @@ struct OnlineRecipeMapperTests {
             ("lemon juice", "lemon"), ("warm water", "water"), ("tomato sauce", "tomato-sauce"),
             ("tomato paste", "tomato-sauce"), ("cherry tomatoes", "tomato"), ("flat leaf parsley", "herbs"),
             ("baby spinach", "spinach"), ("sweet potatoes", "sweet-potato"),
+            // From a real response.
+            ("ground pepper", "black-pepper"), ("salt & pepper", "salt"), ("cooking spoon groundnut oil", "cooking-oil"),
+            ("sesame oil", "cooking-oil"), ("cardamom pods", "black-pepper"), ("cinnamon stick", "black-pepper"),
+            ("wholes peppercorns", "black-pepper"), ("wooden skewers", "black-pepper"),
+            ("flour tortillas", "tortilla"), ("fajita chicken", "chicken"), ("slow cook brown rice", "rice"),
+            ("dijon mustard", "mustard"), ("yukon gold potatoes", "potato"), ("bite sized mushrooms", "mushroom"),
+            ("stock", "broth"), ("of saffron", "black-pepper"),
         ]
         for c in cases {
             #expect(OnlineIngredientMapper.id(forName: c.name) == c.id, "\(c.name)")
@@ -240,6 +261,9 @@ struct OnlineRecipeMapperTests {
         #expect(OnlineIngredientMapper.id(forName: "fish sauce") == "custom:fish sauce")
         #expect(OnlineIngredientMapper.id(forName: "rice vinegar") == "custom:rice vinegar")
         #expect(OnlineIngredientMapper.id(forName: "cream of mushroom soup").hasPrefix("custom:"))
+        #expect(OnlineIngredientMapper.id(forName: "cream") == "custom:cream")
+        #expect(OnlineIngredientMapper.id(forName: "onions and tomatoes").hasPrefix("custom:"))
+        #expect(OnlineIngredientMapper.id(forName: "sesame seeds") != "cooking-oil")
     }
 
     @Test func customIngredientsAreShownAndListedByTheirName() {
@@ -284,6 +308,7 @@ struct OnlineQueryTests {
         #expect(value("addRecipeNutrition", in: r) == "true")
         #expect(value("instructionsRequired", in: r) == "true")
         #expect(value("number", in: r) == "10")
+        #expect(value("maxReadyTime", in: r) == "90")
         #expect(value("type", in: request(slot: .breakfast)) == "breakfast")
         #expect(value("type", in: request(slot: .lunch)) == "main course")
     }
@@ -362,8 +387,8 @@ struct OnlineQuotaTests {
     private var day2: Date { day1.addingTimeInterval(86_400) }
 
     @Test func aSearchCostsAPointPlusABitPerRecipe() {
-        #expect(abs(OnlineQuota.searchCost(recipes: 10, nutrientFilter: false) - 1.85) < 0.001)
-        #expect(abs(OnlineQuota.searchCost(recipes: 10, nutrientFilter: true) - 2.85) < 0.001)
+        #expect(abs(OnlineQuota.searchCost(recipes: 10, nutrientFilter: false) - 1.1) < 0.001)
+        #expect(abs(OnlineQuota.searchCost(recipes: 10, nutrientFilter: true) - 2.1) < 0.001)
     }
 
     @Test func spendingStopsBeforeTheAllowanceRunsOut() {

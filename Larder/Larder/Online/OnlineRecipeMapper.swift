@@ -39,6 +39,14 @@ nonisolated enum OnlineIngredientMapper {
     static let seasoningHeads: Set<String> = [
         "powder", "flake", "seasoning", "spice", "masala", "paprika", "cumin", "oregano", "turmeric", "cinnamon",
         "cayenne", "cardamom", "coriander", "nutmeg", "allspice", "saffron", "extract", "essence", "soda",
+        "peppercorn", "skewer", "toothpick", "foil", "twine",
+    ]
+
+    /// Spices that are spices wherever they sit in the name ("cinnamon stick",
+    /// "cardamom pods"), so they count as always to hand.
+    static let spiceWords: Set<String> = [
+        "cardamom", "cinnamon", "anise", "saffron", "peppercorn", "turmeric", "cumin", "paprika", "cayenne",
+        "oregano", "nutmeg", "allspice", "masala",
     ]
 
     /// Common recipe names the catalog doesn't list, by their cleaned-up form.
@@ -47,6 +55,9 @@ nonisolated enum OnlineIngredientMapper {
         "chicken broth": "broth", "chicken stock": "broth", "vegetable broth": "broth", "vegetable stock": "broth",
         "beef broth": "broth", "beef stock": "broth", "lemon juice": "lemon", "lime juice": "lime",
         "pepper": "black-pepper", "kosher salt": "salt", "sea salt": "salt", "bay leaf": "black-pepper",
+        "salt pepper": "salt", "salt and pepper": "salt",
+        // The catalog lists "cream" as sour cream, which is not what a recipe means.
+        "cream": "custom:cream",
     ]
 
     /// Whose result is safe to guess from the last word alone, like "goat
@@ -55,6 +66,7 @@ nonisolated enum OnlineIngredientMapper {
         "herbs", "cheese", "onion", "tomato", "mushroom", "lettuce", "spinach", "kale", "cabbage", "carrot",
         "celery", "cucumber", "zucchini", "apple", "banana", "lemon", "lime", "orange", "avocado", "broccoli",
         "corn", "peas", "potato", "garlic", "ginger", "rice", "beans", "strawberry", "blueberry",
+        "chicken", "beef", "pork", "turkey", "shrimp", "tortilla", "bread", "pasta", "mustard",
     ]
 
     /// The id to use for one ingredient line: a catalog id when it clearly is
@@ -69,12 +81,19 @@ nonisolated enum OnlineIngredientMapper {
         if let synonym = synonyms[key] { return synonym }
         if let hit = IngredientCatalog.exactID(for: key) { return hit }
         if let last = words.last, seasoningHeads.contains(last) { return "black-pepper" }
+        if words.contains(where: { spiceWords.contains($0) }) { return "black-pepper" }
+        // Any cooking oil is one to have to hand; olive oil is its own thing.
+        if words.last == "oil", !words.contains("olive") { return "cooking-oil" }
+        // "Onions and tomatoes" is two things, so it isn't either of them.
+        if words.contains("and") || words.contains("or") {
+            return IngredientCatalog.customPrefix + words.joined(separator: " ")
+        }
 
         // Drop the words that only describe it, then try again.
         let core = words.filter { !modifiers.contains($0) }
         if !core.isEmpty, core != words {
             let joined = core.joined(separator: " ")
-            if let hit = IngredientCatalog.exactID(for: joined) ?? synonyms[joined] { return hit }
+            if let hit = synonyms[joined] ?? IngredientCatalog.exactID(for: joined) { return hit }
             words = core
         }
 
@@ -85,7 +104,7 @@ nonisolated enum OnlineIngredientMapper {
         }
 
         // A short name ending in something like "cheese" or "parsley" is that.
-        if words.count <= 3, let last = words.last, words.dropLast().allSatisfy({ !identityChangers.contains($0) }),
+        if words.count <= 4, let last = words.last, words.dropLast().allSatisfy({ !identityChangers.contains($0) }),
            let hit = IngredientCatalog.exactID(for: last), safeHeads.contains(hit) {
             return hit
         }
@@ -106,6 +125,8 @@ nonisolated enum OnlineIngredientMapper {
 /// (matching, Cook Mode, calories, sharing) works on it without knowing where it came from.
 nonisolated enum OnlineRecipeMapper {
     static let idPrefix = "sp-"
+    /// The longest a recipe from online may take.
+    static let maxMinutes = 180
 
     static let safetyStep = "Food safety: cook meat, poultry and fish all the way through (chicken and turkey to "
         + "165°F / 74°C, ground meat to 160°F / 71°C, pork and fish to 145°F / 63°C) and cook eggs until they're firm."
@@ -131,6 +152,8 @@ nonisolated enum OnlineRecipeMapper {
         }
         let lines = (dto.extendedIngredients ?? []).compactMap(OnlineIngredientMapper.line(for:))
         guard !steps.isEmpty, !lines.isEmpty, let nutrition = macros(from: dto.nutrition) else { return nil }
+        // Marinating overnight or slow cooking all day isn't a student's cook-it-now recipe.
+        guard (dto.readyInMinutes ?? 30) <= maxMinutes else { return nil }
 
         let flagged = traits(for: dto, title: title, lines: lines)
         let fromIngredients = lines.compactMap { IngredientCatalog.ingredient(withID: $0.id)?.traits }

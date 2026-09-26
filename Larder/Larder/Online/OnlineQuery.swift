@@ -33,6 +33,7 @@ nonisolated enum OnlineQuery {
     static func items(for request: OnlineRequest) -> [URLQueryItem] {
         var items: [URLQueryItem] = [
             URLQueryItem(name: "number", value: String(request.number)),
+            URLQueryItem(name: "maxReadyTime", value: String(request.maxMinutes)),
             URLQueryItem(name: "addRecipeInformation", value: "true"),
             URLQueryItem(name: "addRecipeNutrition", value: "true"),
             URLQueryItem(name: "fillIngredients", value: "true"),
