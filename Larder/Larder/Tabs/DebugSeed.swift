@@ -82,6 +82,11 @@ enum DebugSeed {
                 RecipeNoteRepository.toggleFavorite(RecipeRef(recipe), in: context)
             }
         }
+        // `-seedOnlineFavorite sp-900004:Greek yogurt banana oat bowl` saves one that came from online.
+        if let text = defaults.string(forKey: "seedOnlineFavorite"), let colon = text.firstIndex(of: ":") {
+            let ref = RecipeRef(id: String(text[..<colon]), title: String(text[text.index(after: colon)...]), emoji: "🍳")
+            RecipeNoteRepository.toggleFavorite(ref, in: context)
+        }
         for pair in defaults.string(forKey: "seedThumbs")?.split(separator: ",").map(String.init) ?? [] {
             let parts = pair.split(separator: ":").map(String.init)
             guard parts.count == 2, let recipe = RecipeStore.recipe(withID: parts[0]) else { continue }

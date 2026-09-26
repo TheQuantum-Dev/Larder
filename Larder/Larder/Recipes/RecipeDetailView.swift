@@ -26,6 +26,7 @@ struct RecipeDetailView: View {
     private var missingIDs: Set<String> { Set(match.missing.map(\.id)) }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                 header
@@ -36,9 +37,11 @@ struct RecipeDetailView: View {
                 if offersShoppingList, !match.isReady { addMissingButton }
                 steps
                 tip
-                footnotes
+                footnotes.id("footnotes")
             }
             .padding(Theme.Spacing.s)
+        }
+        .task { scrollForDebug(proxy) }
         }
         .background(Theme.Palette.background.ignoresSafeArea())
         .overlay(alignment: .topTrailing) { topButtons }
@@ -46,20 +49,48 @@ struct RecipeDetailView: View {
         .presentationDragIndicator(.visible)
     }
 
+    /// `-detailScroll bottom` scrolls a recipe sheet to its footnotes (debug builds only).
+    private func scrollForDebug(_ proxy: ScrollViewProxy) {
+        #if DEBUG
+        if UserDefaults.standard.string(forKey: "detailScroll") == "bottom" {
+            proxy.scrollTo("footnotes", anchor: .bottom)
+        }
+        #endif
+    }
+
     // MARK: - Sections
 
     private var header: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-            Text(recipe.emoji).font(.system(size: 60))
+            hero
             Text(recipe.title)
                 .font(.largeTitle.bold())
                 .foregroundStyle(Theme.Palette.textPrimary)
-            FlowLayout {
+            FlowLayout(fillsWidth: true) {
                 fact("clock", "\(recipe.minutes) min")
                 fact("person.2", recipe.servings == 1 ? "1 serving" : "\(recipe.servings) servings")
                 fact("dollarsign.circle", recipe.costText + " each")
                 if recipe.needsNoStove { fact("bolt.slash", "No stove needed") }
             }
+        }
+    }
+
+    /// The photo, for a recipe from online that has one; otherwise its emoji.
+    @ViewBuilder
+    private var hero: some View {
+        if let url = recipe.imageURL.flatMap(URL.init(string:)) {
+            AsyncImage(url: url) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFill()
+                        .frame(height: 180)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius))
+                } else {
+                    Text(recipe.emoji).font(.system(size: 60))
+                }
+            }
+        } else {
+            Text(recipe.emoji).font(.system(size: 60))
         }
     }
 
@@ -207,16 +238,32 @@ struct RecipeDetailView: View {
 
     private var footnotes: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            if let source = recipe.source { sourceCredit(source) }
             if diets.contains(.halal), recipe.traits.contains(.meat) {
                 Text("This recipe has no pork or alcohol. Use halal-certified meat.")
             }
             Text("Costs are rough estimates and vary by store.")
             if showsNutrition {
-                Text("Calories and macros are estimates from USDA FoodData Central. Optional ingredients aren't counted.")
+                Text(recipe.isOnline
+                     ? "Calories and macros come from the recipe's source, so treat them as a rough guide."
+                     : "Calories and macros are estimates from USDA FoodData Central. Optional ingredients aren't counted.")
             }
         }
         .font(.footnote)
         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))
+    }
+
+    /// Who wrote a recipe from online, with a way to read the original.
+    private func sourceCredit(_ source: RecipeSource) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Recipe from \(source.name). Nutmeg didn't write this one, so give the steps a read first.")
+            if let url = source.url.flatMap(URL.init(string:)) {
+                Link("View the original recipe", destination: url)
+                    .underline()
+                    .tint(Theme.Palette.textPrimary.opacity(0.75))
+            }
+            SpoonacularCredit()
+        }
     }
 
     // MARK: - Controls

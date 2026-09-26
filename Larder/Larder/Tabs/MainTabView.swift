@@ -13,6 +13,9 @@ import SwiftUI
 /// there's exactly one of each.
 struct MainTabView: View {
     @State private var app = AppModel()
+    @State private var online = OnlineRecipes()
+    /// Which meal the online lookup is for; moves on when the app comes back.
+    @State private var clock = AppClock.now
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @Query private var meals: [CookedMeal]
@@ -22,6 +25,7 @@ struct MainTabView: View {
     @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
     @AppStorage(AppSettings.seenLooksKey) private var seenLooks = ""
+    @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
 
     var body: some View {
         TabView(selection: $app.tab) {
@@ -49,9 +53,12 @@ struct MainTabView: View {
         }
         .tint(Theme.Palette.amber)
         .environment(app)
+        .environment(online)
         .tapFeedback(app.tab)
         .sheet(isPresented: $app.showSettings, onDismiss: app.reloadProfile) {
+            // A sheet is its own tree, so it gets the shared objects it reads passed in.
             SettingsView()
+                .environment(online)
         }
         .sheet(isPresented: $app.showScan) {
             ZStack {
@@ -72,10 +79,31 @@ struct MainTabView: View {
         }
         .task(id: meals.count) { announceNewLooks() }
         .task(id: reminderKey) { await refreshReminders() }
+        .task(id: onlineKey) { await online.refresh(onlineRequest, enabled: onlineEnabled) }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
+            clock = AppClock.now
             Task { await refreshReminders() }
         }
+    }
+
+    // MARK: - Online recipes
+
+    /// What to look up: a couple of pantry items to build around, the goal and
+    /// diet, and which meal it is. Only these words go out, never a photo.
+    private var onlineRequest: OnlineRequest {
+        OnlineRequest(anchors: OnlineAnchors.pick(from: pantry.map(\.ingredientID)),
+                      goal: app.profile.fitnessGoal, diets: app.profile.dietSet,
+                      slot: MealPlan.slot(at: clock))
+    }
+
+    /// The lookup runs again only when its question changes, so tapping around
+    /// the pantry doesn't spend the day's free lookups.
+    private var onlineKey: OnlineKey { OnlineKey(request: onlineRequest, enabled: onlineEnabled) }
+
+    private struct OnlineKey: Hashable {
+        let request: OnlineRequest
+        let enabled: Bool
     }
 
     /// Tells the person once when cooking earns Nutmeg a new look.

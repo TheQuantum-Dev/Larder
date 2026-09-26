@@ -10,6 +10,11 @@ import SwiftUI
 /// Lays views out left to right and wraps onto a new line when a row is full.
 struct FlowLayout: Layout {
     var spacing: CGFloat = Theme.Spacing.xs
+    /// Takes all the width it's offered, instead of only as much as its widest
+    /// row needs. For rows that sit in a column with other views, so the wrapping
+    /// is worked out for the same width it's then laid out at, and a long line of
+    /// text beside it can't leave it a narrower space to wrap into than it measured.
+    var fillsWidth = false
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let maxWidth = proposal.width ?? .infinity
@@ -29,7 +34,8 @@ struct FlowLayout: Layout {
             rowHeight = max(rowHeight, size.height)
             widest = max(widest, x - spacing)
         }
-        return CGSize(width: widest, height: y + rowHeight)
+        let width = fillsWidth ? (proposal.width.flatMap { $0.isFinite ? $0 : nil } ?? widest) : widest
+        return CGSize(width: width, height: y + rowHeight)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {

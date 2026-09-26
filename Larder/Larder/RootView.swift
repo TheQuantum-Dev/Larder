@@ -17,7 +17,8 @@ struct RootView: View {
         // results; `-scanPreviewQuery onion` also fills the search box.
         // `-cookRecipe egg-fried-rice` opens Cook Mode; add `-cookPhase gather|done|<step number>`
         // to start elsewhere, and `-cookTimer YES` to start the step's timer.
-        if let id = UserDefaults.standard.string(forKey: "cookRecipe"), let recipe = RecipeStore.recipe(withID: id) {
+        if let id = UserDefaults.standard.string(forKey: "cookRecipe"),
+           let recipe = RecipeStore.recipe(withID: id) ?? Self.debugOnlineRecipe(id) {
             CookModeView(recipe: recipe, diets: [], startAt: Self.debugCookPhase, onFinish: {}, onClose: {})
         } else if let mode = UserDefaults.standard.string(forKey: "scanPreview") {
             ScanConfirmView(review: .sample(empty: mode == "empty"),
@@ -31,6 +32,13 @@ struct RootView: View {
     }
 
     #if DEBUG
+    /// `-cookRecipe sp-900001` cooks one of the made-up sample online recipes.
+    private static func debugOnlineRecipe(_ id: String) -> Recipe? {
+        let data = Data(FakeRecipeAPI.sampleJSON.utf8)
+        return (try? JSONDecoder().decode(OnlineSearchResponse.self, from: data))?
+            .results.compactMap(OnlineRecipeMapper.recipe(from:)).first { $0.id == id }
+    }
+
     private static var debugCookPhase: CookSession.Phase {
         switch UserDefaults.standard.string(forKey: "cookPhase") {
         case nil, "gather": .gather

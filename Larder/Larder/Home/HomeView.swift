@@ -14,6 +14,7 @@ import SwiftUI
 /// recipes and insights each have their own tab.
 struct HomeView: View {
     @Environment(AppModel.self) private var app
+    @Environment(OnlineRecipes.self) private var online
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \PantryItem.addedAt) private var pantry: [PantryItem]
@@ -45,7 +46,9 @@ struct HomeView: View {
         let logged = meals.compactMap { meal in meal.nutrition.map { (date: meal.cookedAt, macros: $0) } }
         let goal = MealPlan.goalContext(base: app.profile.goalContext, targets: app.profile.dailyTargets,
                                         eaten: MealPlan.eaten(logged, onMealDay: next.day), mealsLeft: next.mealsLeft)
-        let matches = RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
+        // Larder's own recipes, plus any found online that fit the pantry better.
+        let matches = RecipeMatcher.bestMatches(recipes: RecipeStore.all + online.recipes,
+                                                pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
                                                 priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
                                                 goal: goal, taste: taste).matches
         let picks = NextMealPicker.candidates(from: matches, next: next,
@@ -188,10 +191,7 @@ struct HomeView: View {
                 }
 
                 HStack(spacing: Theme.Spacing.s) {
-                    Text(recipe.emoji)
-                        .font(.system(size: 50))
-                        .frame(width: 80, height: 80)
-                        .background(Theme.Palette.amber.opacity(0.25), in: Circle())
+                    RecipeThumb(emoji: recipe.emoji, imageURL: recipe.imageURL, size: 80, emojiSize: 50)
                     VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                         Text(recipe.title)
                             .font(.title3.bold())
@@ -211,7 +211,7 @@ struct HomeView: View {
                 }
                 .foregroundStyle(Theme.Palette.textPrimary)
 
-                if !badges.isEmpty { BadgeRow(badges: badges) }
+                if recipe.isOnline || !badges.isEmpty { BadgeRow(badges: badges, showsOnline: recipe.isOnline) }
 
                 if let nudge = RecipeListAction.nudge(for: pick, listed: Set(listed.map(\.ingredientID)), context: context) {
                     Button(action: nudge.perform) {

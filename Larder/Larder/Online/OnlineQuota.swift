@@ -70,6 +70,10 @@ nonisolated enum OnlineQuotaStore {
     static let key = "onlineQuota"
 
     static func load(from defaults: UserDefaults = .standard) -> OnlineQuota {
+        #if DEBUG
+        // `-resetOnlineQuota YES` starts each launch with the day's lookups unspent (debug builds only).
+        if UserDefaults.standard.bool(forKey: "resetOnlineQuota") { defaults.removeObject(forKey: key) }
+        #endif
         guard let data = defaults.data(forKey: key),
               let quota = try? JSONDecoder().decode(OnlineQuota.self, from: data) else { return OnlineQuota() }
         return quota

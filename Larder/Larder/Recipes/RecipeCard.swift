@@ -81,10 +81,7 @@ struct RecipeCard: View {
     private var mainButton: some View {
         Button(action: action) {
             HStack(spacing: Theme.Spacing.s) {
-                Text(recipe.emoji)
-                    .font(.largeTitle)
-                    .frame(width: 60, height: 60)
-                    .background(Theme.Palette.amber.opacity(0.25), in: Circle())
+                RecipeThumb(emoji: recipe.emoji, imageURL: recipe.imageURL)
 
                 VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                     Text(recipe.title)
@@ -99,8 +96,8 @@ struct RecipeCard: View {
                             .font(.subheadline)
                             .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                     }
-                    if !badges.isEmpty {
-                        BadgeRow(badges: badges)
+                    if recipe.isOnline || !badges.isEmpty {
+                        BadgeRow(badges: badges, showsOnline: recipe.isOnline)
                     }
                     status
                 }
@@ -151,11 +148,15 @@ struct RecipeCard: View {
 /// The little "picked for you" capsules under a recipe's details.
 struct BadgeRow: View {
     let badges: [String]
+    /// Puts an "Online" tag first, for recipes that were looked up online.
+    var showsOnline = false
     /// The card's own background shows through, so the capsules use the page color.
     var fill: Color = Theme.Palette.background
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.xs) {
+        // Wraps onto a second line instead of squeezing a capsule's words apart.
+        FlowLayout(spacing: Theme.Spacing.xs, fillsWidth: true) {
+            if showsOnline { OnlineTag() }
             ForEach(badges, id: \.self) { badge in
                 Text(badge)
                     .font(.caption2.weight(.semibold))
