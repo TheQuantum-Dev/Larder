@@ -53,10 +53,6 @@ struct HomeView: View {
         return Plan(next: next, matches: matches, pick: picks.first, goal: goal)
     }
 
-    private var streak: CookingStreak.Status {
-        CookingStreak.status(from: meals.map(\.cookedAt), now: now)
-    }
-
     var body: some View {
         let plan = makePlan()
         NavigationStack {
@@ -64,6 +60,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     header(plan)
                     if let look = app.unlockedLook { unlockCard(look) }
+                    StreakCard(dates: meals.map(\.cookedAt), now: now) { app.tab = .insights }
                     nextMealCard(plan)
                     weekCard
                     Button(pantry.isEmpty ? "Scan my fridge" : "Add groceries") { app.showScan = true }
@@ -167,7 +164,6 @@ struct HomeView: View {
                                        readyCount: plan.matches.filter(\.isReady).count))
                     .font(.title3.bold())
                     .foregroundStyle(Theme.Palette.textPrimary)
-                StreakChip(status: streak)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -291,42 +287,5 @@ struct HomeView: View {
         let meals = "\(Commitment.mealsThisWeekText(count: stats.mealsThisWeek, goal: mealGoal)) meals"
         guard stats.totalSaved > 0 else { return meals }
         return "\(meals) · saved about \(Money.text(stats.totalSaved)) so far"
-    }
-}
-
-/// The streak, in a small chip under Nutmeg's line. Warm in every state,
-/// including when there isn't one yet.
-struct StreakChip: View {
-    let status: CookingStreak.Status
-
-    var body: some View {
-        Label {
-            Text(text)
-                .foregroundStyle(Theme.Palette.textPrimary)
-        } icon: {
-            Image(systemName: "flame.fill")
-                .foregroundStyle(status == .none ? Theme.Palette.textPrimary.opacity(0.4) : Theme.Palette.amber)
-        }
-            .font(.subheadline.weight(.semibold))
-            .padding(.horizontal, Theme.Spacing.xs)
-            .frame(minHeight: 30)
-            .background(background, in: Capsule())
-            .accessibilityElement(children: .combine)
-    }
-
-    private var text: String {
-        switch status {
-        case .none: "Cook today to start a streak"
-        case .safe(let days): "\(days)-day streak"
-        case .atRisk(let days): "\(days) days · cook today to keep it"
-        }
-    }
-
-    private var background: Color {
-        switch status {
-        case .none: Theme.Palette.surface
-        case .safe: Theme.Palette.amber.opacity(0.3)
-        case .atRisk: Theme.Palette.amber.opacity(0.15)
-        }
     }
 }

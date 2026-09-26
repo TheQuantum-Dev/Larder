@@ -139,7 +139,8 @@ struct CookModeView: View {
     /// Saves the meal, works out the savings, and moves to the celebration.
     private func recordMade(servingsEaten: Int) {
         let summary = MealSummary(recipe: session.recipe, orderOutPrice: orderOutPrice, servingsEaten: servingsEaten)
-        let isFirst = MealLog.count(in: context) == 0
+        let previousDates = MealLog.meals(in: context).map(\.cookedAt)
+        let isFirst = previousDates.isEmpty
         let meal = MealLog.record(summary, in: context)
         if healthSync {
             let entry = HealthMeal(recipeID: summary.recipeID, title: summary.title, date: meal.cookedAt,
@@ -147,7 +148,8 @@ struct CookModeView: View {
             Task { await Health.shared.logMeal(entry) }
         }
         made = MadeResult(summary: summary, isFirstMeal: isFirst,
-                          stats: MealStats.compute(from: MealLog.meals(in: context)))
+                          stats: MealStats.compute(from: MealLog.meals(in: context)),
+                          streak: StreakProgress.after(cookingAt: meal.cookedAt, previousDates: previousDates))
         session.finish()
     }
 
@@ -174,14 +176,18 @@ struct CookModeView: View {
     }
 
     /// `-cookPhase made` shows the celebration with sample numbers, without saving anything
-    /// (debug builds only). Add `-madeFirst YES` for the first-meal version and
-    /// `-madeCandidates egg,rice` for the "anything run out?" chips.
+    /// (debug builds only). Add `-madeFirst YES` for the first-meal version,
+    /// `-madeCandidates egg,rice` for the "anything run out?" chips, and
+    /// `-madeStreak 2` for the streak card after two days in a row already.
     private func startDebugMade() {
         #if DEBUG
         if session.phase == .made, made == nil {
+            let earlier = UserDefaults.standard.integer(forKey: "madeStreak")
+            let previous = (0..<earlier).compactMap { Calendar.current.date(byAdding: .day, value: -($0 + 1), to: Date()) }
             made = MadeResult(summary: MealSummary(recipe: session.recipe, orderOutPrice: orderOutPrice),
                               isFirstMeal: UserDefaults.standard.bool(forKey: "madeFirst"),
-                              stats: MealStats(mealCount: 3, mealsThisWeek: 2, totalSaved: 31.40))
+                              stats: MealStats(mealCount: 3, mealsThisWeek: 2, totalSaved: 31.40),
+                              streak: StreakProgress.after(cookingAt: Date(), previousDates: previous))
         }
         #endif
     }

@@ -39,7 +39,7 @@ struct InsightsView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                         header(insights)
-                        streakCard
+                        StreakCard(dates: meals.map(\.cookedAt), showsDetails: true)
                         statGrid(insights)
                         mostMadeSection
                         NutritionSection(meals: meals) { showPaywall = true }
@@ -89,40 +89,6 @@ struct InsightsView: View {
         switch insights.standing {
         case .noBudget, .under: return "Here's how your cooking adds up."
         case .over: return "A big week of cooking! No stress."
-        }
-    }
-
-    private var streakCard: some View {
-        let dates = meals.map(\.cookedAt)
-        let status = CookingStreak.status(from: dates)
-        let best = CookingStreak.best(from: dates)
-        return HStack(spacing: Theme.Spacing.s) {
-            Image(systemName: "flame.fill")
-                .font(.system(size: 40))
-                .foregroundStyle(status == .none ? Theme.Palette.textPrimary.opacity(0.3) : Theme.Palette.amber)
-                .frame(width: 60)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(status.days == 1 ? "1-day streak" : "\(status.days)-day streak")
-                    .font(.title2.bold())
-                Text(streakLine(status, best: best))
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .foregroundStyle(Theme.Palette.textPrimary)
-        .padding(Theme.Spacing.s)
-        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-        .accessibilityElement(children: .combine)
-    }
-
-    private func streakLine(_ status: CookingStreak.Status, best: Int) -> String {
-        // Only worth saying when it's a different number from the one above.
-        let bestText = best > status.days ? "Best so far: \(best) \(best == 1 ? "day" : "days")." : ""
-        switch status {
-        case .none: return "Cook anything today to start one. \(bestText)"
-        case .safe: return "You've cooked today. \(bestText)"
-        case .atRisk: return "Cook anything today to keep it going. \(bestText)"
         }
     }
 

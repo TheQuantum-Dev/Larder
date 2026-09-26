@@ -13,6 +13,8 @@ struct MadeResult {
     let summary: MealSummary
     let isFirstMeal: Bool
     let stats: MealStats
+    /// What this meal did to the streak. Nil where there's nothing to show.
+    var streak: StreakProgress? = nil
 
     /// What the hearts and thumbs remember the recipe by.
     var ref: RecipeRef { RecipeRef(summary) }
@@ -66,6 +68,12 @@ struct MadeItView: View {
                             .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                     }
 
+                    // First, so today's Nutmeg waking up is on screen when it happens. It only
+                    // shows when today just lit up: a second meal the same day changes nothing.
+                    if let streak = result.streak, streak.isNewDay {
+                        StreakCelebration(progress: streak, playsHaptic: !result.isFirstMeal)
+                    }
+
                     savingsCard
 
                     MadeRatingCard(ref: result.ref) { nod += 1 }
@@ -104,6 +112,13 @@ struct MadeItView: View {
                 }
             } else {
                 hapticTick += 1
+            }
+            // A milestone streak chimes as today's Nutmeg wakes up.
+            if result.streak?.milestone != nil, !result.isFirstMeal {
+                Task {
+                    try? await Task.sleep(for: .milliseconds(450))
+                    SoundPlayer.success()
+                }
             }
             withAnimation(.easeOut(duration: 1.4)) {
                 shownSaving = summary.saved
