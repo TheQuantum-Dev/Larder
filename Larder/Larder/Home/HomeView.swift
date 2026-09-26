@@ -8,12 +8,14 @@
 import SwiftData
 import SwiftUI
 
-/// Today, at a glance. Deliberately short: Nutmeg and the streak, one thing
-/// to cook tonight, how the week's going, and one way to add food. The
-/// pantry, recipes and insights each have their own tab.
+/// Today, at a glance. Deliberately short: Nutmeg and the streak, the next
+/// meal to cook (which follows the time of day and moves on once you've
+/// cooked), how the week's going, and one way to add food. The pantry,
+/// recipes and insights each have their own tab.
 struct HomeView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.modelContext) private var context
+    @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \PantryItem.addedAt) private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
     @Query private var listed: [ShoppingItem]
@@ -22,29 +24,53 @@ struct HomeView: View {
     @AppStorage(AppSettings.lastGoalCheerKey) private var lastGoalCheer = ""
 
     @State private var selected: RecipeMatch?
+    /// The time Home is working from. It moves on at each meal boundary and
+    /// whenever the app comes back, so the suggestion is never a meal behind.
+    @State private var now = AppClock.now
 
-    private var matches: [RecipeMatch] {
-        RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
-                                  priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
-                                  goal: app.profile.goalContext, taste: RecipeTaste(notes: notes)).matches
+    /// What Home shows, worked out once per render from the pantry, the meal
+    /// log, the person's goal, and their hearts and thumbs.
+    private struct Plan {
+        let next: NextMeal
+        let matches: [RecipeMatch]
+        let pick: RecipeMatch?
+        let goal: GoalContext?
+    }
+
+    private func makePlan() -> Plan {
+        let cooked = meals.map { (id: $0.recipeID, date: $0.cookedAt) }
+        let next = MealPlan.next(now: now, cookedDates: cooked.map(\.date))
+        let taste = RecipeTaste(notes: notes, recent: RecipeTaste.recentIDs(cooked: cooked, now: now))
+        // What's left of today's target steers which meal fits, when there's a goal.
+        let logged = meals.compactMap { meal in meal.nutrition.map { (date: meal.cookedAt, macros: $0) } }
+        let goal = MealPlan.goalContext(base: app.profile.goalContext, targets: app.profile.dailyTargets,
+                                        eaten: MealPlan.eaten(logged, onMealDay: next.day), mealsLeft: next.mealsLeft)
+        let matches = RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
+                                                priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
+                                                goal: goal, taste: taste).matches
+        let picks = NextMealPicker.candidates(from: matches, next: next,
+                                              cookedToday: MealPlan.cookedIDs(cooked, onMealDayOf: now), taste: taste)
+        return Plan(next: next, matches: matches, pick: picks.first, goal: goal)
     }
 
     private var streak: CookingStreak.Status {
-        CookingStreak.status(from: meals.map(\.cookedAt))
+        CookingStreak.status(from: meals.map(\.cookedAt), now: now)
     }
 
     var body: some View {
+        let plan = makePlan()
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    header
+                    header(plan)
                     if let look = app.unlockedLook { unlockCard(look) }
-                    tonightCard
+                    nextMealCard(plan)
                     weekCard
                     Button(pantry.isEmpty ? "Scan my fridge" : "Add groceries") { app.showScan = true }
                         .buttonStyle(PillButtonStyle(fill: pantry.isEmpty ? Theme.Palette.amber : Theme.Palette.softAmber))
                 }
                 .padding(Theme.Spacing.s)
+                .animation(.spring(response: 0.5, dampingFraction: 0.85), value: plan.pick?.id)
             }
             .background(Theme.Palette.background.ignoresSafeArea())
             .toolbarBackground(.hidden, for: .navigationBar)
@@ -66,6 +92,21 @@ struct HomeView: View {
             SoundPlayer.success()
         }
         .task(id: "\(goalReached)-\(app.tab == .home)") { celebrateGoalIfNew() }
+        .task { await keepTimeCurrent() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { now = AppClock.now }
+        }
+    }
+
+    /// Wakes at every meal boundary, so the card changes on time even if Home
+    /// stays open through lunchtime.
+    private func keepTimeCurrent() async {
+        now = AppClock.now
+        while !Task.isCancelled {
+            let wake = MealPlan.nextBoundary(after: AppClock.now)
+            try? await Task.sleep(for: .seconds(max(1, wake.timeIntervalSince(AppClock.now))))
+            now = AppClock.now
+        }
     }
 
     // MARK: - Small celebrations
@@ -117,13 +158,13 @@ struct HomeView: View {
 
     // MARK: - Nutmeg and the streak
 
-    private var header: some View {
+    private func header(_ plan: Plan) -> some View {
         HStack(spacing: Theme.Spacing.s) {
             NutmegView(cheer: app.homeCheer)
                 .frame(width: 100)
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text(HomeGreeting.text(pantryCount: pantry.count,
-                                       readyCount: matches.filter(\.isReady).count))
+                                       readyCount: plan.matches.filter(\.isReady).count))
                     .font(.title3.bold())
                     .foregroundStyle(Theme.Palette.textPrimary)
                 StreakChip(status: streak)
@@ -132,16 +173,23 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - Tonight's pick
+    // MARK: - The next meal
 
     @ViewBuilder
-    private var tonightCard: some View {
-        if let pick = matches.first {
+    private func nextMealCard(_ plan: Plan) -> some View {
+        if let pick = plan.pick {
             let recipe = pick.recipe
+            let badges = RecipeBadges.reasons(for: pick, priorities: app.profile.prioritySet,
+                                              cooking: app.profile.cookingSet, goal: plan.goal)
             VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-                Text("Tonight's pick")
+                Label(plan.next.title, systemImage: plan.next.slot.symbol)
                     .font(.subheadline.bold())
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                if let note = plan.next.note {
+                    Text(note)
+                        .font(.footnote)
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                }
 
                 HStack(spacing: Theme.Spacing.s) {
                     Text(recipe.emoji)
@@ -166,6 +214,8 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .foregroundStyle(Theme.Palette.textPrimary)
+
+                if !badges.isEmpty { BadgeRow(badges: badges) }
 
                 if let nudge = RecipeListAction.nudge(for: pick, listed: Set(listed.map(\.ingredientID)), context: context) {
                     Button(action: nudge.perform) {
@@ -192,6 +242,8 @@ struct HomeView: View {
             .padding(Theme.Spacing.s)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+            .id(pick.id)
+            .transition(.opacity.combined(with: .scale(scale: 0.97)))
         }
     }
 

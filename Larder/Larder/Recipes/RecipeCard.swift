@@ -100,7 +100,7 @@ struct RecipeCard: View {
                             .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                     }
                     if !badges.isEmpty {
-                        badgeRow
+                        BadgeRow(badges: badges)
                     }
                     status
                 }
@@ -141,7 +141,20 @@ struct RecipeCard: View {
         }
     }
 
-    private var badgeRow: some View {
+    private var missingNames: String {
+        match.missing
+            .map { IngredientCatalog.ingredient(withID: $0.id)?.name ?? $0.id }
+            .joined(separator: ", ")
+    }
+}
+
+/// The little "picked for you" capsules under a recipe's details.
+struct BadgeRow: View {
+    let badges: [String]
+    /// The card's own background shows through, so the capsules use the page color.
+    var fill: Color = Theme.Palette.background
+
+    var body: some View {
         HStack(spacing: Theme.Spacing.xs) {
             ForEach(badges, id: \.self) { badge in
                 Text(badge)
@@ -149,14 +162,8 @@ struct RecipeCard: View {
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                     .padding(.horizontal, Theme.Spacing.xs)
                     .frame(minHeight: 20)
-                    .background(Theme.Palette.background, in: Capsule())
+                    .background(fill, in: Capsule())
             }
         }
-    }
-
-    private var missingNames: String {
-        match.missing
-            .map { IngredientCatalog.ingredient(withID: $0.id)?.name ?? $0.id }
-            .joined(separator: ", ")
     }
 }
