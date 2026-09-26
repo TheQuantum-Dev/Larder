@@ -278,6 +278,7 @@ struct SettingsView: View {
         PantryRepository.remove(ids: Set(PantryRepository.all(in: context).map(\.ingredientID)), in: context)
         for meal in MealLog.meals(in: context) { context.delete(meal) }
         for item in ShoppingRepository.all(in: context) { context.delete(item) }
+        for note in RecipeNoteRepository.all(in: context) { context.delete(note) }
         try? context.save()
         ProfileStore.save(Profile())
         mealGoal = 0

@@ -31,7 +31,7 @@ struct LarderApp: App {
             RootView()
                 .environment(purchaseStore)
                 .environment(\.nutmegSkin, look.skin)
-                .modelContainer(for: [PantryItem.self, CookedMeal.self, ShoppingItem.self])
+                .modelContainer(for: [PantryItem.self, CookedMeal.self, ShoppingItem.self, RecipeNote.self])
                 .fontDesign(.rounded)
                 .task { await purchaseStore.start() }
                 .task { SoundPlayer.prepare() }
