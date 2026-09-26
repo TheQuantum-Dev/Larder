@@ -21,3 +21,6 @@ Pods/
 # Local project context
 CLAUDE.md
 .claude/
+
+# Local secrets: never commit an API key
+Larder/Larder/Config/spoonacular.key
