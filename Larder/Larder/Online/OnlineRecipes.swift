@@ -119,14 +119,16 @@ final class OnlineRecipes {
         do {
             var outcome = try await api.search(request)
             charge(outcome.pointsCharged ?? OnlineQuota.searchCost(recipes: outcome.recipes.count,
-                                                                    nutrientFilter: nutrientFilter))
+                                                                    nutrientFilter: nutrientFilter),
+                   serviceCount: outcome.quotaUsed)
             // Nothing found around two ingredients: try again around one.
             if outcome.recipes.isEmpty, request.anchors.count > 1, quota.canSpend(estimate, on: clock()) {
                 var narrower = request
                 narrower.anchors = Array(request.anchors.prefix(1))
                 outcome = try await api.search(narrower)
                 charge(outcome.pointsCharged ?? OnlineQuota.searchCost(recipes: outcome.recipes.count,
-                                                                        nutrientFilter: nutrientFilter))
+                                                                        nutrientFilter: nutrientFilter),
+                       serviceCount: outcome.quotaUsed)
             }
             let entry = (recipes: outcome.recipes.compactMap(OnlineRecipeMapper.recipe(from:)), fetchedAt: clock())
             cache[request] = entry
@@ -170,8 +172,11 @@ final class OnlineRecipes {
 
     // MARK: - Housekeeping
 
-    private func charge(_ points: Double) {
+    /// Counts the points a lookup used. When the service also says how many the day
+    /// has used in all, that count wins if it's higher, so ours can't fall behind.
+    private func charge(_ points: Double, serviceCount: Double? = nil) {
         quota.record(points, on: clock())
+        if let serviceCount { quota.sync(used: serviceCount, on: clock()) }
         saveQuota(quota)
     }
 

@@ -391,6 +391,19 @@ struct OnlineQuotaTests {
         #expect(quota.canSpend(1, on: day2))
     }
 
+    @Test func theServicesOwnCountCorrectsOursWhenItIsHigher() {
+        var quota = OnlineQuota()
+        quota.record(5, on: day1)
+        quota.sync(used: 31, on: day1)
+        #expect(abs(quota.used - 31) < 0.001)
+        // A lower number from the service never lowers ours.
+        quota.sync(used: 10, on: day1)
+        #expect(abs(quota.used - 31) < 0.001)
+        // And a new day starts from the service's count for that day.
+        quota.sync(used: 2, on: day2)
+        #expect(abs(quota.used - 2) < 0.001)
+    }
+
     @Test func theDayFollowsUTCMidnight() {
         // 2026-09-26 23:59:59 UTC and one second later.
         let before = Date(timeIntervalSince1970: 1_790_467_199)

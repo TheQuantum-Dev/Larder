@@ -26,8 +26,10 @@ nonisolated struct SpoonacularClient: RecipeAPI {
         guard let decoded = try? JSONDecoder().decode(OnlineSearchResponse.self, from: data) else {
             throw OnlineError.badResponse
         }
+        // Header names aren't case-sensitive; the service sends X-Api-Quota-Request and X-Api-Quota-Used.
         let charged = response.value(forHTTPHeaderField: "X-API-Quota-Request").flatMap(Double.init)
-        return OnlineSearchOutcome(recipes: decoded.results, pointsCharged: charged)
+        let used = response.value(forHTTPHeaderField: "X-API-Quota-Used").flatMap(Double.init)
+        return OnlineSearchOutcome(recipes: decoded.results, pointsCharged: charged, quotaUsed: used)
     }
 
     func recipe(id: Int) async throws -> OnlineRecipeDTO {

@@ -22,6 +22,10 @@ nonisolated struct OnlineSearchOutcome: Sendable {
     let recipes: [OnlineRecipeDTO]
     /// The points the service says the search used, when it says.
     let pointsCharged: Double?
+    /// How many of the day's points the service says are used in all, when it says.
+    /// It's the service's own count, so it corrects ours after a reinstall or
+    /// when the same key is used somewhere else too.
+    var quotaUsed: Double? = nil
 }
 
 nonisolated enum OnlineError: Error, Equatable, Sendable {

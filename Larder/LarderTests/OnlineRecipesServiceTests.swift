@@ -123,6 +123,16 @@ struct OnlineRecipesServiceTests {
         #expect(online.status == .off)
     }
 
+    @Test func theServicesOwnCountOfPointsUsedIsTrusted() async {
+        let api = StubAPI()
+        api.searchResults = [.success(OnlineSearchOutcome(recipes: StubAPI.samples, pointsCharged: 2.6, quotaUsed: 33))]
+        let saved = Saved()
+        let online = service(api, saved: saved)
+        await online.refresh(request, enabled: true)
+        #expect(abs((saved.quota?.used ?? 0) - 33) < 0.001)
+        #expect(online.pointsLeft < 17.5)
+    }
+
     @Test func nothingIsAskedOnceTheDaysPointsAreSpent() async {
         let api = StubAPI()
         var quota = OnlineQuota()

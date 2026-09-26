@@ -59,6 +59,12 @@ nonisolated struct OnlineQuota: Codable, Equatable, Sendable {
         used += points
     }
 
+    /// Takes the service's own count of today's points, if it's higher than ours.
+    mutating func sync(used serviceUsed: Double, on date: Date) {
+        self = current(on: date)
+        used = max(used, serviceUsed)
+    }
+
     mutating func markExhausted(on date: Date) {
         self = current(on: date)
         exhausted = true
