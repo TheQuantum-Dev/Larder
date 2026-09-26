@@ -11,7 +11,7 @@ A pantry companion for students. Photograph what's in your fridge or cupboard an
 - **Goals and nutrition:** pick what you're working toward (build muscle, lose weight, gain weight, stay fit) and see calories and macros on every recipe, with an optional Apple Health sync that saves the meals you cook
 - **Cook Mode** walks you through a recipe step by step, with timers
 - **Chat with Nutmeg** about your kitchen (Larder Plus): ask what to cook, what's running low, or how your week's going, and get answers grounded in your own pantry and stats 
-- Nothing is uploaded: photos are read on your phone, and a barcode scan only ever sends the barcode number
+- Photos never leave your phone, and a barcode scan only sends the barcode number. If you opt in to online recipes, the only other thing sent is a couple of ingredient names, plus your goal and diet, to look up extra ideas
 
 ## Requirements
 
@@ -29,6 +29,8 @@ A pantry companion for students. Photograph what's in your fridge or cupboard an
 ## Credits
 
 Nutrition values come from U.S. Department of Agriculture, Agricultural Research Service, Beltsville Human Nutrition Research Center. [FoodData Central](https://fdc.nal.usda.gov) (public domain).
+
+Optional online recipes come from [spoonacular](https://spoonacular.com/food-api).
 
 ## License
 
