@@ -75,22 +75,27 @@ enum DebugSeed {
 
     @MainActor
     private static func seedNotes(in context: ModelContext) {
-        guard RecipeNoteRepository.all(in: context).isEmpty else { return }
+        // Safe to run on every launch: it only adds a heart or thumb that isn't there yet.
         let defaults = UserDefaults.standard
-        for id in defaults.string(forKey: "seedFavorites")?.split(separator: ",").map(String.init) ?? [] {
-            if let recipe = RecipeStore.recipe(withID: id) {
-                RecipeNoteRepository.toggleFavorite(RecipeRef(recipe), in: context)
+        func heart(_ ref: RecipeRef) {
+            if RecipeNoteRepository.note(for: ref.id, in: context)?.isFavorite != true {
+                RecipeNoteRepository.toggleFavorite(ref, in: context)
             }
+        }
+        for id in defaults.string(forKey: "seedFavorites")?.split(separator: ",").map(String.init) ?? [] {
+            if let recipe = RecipeStore.recipe(withID: id) { heart(RecipeRef(recipe)) }
         }
         // `-seedOnlineFavorite sp-900004:Greek yogurt banana oat bowl` saves one that came from online.
         if let text = defaults.string(forKey: "seedOnlineFavorite"), let colon = text.firstIndex(of: ":") {
-            let ref = RecipeRef(id: String(text[..<colon]), title: String(text[text.index(after: colon)...]), emoji: "🍳")
-            RecipeNoteRepository.toggleFavorite(ref, in: context)
+            heart(RecipeRef(id: String(text[..<colon]), title: String(text[text.index(after: colon)...]), emoji: "🍳"))
         }
         for pair in defaults.string(forKey: "seedThumbs")?.split(separator: ",").map(String.init) ?? [] {
             let parts = pair.split(separator: ":").map(String.init)
             guard parts.count == 2, let recipe = RecipeStore.recipe(withID: parts[0]) else { continue }
-            RecipeNoteRepository.setVerdict(parts[1] == "down" ? .down : .up, for: RecipeRef(recipe), in: context)
+            let verdict: RecipeVerdict = parts[1] == "down" ? .down : .up
+            if RecipeNoteRepository.note(for: recipe.id, in: context)?.verdict != verdict {
+                RecipeNoteRepository.setVerdict(verdict, for: RecipeRef(recipe), in: context)
+            }
         }
     }
 }
