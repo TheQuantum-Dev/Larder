@@ -36,6 +36,8 @@ struct RecipeCard: View {
     var badges: [String] = []
     /// Adds calories and protein under the time and cost.
     var showsNutrition = false
+    /// Puts a small heart in the corner.
+    var isFavorite = false
     var listAction: RecipeListAction?
     let action: () -> Void
 
@@ -47,6 +49,15 @@ struct RecipeCard: View {
             if let listAction { listButton(listAction) }
         }
         .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        .overlay(alignment: .topTrailing) {
+            if isFavorite {
+                Image(systemName: "heart.fill")
+                    .font(.caption.bold())
+                    .foregroundStyle(Theme.Palette.amber)
+                    .padding(Theme.Spacing.xs)
+                    .accessibilityLabel("Favorite")
+            }
+        }
     }
 
     private func listButton(_ listAction: RecipeListAction) -> some View {

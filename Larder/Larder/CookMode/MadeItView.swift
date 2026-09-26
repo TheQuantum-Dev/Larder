@@ -5,6 +5,7 @@
 //  Created by Joshua Samuel on 9/21/26.
 //
 
+import SwiftData
 import SwiftUI
 
 /// Everything the celebration needs to show.
@@ -12,6 +13,9 @@ struct MadeResult {
     let summary: MealSummary
     let isFirstMeal: Bool
     let stats: MealStats
+
+    /// What the hearts and thumbs remember the recipe by.
+    var ref: RecipeRef { RecipeRef(summary) }
 }
 
 /// The moment after a meal is marked as made. The first one ever is the big
@@ -28,6 +32,8 @@ struct MadeItView: View {
     @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
     @State private var shownSaving = 0.0
     @State private var hapticTick = 0
+    /// Goes up when a thumbs up should make Nutmeg nod.
+    @State private var nod = 0
     /// Held back until the first-meal haptic build-up peaks, so the confetti
     /// actually lands with it instead of firing the instant the screen appears.
     @State private var showConfetti = false
@@ -38,7 +44,7 @@ struct MadeItView: View {
         ZStack {
             ScrollView {
                 VStack(spacing: Theme.Spacing.m) {
-                    NutmegView(mood: .celebrating, pose: .bothWave)
+                    NutmegView(mood: .celebrating, pose: .bothWave, nod: nod)
                         .frame(height: 160)
                         .padding(.top, Theme.Spacing.l)
 
@@ -61,6 +67,8 @@ struct MadeItView: View {
                     }
 
                     savingsCard
+
+                    MadeRatingCard(ref: result.ref) { nod += 1 }
 
                     // The question comes before the stats, so it isn't missed.
                     if !candidates.isEmpty { runOutSection }
@@ -163,6 +171,47 @@ struct MadeItView: View {
                     }
                 }
             }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// "How was it?" Two thumbs, saved the moment one is tapped. It's how Larder
+/// learns what to pick next, and neither answer is ever a bad one.
+private struct MadeRatingCard: View {
+    let ref: RecipeRef
+    let onLiked: () -> Void
+
+    @Query private var notes: [RecipeNote]
+
+    init(ref: RecipeRef, onLiked: @escaping () -> Void) {
+        self.ref = ref
+        self.onLiked = onLiked
+        let id = ref.id
+        _notes = Query(filter: #Predicate<RecipeNote> { $0.recipeID == id })
+    }
+
+    private var verdict: RecipeVerdict? { notes.first?.verdict }
+
+    private var line: String {
+        switch verdict {
+        case .up: "Noted! I'll bring it back around."
+        case .down: "Thanks, I'll pick something different next time."
+        case nil: "Tell me and I'll pick better next time."
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            Text("How was it?")
+                .font(.headline)
+                .foregroundStyle(Theme.Palette.textPrimary)
+            ThumbsBar(ref: ref) { if $0 == .up { onLiked() } }
+            Text(line)
+                .font(.footnote)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                .contentTransition(.opacity)
+                .animation(.easeInOut(duration: 0.2), value: verdict)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

@@ -29,6 +29,7 @@ struct RecipeDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                 header
+                ThumbsBar(ref: RecipeRef(recipe), height: 40)
                 if showsNutrition { nutrition }
                 if !recipe.equipment.isEmpty { equipment }
                 ingredients
@@ -40,7 +41,7 @@ struct RecipeDetailView: View {
             .padding(Theme.Spacing.s)
         }
         .background(Theme.Palette.background.ignoresSafeArea())
-        .overlay(alignment: .topTrailing) { closeButton }
+        .overlay(alignment: .topTrailing) { topButtons }
         .safeAreaInset(edge: .bottom) { cookBar }
         .presentationDragIndicator(.visible)
     }
@@ -226,6 +227,14 @@ struct RecipeDetailView: View {
             .foregroundStyle(Theme.Palette.textPrimary)
     }
 
+    private var topButtons: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            FavoriteButton(ref: RecipeRef(recipe))
+            closeButton
+        }
+        .padding(Theme.Spacing.s)
+    }
+
     private var closeButton: some View {
         Button { dismiss() } label: {
             Image(systemName: "xmark")
@@ -234,7 +243,6 @@ struct RecipeDetailView: View {
                 .frame(width: 40, height: 40)
                 .background(Theme.Palette.surface, in: Circle())
         }
-        .padding(Theme.Spacing.s)
         .accessibilityLabel("Close")
     }
 
