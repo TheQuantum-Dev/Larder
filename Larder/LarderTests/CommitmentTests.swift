@@ -44,8 +44,8 @@ struct OnboardingStepTests {
     }
 
     @Test func theFlowIsInTheDesignedOrder() {
-        let tail = Array(OnboardingStep.allCases.suffix(8))
-        #expect(tail == [.tryIt, .recipes, .health, .commitment, .founderNote, .paywall, .notifications, .allSet])
+        let tail = Array(OnboardingStep.allCases.suffix(9))
+        #expect(tail == [.tryIt, .recipes, .online, .health, .commitment, .founderNote, .paywall, .notifications, .allSet])
     }
 
     @Test func theFounderNoteComesRightBeforeThePaywall() {

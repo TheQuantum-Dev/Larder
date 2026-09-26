@@ -428,3 +428,36 @@ struct OnlineConfigTests {
         #expect(OnlineRecipeConfig.key(in: try bundle(containing: " \n")) == nil)
     }
 }
+
+struct OnlineOnboardingTests {
+    @Test func theQuestionComesRightAfterTheFirstRecipe() {
+        #expect(OnboardingStep.recipes.next(showsNutrition: true, offersOnline: true) == .online)
+        #expect(OnboardingStep.online.next(showsNutrition: true, offersOnline: true) == .health)
+        #expect(OnboardingStep.health.previous(showsNutrition: true, offersOnline: true) == .online)
+        #expect(OnboardingStep.online.previous(showsNutrition: true, offersOnline: true) == .recipes)
+        #expect(OnboardingStep.online.showsProgress)
+    }
+
+    @Test func withoutAWayToLookThemUpItIsSkippedBothWays() {
+        #expect(OnboardingStep.recipes.next(showsNutrition: true, offersOnline: false) == .health)
+        #expect(OnboardingStep.health.previous(showsNutrition: true, offersOnline: false) == .recipes)
+        // Off is the default, so the older calls keep working.
+        #expect(OnboardingStep.recipes.next(showsNutrition: true) == .health)
+    }
+
+    @Test func skippingBothGoesStraightToTheCommitment() {
+        #expect(OnboardingStep.recipes.next(showsNutrition: false, offersOnline: false) == .commitment)
+        #expect(OnboardingStep.commitment.previous(showsNutrition: false, offersOnline: false) == .recipes)
+    }
+
+    @Test func peopleWhoChoseJustCookStillGetTheQuestion() {
+        #expect(OnboardingStep.recipes.next(showsNutrition: false, offersOnline: true) == .online)
+        #expect(OnboardingStep.online.next(showsNutrition: false, offersOnline: true) == .commitment)
+        #expect(OnboardingStep.commitment.previous(showsNutrition: false, offersOnline: true) == .online)
+    }
+
+    @Test func theEndsOfTheFlowAreUnchanged() {
+        #expect(OnboardingStep.welcome.previous(showsNutrition: true, offersOnline: true) == nil)
+        #expect(OnboardingStep.allSet.next(showsNutrition: true, offersOnline: true) == nil)
+    }
+}

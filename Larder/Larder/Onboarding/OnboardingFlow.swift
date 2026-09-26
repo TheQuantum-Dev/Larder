@@ -97,6 +97,8 @@ struct OnboardingFlow: View {
                                   advance()
                               },
                               onAddMore: back)
+        case .online:
+            OnlinePreScreen(onContinue: advance)
         case .health:
             HealthPreScreen(onContinue: advance)
         case .commitment:
@@ -151,7 +153,7 @@ struct OnboardingFlow: View {
     // MARK: - Navigation
 
     private func advance() {
-        guard let next = step.next(showsNutrition: showsNutrition) else {
+        guard let next = step.next(showsNutrition: showsNutrition, offersOnline: OnlineRecipeConfig.isAvailable) else {
             onFinish()
             return
         }
@@ -159,7 +161,8 @@ struct OnboardingFlow: View {
     }
 
     private func back() {
-        guard let previous = step.previous(showsNutrition: showsNutrition) else { return }
+        guard let previous = step.previous(showsNutrition: showsNutrition,
+                                           offersOnline: OnlineRecipeConfig.isAvailable) else { return }
         move(to: previous, back: true)
     }
 

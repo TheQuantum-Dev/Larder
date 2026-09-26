@@ -65,8 +65,10 @@ struct ProfileHealthMergeTests {
 }
 
 struct OnboardingHealthStepTests {
-    @Test func healthComesRightAfterTheFirstRecipeAndBeforeTheCommitment() {
-        #expect(OnboardingStep.recipes.next == .health)
+    @Test func healthComesAfterTheFirstRecipeAndBeforeTheCommitment() {
+        // The online recipes question sits in between, when a build offers it.
+        #expect(OnboardingStep.recipes.next == .online)
+        #expect(OnboardingStep.online.next == .health)
         #expect(OnboardingStep.health.next == .commitment)
         #expect(OnboardingStep.health.showsProgress)
     }

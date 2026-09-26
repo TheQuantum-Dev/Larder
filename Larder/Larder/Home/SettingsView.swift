@@ -12,6 +12,7 @@ import SwiftUI
 /// goal and budget, and what "ordering out" costs for the savings figure.
 struct SettingsView: View {
     @Environment(PurchaseStore.self) private var store
+    @Environment(OnlineRecipes.self) private var online
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var context
 
@@ -23,6 +24,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.pantryRemindersKey) private var pantryReminders = true
     @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
     @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
+    @AppStorage(AppSettings.onlineRecipesKey) private var onlineRecipes = false
 
     private enum Destination: Hashable { case goal, looks }
 
@@ -45,6 +47,15 @@ struct SettingsView: View {
         _goalName = State(initialValue: Self.goalName(for: saved))
     }
 
+    /// `-settingsScroll online` scrolls down to the online recipes section (debug builds only).
+    private func scrollForDebug(_ proxy: ScrollViewProxy) {
+        #if DEBUG
+        if UserDefaults.standard.string(forKey: "settingsScroll") == "online" {
+            proxy.scrollTo("online", anchor: .top)
+        }
+        #endif
+    }
+
     /// `-openGoalSettings YES` opens straight onto the goal screen (debug builds only).
     private static var launchPath: [Destination] {
         #if DEBUG
@@ -61,6 +72,7 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
+            ScrollViewReader { proxy in
             Form {
                 foodSection
                 bodyGoalSection
@@ -69,8 +81,11 @@ struct SettingsView: View {
                 savingsSection
                 remindersSection
                 shoppingSection
+                onlineSection.id("online")
                 plusSection
                 aboutSection
+            }
+            .task { scrollForDebug(proxy) }
             }
             .scrollContentBackground(.hidden)
             .background(Theme.Palette.background.ignoresSafeArea())
@@ -215,6 +230,31 @@ struct SettingsView: View {
         }
     }
 
+    private var onlineSection: some View {
+        Section {
+            Toggle("Find more recipes online", isOn: $onlineRecipes)
+                .disabled(!OnlineRecipeConfig.isAvailable)
+                .listRowBackground(Theme.Palette.surface)
+            if OnlineRecipeConfig.isAvailable, onlineRecipes {
+                LabeledContent("Free lookups left today", value: lookupsLeft)
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .listRowBackground(Theme.Palette.surface)
+            }
+        } header: {
+            Text("Online recipes")
+        } footer: {
+            Text(OnlineRecipeConfig.isAvailable
+                 ? "Looks up extra recipes for what's in your pantry, your goal and your diet. Only ingredient names and those filters are sent, never photos or anything that says who you are. Larder's own recipes are always there."
+                 : "Not set up in this build. Add a spoonacular key file to turn it on; the README says how.")
+        }
+    }
+
+    /// The free plan's daily points, turned into roughly how many lookups that is.
+    private var lookupsLeft: String {
+        let each = OnlineQuota.searchCost(recipes: 10, nutrientFilter: true)
+        return "about \(Int(online.pointsLeft / each))"
+    }
+
     private var plusSection: some View {
         Section("Larder Plus") {
             Button { showPaywall = true } label: {
@@ -257,7 +297,7 @@ struct SettingsView: View {
                 .font(.footnote)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .listRowBackground(Theme.Palette.surface)
-            Text("Nutrition data: USDA FoodData Central, public domain. Food facts for barcodes: Open Food Facts.")
+            Text("Nutrition data: USDA FoodData Central, public domain. Food facts for barcodes: Open Food Facts. Recipes found online: spoonacular.com.")
                 .font(.footnote)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .listRowBackground(Theme.Palette.surface)
