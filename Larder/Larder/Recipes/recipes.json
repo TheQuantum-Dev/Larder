@@ -77,7 +77,11 @@
       }
     ],
     "tip": "Cold, day-old rice fries up fluffier than fresh.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "loaded-ramen",
@@ -137,7 +141,11 @@
       }
     ],
     "tip": "Half the seasoning packet is plenty. It's very salty.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "pb-banana-toast",
@@ -187,7 +195,11 @@
       }
     ],
     "tip": "Warm toast melts the peanut butter, so spread it right away.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "cheesy-egg-toast",
@@ -243,7 +255,11 @@
       }
     ],
     "tip": "Low heat keeps scrambled eggs soft instead of rubbery.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "grilled-cheese",
@@ -288,7 +304,11 @@
       }
     ],
     "tip": "Medium heat, not high, so the cheese melts before the bread burns.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "simple-tomato-pasta",
@@ -349,7 +369,11 @@
       }
     ],
     "tip": "A splash of the starchy pasta water makes the sauce cling.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "garlic-oil-pasta",
@@ -410,7 +434,11 @@
       }
     ],
     "tip": "Low and slow with the garlic. Burnt garlic can't be fixed.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "bean-cheese-quesadilla",
@@ -461,7 +489,11 @@
       }
     ],
     "tip": "Press down gently with a spatula so it crisps evenly.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "black-bean-rice-bowl",
@@ -528,7 +560,11 @@
       }
     ],
     "tip": "Rice and beans together make a complete, very cheap meal.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "veggie-stir-fry",
@@ -613,7 +649,11 @@
       }
     ],
     "tip": "Cut everything to a similar size so it all cooks at the same speed.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "microwave-oatmeal",
@@ -674,7 +714,10 @@
       }
     ],
     "tip": "Use oven mitts. The bowl gets very hot.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "yogurt-fruit-parfait",
@@ -731,7 +774,10 @@
       }
     ],
     "tip": "Add the cereal last so it stays crunchy.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "veggie-omelette",
@@ -798,7 +844,11 @@
       }
     ],
     "tip": "Don't crank the heat. Medium keeps the outside from browning too fast.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "chicken-rice-skillet",
@@ -874,7 +924,11 @@
       }
     ],
     "tip": "It makes two servings. The second one reheats well in the microwave.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "chicken-salad-wrap",
@@ -932,7 +986,10 @@
       }
     ],
     "tip": "Tuck the ends in first so nothing falls out.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch"
+    ]
   },
   {
     "id": "tuna-melt",
@@ -990,7 +1047,11 @@
       }
     ],
     "tip": "Squeeze the tuna dry so the toast doesn't go soggy.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "tuna-pasta",
@@ -1052,7 +1113,11 @@
       }
     ],
     "tip": "It's just as good cold, so pack the leftovers for lunch.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "lentil-soup",
@@ -1124,7 +1189,11 @@
       }
     ],
     "tip": "Tastes even better the next day and keeps in the fridge for 4 days.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "bean-chili",
@@ -1202,7 +1271,11 @@
       }
     ],
     "tip": "Top it with cheese or a spoon of yogurt if you have some.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "potato-egg-hash",
@@ -1266,7 +1339,11 @@
       }
     ],
     "tip": "Microwaving first means the potato browns fast without burning.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "loaded-microwave-potato",
@@ -1328,7 +1405,11 @@
       }
     ],
     "tip": "Pricking the skin lets steam escape. Skip that and it can burst.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "avocado-egg-toast",
@@ -1391,7 +1472,11 @@
       }
     ],
     "tip": "A ripe avocado gives slightly when you squeeze it.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "hummus-veggie-wrap",
@@ -1444,7 +1529,10 @@
       }
     ],
     "tip": "A thin layer of hummus on the edge helps it stick shut.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch"
+    ]
   },
   {
     "id": "banana-oat-pancakes",
@@ -1495,7 +1583,10 @@
       }
     ],
     "tip": "Keep them small. They're fragile and flip more easily.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "stovetop-mac-cheese",
@@ -1546,7 +1637,11 @@
       }
     ],
     "tip": "Grate the cheese yourself. It melts smoother than pre-shredded.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "peanut-noodles",
@@ -1605,7 +1700,11 @@
       }
     ],
     "tip": "If the sauce is too thick, add hot water a spoonful at a time.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "eggs-in-tomato-sauce",
@@ -1669,7 +1768,11 @@
       }
     ],
     "tip": "Dip bread into it. That's the best part.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "sausage-pepper-pasta",
@@ -1737,7 +1840,10 @@
       }
     ],
     "tip": "The sausage fat is your cooking oil here, so you don't need to add any.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "dinner"
+    ]
   },
   {
     "id": "tofu-scramble",
@@ -1803,7 +1909,11 @@
       }
     ],
     "tip": "A pinch of turmeric turns it golden, just like scrambled egg.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "chickpea-salad-sandwich",
@@ -1861,7 +1971,10 @@
       }
     ],
     "tip": "It keeps in the fridge for 3 days, so make extra for tomorrow.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch"
+    ]
   },
   {
     "id": "chicken-burrito-bowl",
@@ -1938,7 +2051,11 @@
       }
     ],
     "tip": "Salsa counts as a sauce and a vegetable. A squeeze of lime on top is great if you have one.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "turkey-taco-skillet",
@@ -2034,7 +2151,11 @@
       }
     ],
     "tip": "It makes two servings. Reheat leftovers until steaming hot, and eat them within 3 days.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "beef-broccoli-rice-bowl",
@@ -2119,7 +2240,11 @@
       }
     ],
     "tip": "Use the leanest ground beef you can find so there's less grease to drain.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "garlic-shrimp-pasta",
@@ -2191,7 +2316,10 @@
       }
     ],
     "tip": "Shrimp go from perfect to rubbery fast. Take them off the heat as soon as they turn pink and opaque.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "dinner"
+    ]
   },
   {
     "id": "sheet-pan-chicken-veg",
@@ -2269,7 +2397,10 @@
       }
     ],
     "tip": "Cut everything about the same size so it all finishes together. Eat leftovers within 3 days.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "dinner"
+    ]
   },
   {
     "id": "lemon-salmon-rice-beans",
@@ -2350,7 +2481,10 @@
       }
     ],
     "tip": "Frozen salmon works well. Thaw it in the fridge overnight, not on the counter.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "dinner"
+    ]
   },
   {
     "id": "tuna-bean-wrap",
@@ -2419,7 +2553,10 @@
       }
     ],
     "tip": "No stove and about 10 minutes, so it works from a dorm room.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch"
+    ]
   },
   {
     "id": "greek-yogurt-power-bowl",
@@ -2485,7 +2622,11 @@
       }
     ],
     "tip": "Plain Greek yogurt has about twice the protein of regular yogurt.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast",
+      "lunch"
+    ]
   },
   {
     "id": "breakfast-burrito",
@@ -2553,7 +2694,10 @@
       }
     ],
     "tip": "Wrap it in foil or paper to eat on the move. It stays warm for about 10 minutes.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "chicken-broccoli-stir-fry",
@@ -2639,7 +2783,11 @@
       }
     ],
     "tip": "Slice the chicken thin and across the grain so it cooks fast and stays tender.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "crispy-tofu-peanut-bowl",
@@ -2722,7 +2870,11 @@
       }
     ],
     "tip": "Pressing the tofu is the trick to getting it crispy.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "turkey-chili",
@@ -2804,7 +2956,11 @@
       }
     ],
     "tip": "It keeps in the fridge for 3 days and tastes even better on day two. Reheat until steaming hot.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "egg-white-veggie-scramble",
@@ -2867,7 +3023,10 @@
       }
     ],
     "tip": "Save the yolks for tomorrow's omelette, or just use whole eggs if you'd like more flavour.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "chicken-lettuce-wraps",
@@ -2938,7 +3097,11 @@
       }
     ],
     "tip": "Romaine or iceberg leaves work best. Crisp ones hold the filling better.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "shrimp-zucchini-stir-fry",
@@ -3002,7 +3165,11 @@
       }
     ],
     "tip": "Nice on its own, or over rice if you want it to fill you up more.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "tuna-tomato-cucumber-bowl",
@@ -3071,7 +3238,10 @@
       }
     ],
     "tip": "Nothing to cook, and nearly 25 g of protein for about $2.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch"
+    ]
   },
   {
     "id": "chickpea-cucumber-salad",
@@ -3141,7 +3311,10 @@
       }
     ],
     "tip": "Vegan, no cooking, and it keeps in the fridge for a day for tomorrow's lunch.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch"
+    ]
   },
   {
     "id": "chicken-cabbage-soup",
@@ -3231,7 +3404,11 @@
       }
     ],
     "tip": "It makes two servings and is easy on the budget. Reheat leftovers until steaming hot.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "lemon-garlic-fish-green-beans",
@@ -3305,7 +3482,10 @@
       }
     ],
     "tip": "Cod, pollock or tilapia all work, and frozen fillets are cheapest. Thaw them in the fridge first.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "dinner"
+    ]
   },
   {
     "id": "pb-banana-overnight-oats",
@@ -3368,7 +3548,10 @@
       }
     ],
     "tip": "Set it up before bed and breakfast is already made. It keeps 2 days in the fridge.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "loaded-beef-burrito",
@@ -3453,7 +3636,11 @@
       }
     ],
     "tip": "Wrap it tightly in foil and it's easy to eat with one hand.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "creamy-chicken-pasta",
@@ -3541,7 +3728,10 @@
       }
     ],
     "tip": "If the sauce gets too thick, stir in a splash of the pasta water.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "dinner"
+    ]
   },
   {
     "id": "sausage-egg-potato-skillet",
@@ -3612,7 +3802,11 @@
       }
     ],
     "tip": "Cook the potato before the sausage so it gets properly crisp.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast",
+      "dinner"
+    ]
   },
   {
     "id": "bacon-egg-cheese-bagel",
@@ -3676,7 +3870,10 @@
       }
     ],
     "tip": "Use the bacon fat to cook the eggs and skip the extra oil.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "tuna-mac",
@@ -3743,7 +3940,11 @@
       }
     ],
     "tip": "A can of tuna turns a side dish into a real meal, with about 50 g of protein.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "rice-bean-egg-bowl",
@@ -3807,7 +4008,11 @@
       }
     ],
     "tip": "Cheap, filling, and it's a full meal in one bowl.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "kettle-oats-pb",
@@ -3864,7 +4069,10 @@
       }
     ],
     "tip": "All you need is a kettle and a bowl. Careful, the water is very hot.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "breakfast"
+    ]
   },
   {
     "id": "kettle-ramen-tofu",
@@ -3918,7 +4126,11 @@
       }
     ],
     "tip": "The tofu adds about 17 g of protein to a pack of ramen. Careful, the water is very hot.",
-    "healthy": false
+    "healthy": false,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "sweet-potato-black-bean-bowl",
@@ -3980,7 +4192,11 @@
       }
     ],
     "tip": "Vegan, gluten-free and made entirely in the microwave.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "spiced-lentil-rice-stew",
@@ -4059,7 +4275,11 @@
       }
     ],
     "tip": "Vegan, filling and about a dollar a serving. Reheat leftovers until steaming hot.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "lunch",
+      "dinner"
+    ]
   },
   {
     "id": "pork-chop-sweet-potato",
@@ -4136,6 +4356,9 @@
       }
     ],
     "tip": "Resting the pork keeps it juicy, so don't skip it.",
-    "healthy": true
+    "healthy": true,
+    "meals": [
+      "dinner"
+    ]
   }
 ]

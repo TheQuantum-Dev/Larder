@@ -66,6 +66,14 @@ nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
     /// A rough, hand-picked call, not a nutrition calculation: vegetable- or
     /// lean-protein-forward and light on butter, cheese and refined carbs.
     let healthy: Bool
+    /// Which meals it suits, like ["breakfast", "lunch"]. Left out, it suits any.
+    /// `var` with a default so hand-built recipes in tests still compile.
+    var meals: [String]? = nil
+
+    /// Whether it makes sense for this meal of the day.
+    func suits(_ slot: MealSlot) -> Bool {
+        meals?.contains(slot.rawValue) ?? true
+    }
 
     /// What a diet could object to, worked out from the required ingredients
     /// rather than typed in by hand, so a label can't be wrong.

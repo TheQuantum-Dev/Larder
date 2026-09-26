@@ -204,4 +204,36 @@ struct RecipeDataTests {
         #expect(RecipeStore.recipe(withID: "microwave-oatmeal")?.isCompatible(with: [.vegan]) == true)
         #expect(RecipeStore.recipe(withID: "egg-fried-rice")?.isCompatible(with: [.vegan]) == false)
     }
+
+    // MARK: - Which meal each one suits
+
+    @Test func everyRecipeSaysWhichMealsItSuits() {
+        let valid = Set(MealSlot.allCases.map(\.rawValue))
+        for recipe in recipes {
+            let meals = recipe.meals ?? []
+            #expect(!meals.isEmpty, "\(recipe.id) has no meal tags")
+            #expect(Set(meals).isSubset(of: valid), "\(recipe.id) has an odd meal tag")
+        }
+    }
+
+    @Test func thereAreEnoughRecipesForEveryMeal() {
+        for slot in MealSlot.allCases {
+            let count = recipes.filter { $0.suits(slot) }.count
+            let floor = slot == .breakfast ? 8 : 20
+            #expect(count >= floor, "only \(count) recipes suit \(slot)")
+        }
+    }
+
+    @Test func everyDietHasBreakfastsToChooseFrom() {
+        for diet in Diet.allCases where diet != .noRestrictions {
+            let breakfasts = recipes.filter { $0.suits(.breakfast) && $0.isCompatible(with: [diet]) }
+            #expect(breakfasts.count >= 2, "\(diet) has only \(breakfasts.count) breakfast recipes")
+        }
+    }
+
+    @Test func aRecipeWithNoTagsSuitsAnyMeal() {
+        let plain = Recipe(id: "x", title: "x", emoji: "🍽️", minutes: 5, servings: 1, equipment: [],
+                           ingredients: [], steps: [], tip: "", healthy: false)
+        #expect(MealSlot.allCases.allSatisfy { plain.suits($0) })
+    }
 }
