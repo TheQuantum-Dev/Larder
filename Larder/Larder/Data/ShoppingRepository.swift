@@ -34,9 +34,7 @@ enum ShoppingRepository {
     /// Adds what a recipe is short of.
     @discardableResult
     static func addMissing(from match: RecipeMatch, in context: ModelContext) -> Int {
-        let items = match.missing.compactMap { line in
-            IngredientCatalog.ingredient(withID: line.id).map(ResolvedItem.init)
-        }
+        let items = match.missing.compactMap { IngredientCatalog.resolvedItem(forID: $0.id) }
         return add(items, in: context)
     }
 

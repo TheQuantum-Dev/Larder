@@ -250,7 +250,7 @@ struct RecipeDetailView: View {
         VStack(spacing: Theme.Spacing.xs) {
             if !match.isReady {
                 Text("You'll need: " + match.missing
-                    .map { IngredientCatalog.ingredient(withID: $0.id)?.name ?? $0.id }
+                    .map { IngredientCatalog.displayName(forID: $0.id) }
                     .joined(separator: ", "))
                     .font(.footnote)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))

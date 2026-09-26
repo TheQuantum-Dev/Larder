@@ -12,6 +12,8 @@ nonisolated struct MealSummary: Equatable, Sendable {
     let recipeID: String
     let title: String
     let emoji: String
+    /// A photo link, for recipes from online.
+    let imageURL: String?
     let servings: Int
     let costPerServing: Double
     let orderOutPrice: Double
@@ -25,6 +27,7 @@ nonisolated struct MealSummary: Equatable, Sendable {
         recipeID = recipe.id
         title = recipe.title
         emoji = recipe.emoji
+        imageURL = recipe.imageURL
         servings = recipe.servings
         costPerServing = recipe.costPerServing
         self.orderOutPrice = orderOutPrice
@@ -79,6 +82,8 @@ nonisolated enum AppSettings {
     static let lastGoalCheerKey = "lastGoalCheerWeek"
     /// Whether things that run out are added to the shopping list (default on).
     static let autoAddToShoppingKey = "autoAddToShoppingList"
+    /// Whether extra recipes may be looked up online (off until the person says yes).
+    static let onlineRecipesKey = "onlineRecipes"
     /// Whether cooked meals are saved to Apple Health (off until the person connects it).
     static let healthSyncKey = "healthSync"
     /// Whether height and weight are typed in metric (true) or feet, inches and pounds.

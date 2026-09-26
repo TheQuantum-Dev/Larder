@@ -52,6 +52,16 @@ nonisolated struct RecipeStep: Codable, Hashable, Sendable {
     let timer: Int?
 }
 
+/// Where a recipe from online came from, so it can be credited and linked.
+nonisolated struct RecipeSource: Codable, Hashable, Sendable {
+    /// The site or author, like "Simply Recipes".
+    let name: String
+    /// The original recipe's page.
+    let url: String?
+    /// The credit line the recipe's provider supplies, if any.
+    let credit: String?
+}
+
 nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
     let id: String
     let title: String
@@ -70,6 +80,23 @@ nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
     /// `var` with a default so hand-built recipes in tests still compile.
     var meals: [String]? = nil
 
+    // The rest are only set on recipes that come from online. Bundled recipes
+    // work these out from their own ingredient lines, so all of them stay nil.
+
+    /// A photo, for recipes that have one.
+    var imageURL: String? = nil
+    var source: RecipeSource? = nil
+    /// Dollars per serving, when the source supplies its own figure.
+    var costOverride: Double? = nil
+    /// Per-serving calories and macros, when the source supplies them.
+    var nutritionOverride: Macros? = nil
+    /// Diet flags worked out from the source's labels and ingredient names,
+    /// on top of what the recognised ingredients say.
+    var traitsOverride: DietTraits? = nil
+
+    /// True for a recipe that was looked up online rather than bundled.
+    var isOnline: Bool { source != nil }
+
     /// Whether it makes sense for this meal of the day.
     func suits(_ slot: MealSlot) -> Bool {
         meals?.contains(slot.rawValue) ?? true
@@ -81,7 +108,7 @@ nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
         ingredients
             .filter { !$0.isOptional }
             .compactMap { IngredientCatalog.ingredient(withID: $0.id)?.traits }
-            .reduce([], { $0.union($1) })
+            .reduce(traitsOverride ?? [], { $0.union($1) })
     }
 
     /// True if no stove is needed, so it works in a dorm room.
@@ -91,6 +118,7 @@ nonisolated struct Recipe: Codable, Identifiable, Hashable, Sendable {
 
     /// Rough cost of the required ingredients, per serving, in dollars.
     var costPerServing: Double {
+        if let costOverride { return costOverride }
         let total = ingredients
             .filter { !$0.isOptional }
             .reduce(0.0) { $0 + IngredientPrices.cost(of: $1) }

@@ -82,6 +82,34 @@ nonisolated enum IngredientCatalog {
         return ResolvedItem(customName: trimmed)
     }
 
+    /// The catalog id for a name that is an ingredient, or one of its aliases,
+    /// exactly. Unlike `resolve` it never guesses from the last word, so
+    /// "coconut milk" is not milk. For matching a recipe's ingredients, where
+    /// thinking you have something you don't is worse than missing it.
+    static func exactID(for name: String) -> String? {
+        let key = key(for: name)
+        return key.isEmpty ? nil : index[key]?.id
+    }
+
+    /// What a custom ingredient's id starts with.
+    static let customPrefix = "custom:"
+
+    /// A readable name for any ingredient id, including the custom ones
+    /// that recipes from online can carry ("custom:garam masala").
+    static func displayName(forID id: String) -> String {
+        if let ingredient = byID[id] { return ingredient.name }
+        guard id.hasPrefix(customPrefix) else { return id }
+        let name = id.dropFirst(customPrefix.count)
+        return name.prefix(1).uppercased() + name.dropFirst()
+    }
+
+    /// The item to put on a shopping list or in the pantry for any ingredient id.
+    static func resolvedItem(forID id: String) -> ResolvedItem? {
+        if let ingredient = byID[id] { return ResolvedItem(ingredient) }
+        guard id.hasPrefix(customPrefix) else { return nil }
+        return ResolvedItem(customName: String(id.dropFirst(customPrefix.count)))
+    }
+
     /// Ingredients named anywhere inside a block of text.
     static func find(inText text: String) -> Set<ResolvedItem> {
         var remaining = " " + key(for: text) + " "

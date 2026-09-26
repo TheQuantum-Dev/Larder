@@ -245,7 +245,7 @@ struct HomeView: View {
 
     private func missingNames(_ match: RecipeMatch) -> String {
         match.missing
-            .map { IngredientCatalog.ingredient(withID: $0.id)?.name.lowercased() ?? $0.id }
+            .map { IngredientCatalog.displayName(forID: $0.id).lowercased() }
             .joined(separator: ", ")
     }
 

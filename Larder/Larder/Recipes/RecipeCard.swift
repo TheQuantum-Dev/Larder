@@ -17,7 +17,7 @@ struct RecipeListAction {
     /// For a recipe that's only one or two things away.
     static func nudge(for match: RecipeMatch, listed: Set<String>, context: ModelContext) -> RecipeListAction? {
         guard !match.isReady, (1...2).contains(match.missing.count) else { return nil }
-        let items = match.missing.compactMap { IngredientCatalog.ingredient(withID: $0.id).map(ResolvedItem.init) }
+        let items = match.missing.compactMap { IngredientCatalog.resolvedItem(forID: $0.id) }
         guard !items.isEmpty else { return nil }
         let title = items.count == 1 ? "Add \(items[0].name.lowercased()) to my list" : "Add both to my list"
         return RecipeListAction(title: title,
@@ -143,7 +143,7 @@ struct RecipeCard: View {
 
     private var missingNames: String {
         match.missing
-            .map { IngredientCatalog.ingredient(withID: $0.id)?.name ?? $0.id }
+            .map { IngredientCatalog.displayName(forID: $0.id) }
             .joined(separator: ", ")
     }
 }

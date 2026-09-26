@@ -31,11 +31,11 @@ nonisolated struct RecipeRef: Hashable, Sendable {
     }
 
     init(_ recipe: Recipe) {
-        self.init(id: recipe.id, title: recipe.title, emoji: recipe.emoji)
+        self.init(id: recipe.id, title: recipe.title, emoji: recipe.emoji, imageURL: recipe.imageURL)
     }
 
     init(_ summary: MealSummary) {
-        self.init(id: summary.recipeID, title: summary.title, emoji: summary.emoji)
+        self.init(id: summary.recipeID, title: summary.title, emoji: summary.emoji, imageURL: summary.imageURL)
     }
 }
 

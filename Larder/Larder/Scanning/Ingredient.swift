@@ -26,7 +26,7 @@ nonisolated enum IngredientCategory: String, CaseIterable, Sendable {
 /// Things about an ingredient that a diet might rule out. They're set
 /// conservatively: when in doubt an ingredient carries the flag, so a diet
 /// filter errs toward leaving a recipe out.
-nonisolated struct DietTraits: OptionSet, Hashable, Sendable {
+nonisolated struct DietTraits: OptionSet, Hashable, Sendable, Codable {
     let rawValue: Int
     static let meat = DietTraits(rawValue: 1 << 0)
     static let fish = DietTraits(rawValue: 1 << 1)

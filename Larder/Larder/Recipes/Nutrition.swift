@@ -8,7 +8,7 @@
 import Foundation
 
 /// Energy and macronutrients. Energy is kilocalories; the rest are grams.
-nonisolated struct Macros: Hashable, Sendable {
+nonisolated struct Macros: Hashable, Sendable, Codable {
     var kcal = 0.0
     var protein = 0.0
     var carbs = 0.0
@@ -64,6 +64,7 @@ nonisolated extension Recipe {
     /// Per serving, from the required lines that have a weight. Optional
     /// extras and swaps aren't counted, the same way cost and diet traits work.
     var nutrition: Macros {
+        if let nutritionOverride { return nutritionOverride }
         let total = ingredients
             .filter { !$0.isOptional }
             .reduce(Macros.zero) { sum, line in
