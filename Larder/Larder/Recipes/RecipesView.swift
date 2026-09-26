@@ -11,7 +11,7 @@ import SwiftUI
 /// Quick ways to narrow the list. One at a time, so it's always obvious why
 /// something is or isn't showing.
 nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
-    case all, ready, quick, cheap, noStove, highProtein, lighter, hearty
+    case all, favorites, ready, quick, cheap, noStove, highProtein, lighter, hearty
 
     var id: String { rawValue }
 
@@ -26,6 +26,7 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
     var title: String {
         switch self {
         case .all: "All"
+        case .favorites: "Favorites"
         case .ready: "Ready now"
         case .quick: "Quick"
         case .cheap: "Cheap"
@@ -46,9 +47,10 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
     static let lighterKcal = 450.0
     static let heartyKcal = 650.0
 
-    func includes(_ match: RecipeMatch) -> Bool {
+    func includes(_ match: RecipeMatch, favorites: Set<String> = []) -> Bool {
         switch self {
         case .all: true
+        case .favorites: favorites.contains(match.id)
         case .ready: match.isReady
         case .quick: match.recipe.minutes <= Self.quickMinutes
         case .cheap: match.recipe.costPerServing <= Self.cheapPerServing
@@ -60,10 +62,11 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
     }
 
     /// The filter plus a search on the title, keeping the matcher's order.
-    static func apply(_ filter: RecipeFilter, query: String, to matches: [RecipeMatch]) -> [RecipeMatch] {
+    static func apply(_ filter: RecipeFilter, query: String, favorites: Set<String> = [],
+                      to matches: [RecipeMatch]) -> [RecipeMatch] {
         let trimmed = query.trimmingCharacters(in: .whitespaces)
         return matches.filter { match in
-            filter.includes(match)
+            filter.includes(match, favorites: favorites)
                 && (trimmed.isEmpty || match.recipe.title.localizedCaseInsensitiveContains(trimmed))
         }
     }
@@ -76,8 +79,9 @@ struct RecipesView: View {
     @Environment(\.modelContext) private var context
     @Query private var pantry: [PantryItem]
     @Query private var listed: [ShoppingItem]
+    @Query private var notes: [RecipeNote]
 
-    @State private var filter = RecipeFilter.all
+    @State private var filter = RecipesView.launchFilter
     @State private var query = RecipesView.launchQuery
     @State private var selected: RecipeMatch?
 
@@ -90,14 +94,27 @@ struct RecipesView: View {
         #endif
     }
 
+    /// `-recipesFilter favorites` starts with that chip picked (debug builds only).
+    private static var launchFilter: RecipeFilter {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "recipesFilter").flatMap(RecipeFilter.init(rawValue:)) ?? .all
+        #else
+        .all
+        #endif
+    }
+
     private var allMatches: [RecipeMatch] {
         RecipeMatcher.matches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
                               priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
-                              goal: app.profile.goalContext, maxMissing: .max)
+                              goal: app.profile.goalContext, taste: RecipeTaste(notes: notes), maxMissing: .max)
+    }
+
+    private var favorites: Set<String> {
+        Set(notes.filter(\.isFavorite).map(\.recipeID))
     }
 
     var body: some View {
-        let shown = RecipeFilter.apply(filter, query: query, to: allMatches)
+        let shown = RecipeFilter.apply(filter, query: query, favorites: favorites, to: allMatches)
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
@@ -120,6 +137,16 @@ struct RecipesView: View {
         .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
                            offersShoppingList: true)
         .tapFeedback(filter)
+        .task { openForDebug() }
+    }
+
+    /// `-openRecipe egg-fried-rice` opens that recipe's sheet on launch (debug builds only).
+    private func openForDebug() {
+        #if DEBUG
+        guard let id = UserDefaults.standard.string(forKey: "openRecipe"), selected == nil,
+              let match = allMatches.first(where: { $0.id == id }) else { return }
+        selected = match
+        #endif
     }
 
     private var filterChips: some View {
@@ -157,6 +184,7 @@ struct RecipesView: View {
                     let badges = RecipeBadges.reasons(for: match, priorities: app.profile.prioritySet,
                                                       cooking: app.profile.cookingSet, goal: app.profile.goalContext)
                     RecipeCard(match: match, badges: badges, showsNutrition: app.profile.showsNutrition,
+                               isFavorite: favorites.contains(match.id),
                                listAction: RecipeListAction.nudge(for: match, listed: Set(listed.map(\.ingredientID)),
                                                                   context: context)) { selected = match }
                 }
@@ -164,13 +192,26 @@ struct RecipesView: View {
         }
     }
 
+    private var showsFavoritesHint: Bool { filter == .favorites && query.isEmpty }
+
+    private var emptyTitle: String {
+        if showsFavoritesHint { return "No favorites yet" }
+        return query.isEmpty ? "Nothing fits that just yet" : "No recipes called \"\(query)\""
+    }
+
     private var emptyState: some View {
         VStack(spacing: Theme.Spacing.s) {
             NutmegView()
                 .frame(height: 120)
-            Text(query.isEmpty ? "Nothing fits that just yet" : "No recipes called \"\(query)\"")
+            Text(emptyTitle)
                 .font(.headline)
                 .foregroundStyle(Theme.Palette.textPrimary)
+            if showsFavoritesHint {
+                Text("Tap the heart on any recipe and it'll wait for you here.")
+                    .font(.subheadline)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+            }
             Button("Show everything") {
                 filter = .all
                 query = ""

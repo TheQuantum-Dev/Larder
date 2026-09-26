@@ -16,6 +16,7 @@ struct InsightsView: View {
     @Environment(AppModel.self) private var app
     @Query private var meals: [CookedMeal]
     @Query private var pantry: [PantryItem]
+    @Query private var notes: [RecipeNote]
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
 
     @State private var selected: RecipeMatch?
@@ -28,7 +29,7 @@ struct InsightsView: View {
     private var matches: [RecipeMatch] {
         RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
                                   priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
-                                  goal: app.profile.goalContext).matches
+                                  goal: app.profile.goalContext, taste: RecipeTaste(notes: notes)).matches
     }
 
     var body: some View {
@@ -151,6 +152,20 @@ struct InsightsView: View {
                         Text(entry.meal.emoji)
                             .font(.title2)
                         Text(entry.meal.title)
+                        if let note = notes.first(where: { $0.recipeID == entry.meal.recipeID }) {
+                            if note.verdict == .up {
+                                Image(systemName: "hand.thumbsup.fill")
+                                    .font(.footnote)
+                                    .foregroundStyle(Theme.Palette.amber)
+                                    .accessibilityLabel("You liked it")
+                            }
+                            if note.isFavorite {
+                                Image(systemName: "heart.fill")
+                                    .font(.footnote)
+                                    .foregroundStyle(Theme.Palette.amber)
+                                    .accessibilityLabel("Favorite")
+                            }
+                        }
                         Spacer()
                         Text(entry.count == 1 ? "once" : "\(entry.count) times")
                             .font(.subheadline.weight(.semibold))

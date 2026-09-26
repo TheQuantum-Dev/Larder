@@ -11,6 +11,7 @@ import SwiftData
 
 /// `-seedPantry a,b,c` chooses the pantry by ingredient id.
 /// `-seedShopping YES` also puts a few things on the shopping list, one already ticked off.
+/// `-seedFavorites a,b` hearts those recipes and `-seedThumbs a:up,b:down` gives them thumbs.
 /// `-seedDemo YES` saves a small pantry and a cooked meal, so the app can be
 /// seen without going through onboarding. Add `-seedStreak 5` for meals on the
 /// five days before today as well, cycling through a few recipes so the
@@ -37,6 +38,7 @@ enum DebugSeed {
                 ShoppingRepository.toggleBought(first, in: context)
             }
         }
+        seedNotes(in: context)
         guard MealLog.count(in: context) == 0 else { return }
         let extraDays = UserDefaults.standard.integer(forKey: "seedStreak")
         for day in 0...max(extraDays, 0) {
@@ -44,6 +46,22 @@ enum DebugSeed {
                   let date = Calendar.current.date(byAdding: .day, value: -day, to: Date()) else { continue }
             let summary = MealSummary(recipe: recipe, orderOutPrice: AppSettings.defaultOrderOutPrice)
             MealLog.record(summary, at: date, in: context)
+        }
+    }
+
+    @MainActor
+    private static func seedNotes(in context: ModelContext) {
+        guard RecipeNoteRepository.all(in: context).isEmpty else { return }
+        let defaults = UserDefaults.standard
+        for id in defaults.string(forKey: "seedFavorites")?.split(separator: ",").map(String.init) ?? [] {
+            if let recipe = RecipeStore.recipe(withID: id) {
+                RecipeNoteRepository.toggleFavorite(RecipeRef(recipe), in: context)
+            }
+        }
+        for pair in defaults.string(forKey: "seedThumbs")?.split(separator: ",").map(String.init) ?? [] {
+            let parts = pair.split(separator: ":").map(String.init)
+            guard parts.count == 2, let recipe = RecipeStore.recipe(withID: parts[0]) else { continue }
+            RecipeNoteRepository.setVerdict(parts[1] == "down" ? .down : .up, for: RecipeRef(recipe), in: context)
         }
     }
 }

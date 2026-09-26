@@ -34,4 +34,16 @@ struct RecipeFilterTests {
     @Test func searchAndFilterCombine() {
         #expect(RecipeFilter.apply(.noStove, query: "fried rice", to: everything).isEmpty)
     }
+
+    @Test func favoritesOnlyKeepsTheHeartedOnes() {
+        let hearted: Set<String> = ["egg-fried-rice", "grilled-cheese"]
+        let shown = RecipeFilter.apply(.favorites, query: "", favorites: hearted, to: everything)
+        #expect(Set(shown.map(\.id)) == hearted)
+        #expect(RecipeFilter.apply(.favorites, query: "", to: everything).isEmpty)
+    }
+
+    @Test func favoritesStaysAvailableWhenNumbersAreHidden() {
+        #expect(RecipeFilter.available(showsNutrition: false).contains(.favorites))
+        #expect(RecipeFilter.available(showsNutrition: true).contains(.favorites))
+    }
 }

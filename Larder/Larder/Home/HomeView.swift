@@ -17,6 +17,7 @@ struct HomeView: View {
     @Query(sort: \PantryItem.addedAt) private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
     @Query private var listed: [ShoppingItem]
+    @Query private var notes: [RecipeNote]
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
     @AppStorage(AppSettings.lastGoalCheerKey) private var lastGoalCheer = ""
 
@@ -25,7 +26,7 @@ struct HomeView: View {
     private var matches: [RecipeMatch] {
         RecipeMatcher.bestMatches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
                                   priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
-                                  goal: app.profile.goalContext).matches
+                                  goal: app.profile.goalContext, taste: RecipeTaste(notes: notes)).matches
     }
 
     private var streak: CookingStreak.Status {
