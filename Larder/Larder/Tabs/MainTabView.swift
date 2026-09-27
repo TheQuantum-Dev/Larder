@@ -26,6 +26,7 @@ struct MainTabView: View {
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
     @AppStorage(AppSettings.seenLooksKey) private var seenLooks = ""
     @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
+    @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
 
     var body: some View {
         TabView(selection: $app.tab) {
@@ -63,8 +64,10 @@ struct MainTabView: View {
         .sheet(isPresented: $app.showScan) {
             ZStack {
                 Theme.Palette.background.ignoresSafeArea()
-                TryItView(mode: .update) { items in
-                    PantryRepository.add(items, in: context)
+                TryItView(mode: .update) { review in
+                    // Anything marked all gone goes on the shopping list, same as after cooking.
+                    let removed = PantryRepository.apply(review.update, in: context)
+                    ShoppingRepository.addRunOut(removed, enabled: autoAddToShopping, in: context)
                     app.showScan = false
                 }
             }
@@ -75,6 +78,8 @@ struct MainTabView: View {
         .task {
             #if DEBUG
             DebugSeed.run(in: context)
+            // `-openScan YES` opens "Update pantry" straight away.
+            if UserDefaults.standard.bool(forKey: "openScan") { app.showScan = true }
             #endif
         }
         .task(id: meals.count) { announceNewLooks() }

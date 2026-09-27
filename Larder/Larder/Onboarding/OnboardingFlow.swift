@@ -79,9 +79,9 @@ struct OnboardingFlow: View {
         case .synthesis:
             SynthesisView(answers: answers, onContinue: advance)
         case .tryIt:
-            TryItView { items in
-                answers.pantry = items
-                PantryRepository.replace(with: items, in: modelContext)
+            TryItView { review in
+                answers.pantry = review.selected
+                PantryRepository.replace(with: review.selected, in: modelContext)
                 advance()
             }
         case .recipes:

@@ -71,6 +71,41 @@ struct TryItModelTests {
         await m.waitForScan()
     }
 
+    @Test func severalPhotosEndInOneReview() async {
+        let milk = IngredientCatalog.resolve("milk")!
+        var next = 0
+        let m = TryItModel(minimumPeek: .zero) { _ in
+            next += 1
+            return ScanResult(items: [DetectedItem(item: next == 1 ? egg : milk, tier: .looksRight, votes: 3,
+                                                   runs: 3, hasVisionSupport: false)], usedModel: true)
+        }
+        m.add(tinyImage())
+        m.add(tinyImage())
+        #expect(m.phaseID == 0)
+        m.finishPhotos()
+        #expect(m.phaseID == 1)
+        await m.waitForScan()
+        #expect(Set(m.review?.selected ?? []) == [egg, milk])
+    }
+
+    @Test func anUpdateReviewKnowsWhatsInThePantry() async {
+        let m = model(finding: [DetectedItem(item: egg, tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: false)])
+        m.pantry = [PantrySnapshot(item: egg, quantity: 6, unit: .items)]
+        m.begin(with: tinyImage())
+        await m.waitForScan()
+        #expect(m.review?.alreadyHave.map(\.id) == ["egg"])
+        #expect(m.review?.looksRight.isEmpty == true)
+    }
+
+    @Test func aBarcodeJoinsTheReviewThatsOpen() {
+        let rice = IngredientCatalog.resolve("rice")!
+        let m = model()
+        m.startByHand()
+        m.review?.add(egg)
+        m.foundByBarcode([rice])
+        #expect(m.review?.selected == [egg, rice])
+    }
+
     @Test func startingOverReturnsToThePrompt() async {
         let m = model()
         m.begin(with: tinyImage())

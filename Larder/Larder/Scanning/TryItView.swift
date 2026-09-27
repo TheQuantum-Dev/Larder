@@ -6,21 +6,24 @@
 //
 
 import PhotosUI
+import SwiftData
 import SwiftUI
 
-/// The "try it now" moment in onboarding: a first real photo of a fridge or
-/// shelf, scanned on the spot, with no account needed. Typing things in by
-/// hand is offered right next to the camera, not tucked away.
+/// The pantry scan: the "try it now" moment in onboarding, and "Update pantry"
+/// later on. Photos of the fridge or shelves are scanned on the spot, as many
+/// as the person likes, with no account needed. Typing things in by hand is
+/// offered right next to the camera, not tucked away.
 struct TryItView: View {
     /// Onboarding's first scan, or topping up the pantry later from the app.
     var mode = ScanMode.onboarding
-    /// Called with the items the person confirmed.
-    let onFinish: ([ResolvedItem]) -> Void
+    /// Called with the confirmed review.
+    let onFinish: (ScanReview) -> Void
 
     @State private var model = TryItModel()
-    @State private var pickerItem: PhotosPickerItem?
+    @State private var pickerItems: [PhotosPickerItem] = []
     @State private var showCamera = false
     @State private var showBarcodeScanner = false
+    @Query(sort: \PantryItem.addedAt) private var pantry: [PantryItem]
 
     var body: some View {
         ZStack {
@@ -28,30 +31,39 @@ struct TryItView: View {
             case .prompt:
                 prompt
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
-            case .scanning(let image):
-                ScanningView(image: image)
+            case .scanning:
+                ScanningView(queue: model.queue)
                     .transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .review(let review):
-                ScanConfirmView(review: review, mode: mode) { onFinish(review.selected) }
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                ScanConfirmView(review: review, mode: mode,
+                                onScanBarcode: BarcodeScannerView.isAvailable ? { showBarcodeScanner = true } : nil) {
+                    onFinish(review)
+                }
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: model.phaseID)
         .onAppear {
+            // Onboarding starts a pantry from scratch; an update checks against what's there.
+            if mode == .update { model.pantry = pantry.map { PantrySnapshot($0) } }
             PantryScanner.prewarm()
-            openDebugPhoto()
+            openDebugPhotos()
         }
         .onDisappear { model.cancel() }
-        .onChange(of: pickerItem) { _, item in
-            guard let item else { return }
-            Task { await load(item) }
+        .onChange(of: pickerItems) { _, items in
+            guard !items.isEmpty else { return }
+            Task { await load(items) }
         }
         .fullScreenCover(isPresented: $showCamera) {
-            CameraPicker { image in
-                showCamera = false
-                if let image { model.begin(with: image) }
-            }
-            .ignoresSafeArea()
+            PantryCameraView(queue: model.queue,
+                             onDone: {
+                                 showCamera = false
+                                 model.finishPhotos()
+                             },
+                             onCancel: {
+                                 showCamera = false
+                                 model.startOver()
+                             })
         }
         .fullScreenCover(isPresented: $showBarcodeScanner) {
             BarcodeScanView(
@@ -78,7 +90,9 @@ struct TryItView: View {
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary)
-                Text("Snap your fridge, cupboard or a shelf. I'll spot what's there, and you fix anything I get wrong.")
+                Text(mode == .update
+                     ? "Snap the fridge, the cupboard, every shelf. I'll start looking while you shoot, then you check what I found."
+                     : "Snap your fridge, cupboard or a shelf, as many photos as you like. I'll spot what's there, and you fix anything I get wrong.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
@@ -94,15 +108,15 @@ struct TryItView: View {
             Spacer(minLength: 0)
 
             VStack(spacing: Theme.Spacing.s) {
-                if CameraPicker.isAvailable {
-                    Button("Take a photo") { showCamera = true }
+                if PantryCameraView.isAvailable {
+                    Button("Take photos") { showCamera = true }
                         .buttonStyle(PillButtonStyle())
                 }
 
-                PhotosPicker(selection: $pickerItem, matching: .images) {
-                    Text(CameraPicker.isAvailable ? "Choose from your photos" : "Choose a photo")
+                PhotosPicker(selection: $pickerItems, maxSelectionCount: ScanQueue.limit, matching: .images) {
+                    Text(PantryCameraView.isAvailable ? "Choose from your photos" : "Choose photos")
                 }
-                .buttonStyle(PillButtonStyle(fill: CameraPicker.isAvailable ? Theme.Palette.softAmber : Theme.Palette.amber))
+                .buttonStyle(PillButtonStyle(fill: PantryCameraView.isAvailable ? Theme.Palette.softAmber : Theme.Palette.amber))
 
                 if BarcodeScannerView.isAvailable {
                     Button("Scan a barcode instead") { showBarcodeScanner = true }
@@ -111,12 +125,12 @@ struct TryItView: View {
                         .frame(minHeight: 44)
                 }
 
-                Button("I'll add things by hand") { model.startByHand() }
+                Button(mode == .update ? "I'll update it by hand" : "I'll add things by hand") { model.startByHand() }
                     .font(.body.weight(.semibold))
                     .foregroundStyle(Theme.Palette.textPrimary)
                     .frame(minHeight: 44)
 
-                Text("Your photo is read on your phone and never uploaded.")
+                Text("Photos are read on your phone and never uploaded.")
                     .font(.footnote)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
@@ -127,23 +141,28 @@ struct TryItView: View {
 
     // MARK: - Loading photos
 
-    private func load(_ item: PhotosPickerItem) async {
-        defer { pickerItem = nil }
-        if let data = try? await item.loadTransferable(type: Data.self),
-           let image = CGImage.load(from: data) {
-            model.begin(with: image)
-        } else {
-            model.photoUnusable()
+    private func load(_ items: [PhotosPickerItem]) async {
+        defer { pickerItems = [] }
+        var loaded = 0
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = CGImage.load(from: data) {
+                model.add(image)
+                loaded += 1
+            }
         }
+        if loaded > 0 { model.finishPhotos() } else { model.photoUnusable() }
     }
 
-    /// `-tryItPhoto /path/to/photo.jpg` scans a photo straight away (debug builds only).
-    private func openDebugPhoto() {
+    /// `-tryItPhoto /path/a.jpg,/path/b.jpg` scans those photos straight away
+    /// (debug builds only).
+    private func openDebugPhotos() {
         #if DEBUG
-        guard model.phaseID == 0,
-              let path = UserDefaults.standard.string(forKey: "tryItPhoto"),
-              let image = CGImage.load(from: URL(fileURLWithPath: path)) else { return }
-        model.begin(with: image)
+        guard model.phaseID == 0, let paths = UserDefaults.standard.string(forKey: "tryItPhoto") else { return }
+        for path in paths.split(separator: ",") {
+            if let image = CGImage.load(from: URL(fileURLWithPath: String(path))) { model.add(image) }
+        }
+        model.finishPhotos()
         #endif
     }
 }
@@ -154,10 +173,10 @@ enum ScanMode {
     case onboarding, update
 }
 
-/// The wait while a scan runs: the person's photo, a peeking Nutmeg, and a
-/// line that changes every few seconds so it never feels stuck.
+/// The wait while photos are scanned: the photos in a little stack, a peeking
+/// Nutmeg, and a line that changes every few seconds so it never feels stuck.
 private struct ScanningView: View {
-    let image: CGImage
+    let queue: ScanQueue
 
     @State private var messageIndex = 0
 
@@ -172,28 +191,47 @@ private struct ScanningView: View {
         VStack(spacing: Theme.Spacing.m) {
             Spacer(minLength: 0)
 
-            Image(decorative: image, scale: 1)
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 320)
-                .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius))
-                .overlay {
-                    RoundedRectangle(cornerRadius: Theme.cardRadius)
-                        .strokeBorder(Theme.Palette.amber, lineWidth: 3)
+            ZStack {
+                let shots = Array(queue.shots.prefix(3))
+                ForEach(Array(shots.enumerated()), id: \.element.id) { index, shot in
+                    let offset = Double(index) - Double(shots.count - 1) / 2
+                    Image(decorative: shot.image, scale: 1)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 300)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: Theme.cardRadius)
+                                .strokeBorder(Theme.Palette.amber, lineWidth: 3)
+                        }
+                        .rotationEffect(.degrees(offset * 6))
+                        .offset(x: offset * 20)
                 }
+            }
+            .padding(.horizontal, Theme.Spacing.m)
 
             NutmegView(mood: .peeking)
                 .frame(height: 120)
 
-            Text(messages[messageIndex])
-                .font(.headline)
-                .foregroundStyle(Theme.Palette.textPrimary)
-                .contentTransition(.opacity)
-                .id(messageIndex)
+            VStack(spacing: Theme.Spacing.xs) {
+                Text(messages[messageIndex])
+                    .font(.headline)
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .contentTransition(.opacity)
+                    .id(messageIndex)
+                if queue.shots.count > 1 {
+                    Text("\(queue.finishedCount) of \(queue.shots.count) photos done")
+                        .font(.subheadline)
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                        .contentTransition(.numericText())
+                }
+            }
 
             Spacer(minLength: 0)
         }
         .padding(Theme.Spacing.s)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: queue.finishedCount)
         .task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(2.5))

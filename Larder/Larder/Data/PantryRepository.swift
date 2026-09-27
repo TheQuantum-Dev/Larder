@@ -44,6 +44,26 @@ enum PantryRepository {
         try? context.save()
     }
 
+    /// Applies a confirmed "update pantry": adds what's new, sets the amounts
+    /// that changed, and takes out what's all gone. Returns what was taken
+    /// out, so it can go on the shopping list.
+    @discardableResult
+    static func apply(_ update: PantryUpdate, in context: ModelContext) -> [ResolvedItem] {
+        add(update.add, in: context)
+        var removed: [ResolvedItem] = []
+        for item in all(in: context) {
+            if update.remove.contains(item.ingredientID) {
+                removed.append(item.resolved)
+                context.delete(item)
+            } else if let quantity = update.amounts[item.ingredientID] {
+                item.quantity = quantity
+                item.unit = item.unit ?? PantryUnit.items.rawValue
+            }
+        }
+        try? context.save()
+        return removed
+    }
+
     /// Takes finished-off ingredients out of the pantry.
     static func remove(ids: Set<String>, in context: ModelContext) {
         for item in all(in: context) where ids.contains(item.ingredientID) {

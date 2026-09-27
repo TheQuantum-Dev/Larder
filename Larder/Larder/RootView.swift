@@ -14,14 +14,16 @@ struct RootView: View {
     var body: some View {
         #if DEBUG
         // `-scanPreview yes` (or `empty`) opens the scan confirm screen with sample
-        // results; `-scanPreviewQuery onion` also fills the search box.
+        // results, and `update` shows it updating a sample pantry;
+        // `-scanPreviewQuery onion` also fills the search box.
         // `-cookRecipe egg-fried-rice` opens Cook Mode; add `-cookPhase gather|done|<step number>`
         // to start elsewhere, and `-cookTimer YES` to start the step's timer.
         if let id = UserDefaults.standard.string(forKey: "cookRecipe"),
            let recipe = RecipeStore.recipe(withID: id) ?? Self.debugOnlineRecipe(id) {
             CookModeView(recipe: recipe, diets: [], startAt: Self.debugCookPhase, onFinish: {}, onClose: {})
         } else if let mode = UserDefaults.standard.string(forKey: "scanPreview") {
-            ScanConfirmView(review: .sample(empty: mode == "empty"),
+            ScanConfirmView(review: mode == "update" ? .sampleUpdate() : .sample(empty: mode == "empty"),
+                            mode: mode == "update" ? .update : .onboarding,
                             initialQuery: UserDefaults.standard.string(forKey: "scanPreviewQuery") ?? "") {}
         } else {
             flow

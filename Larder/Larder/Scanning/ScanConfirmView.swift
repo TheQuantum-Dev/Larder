@@ -10,18 +10,27 @@ import SwiftUI
 /// Shows what the scan found and lets the person fix it: uncheck what's
 /// wrong, tap the maybes they do have, and add whatever was missed. Nothing
 /// the scan guessed is trusted until they continue.
+///
+/// When updating a pantry, things already in it get their amount checked
+/// (a count from the photo is marked as a guess), and anything the photos
+/// didn't show sits folded away under "Still have these?", kept unless the
+/// person says it's all gone.
 struct ScanConfirmView: View {
     let review: ScanReview
     var mode = ScanMode.onboarding
+    /// Opens the barcode scanner; its finds join this review.
+    var onScanBarcode: (() -> Void)?
     let onContinue: () -> Void
 
     @State private var query: String
+    @State private var showsNotSpotted = false
     @FocusState private var searchFocused: Bool
 
     init(review: ScanReview, mode: ScanMode = .onboarding, initialQuery: String = "",
-         onContinue: @escaping () -> Void) {
+         onScanBarcode: (() -> Void)? = nil, onContinue: @escaping () -> Void) {
         self.review = review
         self.mode = mode
+        self.onScanBarcode = onScanBarcode
         self.onContinue = onContinue
         _query = State(initialValue: initialQuery)
     }
@@ -32,8 +41,18 @@ struct ScanConfirmView: View {
                 header
 
                 if !review.looksRight.isEmpty {
-                    section("Looks right") {
+                    section(review.isUpdate ? "New" : "Looks right") {
                         chips(review.looksRight, isMaybe: false)
+                    }
+                }
+
+                if !review.alreadyHave.isEmpty {
+                    section("Already have: check the amounts") {
+                        VStack(spacing: Theme.Spacing.xs) {
+                            ForEach(review.alreadyHave, id: \.id) { have in
+                                AmountRow(have: have, review: review)
+                            }
+                        }
                     }
                 }
 
@@ -43,13 +62,17 @@ struct ScanConfirmView: View {
                     }
                 }
 
-                if !review.added.isEmpty {
+                if !review.addedNew.isEmpty {
                     section("You added") {
-                        chips(review.added, isMaybe: false)
+                        chips(review.addedNew, isMaybe: false)
                     }
                 }
 
                 addSection
+
+                if !review.notSpotted.isEmpty {
+                    notSpottedSection
+                }
             }
             .padding(Theme.Spacing.s)
         }
@@ -57,7 +80,7 @@ struct ScanConfirmView: View {
         .safeAreaInset(edge: .bottom) {
             Button(continueTitle, action: onContinue)
                 .buttonStyle(PillButtonStyle())
-                .disabled(review.selected.isEmpty)
+                .disabled(canContinue == false)
                 .padding(.horizontal, Theme.Spacing.s)
                 .padding(.top, Theme.Spacing.xs)
                 .background(Theme.Palette.background)
@@ -65,6 +88,11 @@ struct ScanConfirmView: View {
         .background(Theme.Palette.background.ignoresSafeArea())
         // A light tick whenever something is checked or unchecked.
         .tapFeedback(review.checked)
+        .tapFeedback(review.gone)
+    }
+
+    private var canContinue: Bool {
+        mode == .update && review.isUpdate ? !review.update.isEmpty : !review.selected.isEmpty
     }
 
     // MARK: - Pieces
@@ -91,6 +119,11 @@ struct ScanConfirmView: View {
     }
 
     private var subheadline: String {
+        if review.isUpdate {
+            return review.isManual
+                ? "Add what's new, check the amounts, or mark what's all gone."
+                : "Check the amounts, tick anything new, and I'll update your pantry."
+        }
         if review.isManual { return "Tap what you have, or search for anything else." }
         return review.foundNothing
             ? "No worries. Add what you have and I'll cook something up."
@@ -127,6 +160,14 @@ struct ScanConfirmView: View {
 
     private var addSection: some View {
         section("Add what I missed") {
+            if let onScanBarcode {
+                Button(action: onScanBarcode) {
+                    Label("Scan a barcode", systemImage: "barcode.viewfinder")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                        .frame(minHeight: 44)
+                }
+            }
             HStack(spacing: Theme.Spacing.xs) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.5))
@@ -157,7 +198,11 @@ struct ScanConfirmView: View {
     /// nothing is typed.
     private var addOptions: [ResolvedItem] {
         let typed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !typed.isEmpty else { return IngredientCatalog.quickAdd.map(ResolvedItem.init) }
+        // Things already in the pantry have their own rows above, so the
+        // quick picks leave them out.
+        guard !typed.isEmpty else {
+            return IngredientCatalog.quickAdd.map(ResolvedItem.init).filter { !review.isSaved($0) }
+        }
 
         var options = IngredientCatalog.search(typed).prefix(12).map(ResolvedItem.init)
         if let custom = IngredientCatalog.resolve(typed), custom.isCustom {
@@ -175,7 +220,49 @@ struct ScanConfirmView: View {
         }
     }
 
+    // MARK: - Not spotted
+
+    /// Pantry items the photos didn't show, folded away. Photos of one shelf
+    /// shouldn't nag about the rest, so everything stays unless marked gone.
+    private var notSpottedSection: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            Button {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showsNotSpotted.toggle() }
+            } label: {
+                HStack {
+                    Text(review.isManual ? "Anything all gone?" : "Still have these?")
+                        .font(.headline)
+                    Spacer()
+                    Text("\(review.notSpotted.count)")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    Image(systemName: "chevron.down")
+                        .font(.subheadline.bold())
+                        .rotationEffect(.degrees(showsNotSpotted ? 180 : 0))
+                }
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(showsNotSpotted ? .isSelected : [])
+
+            if showsNotSpotted {
+                Text(review.isManual ? "Tap anything that's run out." : "I didn't see these in the photos. They stay unless you say they're gone.")
+                    .font(.footnote)
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                ForEach(review.notSpotted, id: \.id) { have in
+                    GoneRow(have: have, isGone: review.isGone(have.id)) { review.toggleGone(have.id) }
+                }
+            }
+        }
+    }
+
     private var continueTitle: String {
+        if mode == .update && review.isUpdate {
+            let update = review.update
+            return update.isEmpty ? "Nothing to update yet" : "Update pantry"
+        }
         let count = review.selected.count
         if count == 0 { return "Add something to continue" }
         if mode == .update { return "Update pantry" }
@@ -183,6 +270,108 @@ struct ScanConfirmView: View {
         case 1: return "Find recipes with 1 item"
         default: return "Find recipes with \(count) items"
         }
+    }
+}
+
+/// A pantry item the photos showed: its amount, with + and − for things you
+/// count. A count from the photo is marked, so it reads as a suggestion.
+private struct AmountRow: View {
+    let have: PantrySnapshot
+    let review: ScanReview
+
+    var body: some View {
+        let amount = review.amount(for: have.id)
+        HStack(spacing: Theme.Spacing.xs) {
+            Text(have.item.emoji)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(have.item.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                if let was = PantryAmount.text(quantity: have.quantity, unit: have.unit?.rawValue),
+                   amount != have.quantity {
+                    Text("Was \(was)")
+                        .font(.caption)
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                }
+            }
+            Spacer(minLength: 0)
+            if have.isCountable {
+                stepButton("minus", label: "Less \(have.item.name)") { review.step(have.id, by: -1) }
+                    .disabled(amount == 0)
+                VStack(spacing: 0) {
+                    Text(amountText(amount))
+                        .font(.subheadline.bold())
+                        .monospacedDigit()
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                        .contentTransition(.numericText())
+                    if review.isGuess(have.id) {
+                        Text("from photo")
+                            .font(.caption2)
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    }
+                }
+                .frame(minWidth: 60)
+                stepButton("plus", label: "More \(have.item.name)") { review.step(have.id, by: 1) }
+            } else {
+                Text(amountText(amount))
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+            }
+        }
+        .padding(.horizontal, Theme.Spacing.s)
+        .frame(minHeight: 60)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: amount)
+        .tapFeedback(amount)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func amountText(_ amount: Double?) -> String {
+        guard let amount else { return "Some" }
+        if amount == 0 { return "All gone" }
+        return PantryAmount.text(quantity: amount, unit: (have.unit ?? .items).rawValue) ?? "Some"
+    }
+
+    private func stepButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.subheadline.bold())
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(width: 40, height: 40)
+                .background(Theme.Palette.softAmber, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+/// A pantry item the photos didn't show, with a way to say it's all gone.
+private struct GoneRow: View {
+    let have: PantrySnapshot
+    let isGone: Bool
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            Text(have.item.emoji)
+            Text(have.item.name)
+                .font(.subheadline.weight(.semibold))
+                .strikethrough(isGone)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(isGone ? 0.6 : 1))
+            Spacer(minLength: 0)
+            Button(action: action) {
+                Text(isGone ? "Keep it" : "All gone")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .padding(.horizontal, Theme.Spacing.s)
+                    .frame(minHeight: 40)
+                    .background(isGone ? Theme.Palette.surface : Theme.Palette.softAmber, in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, Theme.Spacing.s)
+        .frame(minHeight: 60)
+        .background(Theme.Palette.surface.opacity(isGone ? 0.5 : 1), in: RoundedRectangle(cornerRadius: Theme.cardRadius))
     }
 }
 
@@ -200,6 +389,28 @@ extension ScanReview {
             detected("banana", .maybe), detected("carrot", .maybe), detected("milk", .maybe),
         ]
         return ScanReview(result: ScanResult(items: items, usedModel: true))
+    }
+
+    /// An update of a sample pantry: eggs counted from the photo, cheese seen
+    /// again, and rice and bread not in the photos.
+    static func sampleUpdate() -> ScanReview {
+        func item(_ name: String) -> ResolvedItem { IngredientCatalog.resolve(name)! }
+        let pantry = [
+            PantrySnapshot(item: item("eggs"), quantity: 6, unit: .items),
+            PantrySnapshot(item: item("cheese")),
+            PantrySnapshot(item: item("rice"), quantity: 500, unit: .grams),
+            PantrySnapshot(item: item("bread"), quantity: 1, unit: .bags),
+            PantrySnapshot(item: item("milk"), quantity: 1, unit: .bottles),
+        ]
+        let items = [
+            DetectedItem(item: item("eggs"), tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: true, count: 2),
+            DetectedItem(item: item("cheese"), tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: false),
+            DetectedItem(item: item("milk"), tier: .maybe, votes: 1, runs: 3, hasVisionSupport: false),
+            DetectedItem(item: item("onion"), tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: false),
+            DetectedItem(item: item("apple"), tier: .looksRight, votes: 2, runs: 3, hasVisionSupport: false),
+            DetectedItem(item: item("carrot"), tier: .maybe, votes: 1, runs: 3, hasVisionSupport: false),
+        ]
+        return ScanReview(result: ScanResult(items: items, usedModel: true), pantry: pantry)
     }
 }
 
