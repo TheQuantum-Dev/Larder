@@ -20,8 +20,18 @@ struct TryItModelTests {
         return context.makeImage()!
     }
 
-    private func model(finding items: [DetectedItem] = []) -> TryItModel {
-        TryItModel { _ in ScanResult(items: items, usedModel: true) }
+    private func model(finding items: [DetectedItem] = [], minimumPeek: Duration = .zero) -> TryItModel {
+        TryItModel(minimumPeek: minimumPeek) { _ in ScanResult(items: items, usedModel: true) }
+    }
+
+    @Test func aFastScanStillShowsThePeekForTheMinimumTime() async {
+        let m = model(minimumPeek: .milliseconds(300))
+        let clock = ContinuousClock()
+        let start = clock.now
+        m.begin(with: tinyImage())
+        await m.waitForScan()
+        #expect(clock.now - start >= .milliseconds(300))
+        #expect(m.phaseID == 2)
     }
 
     @Test func startsOnThePrompt() {

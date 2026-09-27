@@ -23,11 +23,16 @@ final class TryItModel {
     private(set) var problem: String?
 
     private let scan: (CGImage) async -> ScanResult
+    /// The shortest time the "peeking" screen stays up. On a fast phone Vision
+    /// can finish in a blink, and a screen that flashes past looks like a glitch.
+    private let minimumPeek: Duration
     private var scanTask: Task<Void, Never>?
 
     /// `scan` is a parameter so tests can hand in a fake instead of running
-    /// Vision and the model.
-    init(scan: @escaping (CGImage) async -> ScanResult = { await PantryScanner.scan($0) }) {
+    /// Vision and the model, and `minimumPeek` so they don't have to wait.
+    init(minimumPeek: Duration = .seconds(1.5),
+         scan: @escaping (CGImage) async -> ScanResult = { await PantryScanner.scan($0) }) {
+        self.minimumPeek = minimumPeek
         self.scan = scan
     }
 
@@ -49,8 +54,12 @@ final class TryItModel {
         scanTask?.cancel()
         problem = nil
         phase = .scanning(image)
-        scanTask = Task {
+        scanTask = Task { [minimumPeek] in
+            // The scan and the minimum wait run side by side, so a slow scan
+            // isn't made any slower and a fast one still gets its moment.
+            async let pause: Void = { try? await Task.sleep(for: minimumPeek) }()
             let result = await scan(image)
+            await pause
             guard !Task.isCancelled else { return }
             phase = .review(ScanReview(result: result))
         }
