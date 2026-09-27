@@ -72,8 +72,10 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     header(plan)
                     if let look = app.unlockedLook { unlockCard(look) }
-                    StreakCard(dates: meals.map(\.cookedAt), now: now) { app.tab = .insights }
+                    // The next meal comes first, so "Let's cook" is right there
+                    // without scrolling; the streak and the week follow.
                     nextMealCard(plan)
+                    StreakCard(dates: meals.map(\.cookedAt), now: now) { app.tab = .insights }
                     weekCard
                     Button(pantry.isEmpty ? "Scan my fridge" : "Update pantry") { app.showScan = true }
                         .buttonStyle(PillButtonStyle(fill: pantry.isEmpty ? Theme.Palette.amber : Theme.Palette.softAmber))
@@ -82,16 +84,8 @@ struct HomeView: View {
                 .animation(.spring(response: 0.5, dampingFraction: 0.85), value: plan.pick?.id)
             }
             .background(Theme.Palette.background.ignoresSafeArea())
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { app.showSettings = true } label: {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundStyle(Theme.Palette.textPrimary)
-                    }
-                    .accessibilityLabel("Settings")
-                }
-            }
+            // Settings sits in the header instead, so there's no empty bar up top.
+            .toolbar(.hidden, for: .navigationBar)
         }
         .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
                            offersShoppingList: true)
@@ -194,10 +188,10 @@ struct HomeView: View {
     }
 
     private func header(_ plan: Plan) -> some View {
-        HStack(spacing: Theme.Spacing.s) {
+        HStack(alignment: .center, spacing: Theme.Spacing.s) {
             LivelyNutmeg(mood: pantry.isEmpty ? .peeking : .idle, expression: nutmegFace,
                          cheer: app.homeCheer + giggles, sleepy: isLate && !cookedToday ? 0.2 : 0)
-                .frame(width: 100, height: 78)
+                .frame(width: 124, height: 97)
                 .contentShape(Rectangle())
                 // A tap makes him giggle.
                 .onTapGesture { giggle() }
@@ -213,7 +207,17 @@ struct HomeView: View {
                     .foregroundStyle(Theme.Palette.textPrimary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            Button { app.showSettings = true } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.title3)
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .frame(width: 44, height: 44)
+                    .background(Theme.Palette.surface, in: Circle())
+            }
+            .accessibilityLabel("Settings")
+            .frame(maxHeight: .infinity, alignment: .top)
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - The next meal
