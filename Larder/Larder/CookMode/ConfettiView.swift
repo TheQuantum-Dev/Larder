@@ -23,9 +23,9 @@ struct ConfettiView: View {
         let color: Color
     }
 
-    private static let colors: [Color] = [
+    private static var colors: [Color] { [
         Theme.Palette.amber, Theme.Palette.softAmber, Theme.Palette.sage, Color(red: 0xF6 / 255, green: 0xC0 / 255, blue: 0x67 / 255),
-    ]
+    ] }
 
     private let pieces: [Piece] = (0..<44).map { i in
         func fraction(_ factor: Double, _ offset: Double = 0) -> Double {

@@ -19,11 +19,18 @@ struct LarderApp: App {
         Purchases.logLevel = .debug
         #endif
         Purchases.configure(withAPIKey: RevenueCatConfig.apiKey)
+        // Colors from the first frame on, before any view has asked.
+        let saved = UserDefaults.standard.string(forKey: AppSettings.nutmegLookKey)
+        ThemeStore.shared.look = saved.flatMap(NutmegLook.init(rawValue:)) ?? .amber
     }
 
-    /// The look he's wearing: the one chosen, unless it needs Plus and Plus isn't active.
+    /// The look he's wearing: the one chosen, unless it needs Plus and Plus
+    /// isn't active. Until that's known, the chosen one, so the app doesn't
+    /// flicker from snow to amber and back while it checks.
     private var look: NutmegLook {
-        (NutmegLook(rawValue: lookName) ?? .amber).effective(hasPlus: purchaseStore.isPlusActive)
+        let chosen = NutmegLook(rawValue: lookName) ?? .amber
+        guard purchaseStore.hasLoadedEntitlements else { return chosen }
+        return chosen.effective(hasPlus: purchaseStore.isPlusActive)
     }
 
     var body: some Scene {
@@ -31,6 +38,8 @@ struct LarderApp: App {
             RootView()
                 .environment(purchaseStore)
                 .environment(\.nutmegSkin, look.skin)
+                // The whole app takes on the look's colors.
+                .onChange(of: look, initial: true) { _, look in ThemeStore.shared.look = look }
                 .modelContainer(for: [PantryItem.self, CookedMeal.self, ShoppingItem.self, RecipeNote.self])
                 .fontDesign(.rounded)
                 .task { await purchaseStore.start() }

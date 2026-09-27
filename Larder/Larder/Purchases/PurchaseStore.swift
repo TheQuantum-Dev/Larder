@@ -21,6 +21,9 @@ final class PurchaseStore {
     private(set) var semester: Package?
     private(set) var monthly: Package?
     private(set) var isPlusActive = false
+    /// False until RevenueCat has said whether Plus is active, so a Plus look
+    /// isn't taken off (and put back) in the moment before it answers.
+    private(set) var hasLoadedEntitlements = false
 
     /// Loads the plans, then keeps the entitlement status up to date for as
     /// long as the caller's task is alive.
@@ -65,6 +68,7 @@ final class PurchaseStore {
     }
 
     private func apply(_ info: CustomerInfo) {
+        hasLoadedEntitlements = true
         isPlusActive = info.entitlements[RevenueCatConfig.entitlementID]?.isActive == true
         #if DEBUG
         // `-forcePlus YES` pretends Plus is on, to look at paid screens without buying.
