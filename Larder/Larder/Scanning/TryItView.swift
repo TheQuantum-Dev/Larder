@@ -75,7 +75,6 @@ struct TryItView: View {
                     model.foundByBarcode(items)
                 },
                 onCancel: { showBarcodeScanner = false })
-                .ignoresSafeArea()
         }
     }
 

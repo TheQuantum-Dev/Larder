@@ -43,13 +43,18 @@ struct BarcodeScanView: View {
         .tapFeedback(found.count)
     }
 
+    /// Below the status bar (the camera behind fills the whole screen, but
+    /// the controls stay in the safe area), and big enough to hit.
     private var topBar: some View {
         HStack {
-            Button("Cancel", action: onCancel)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(.white)
-                .padding(Theme.Spacing.xs)
-                .background(.black.opacity(0.4), in: Capsule())
+            Button(action: onCancel) {
+                Label("Cancel", systemImage: "xmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, Theme.Spacing.s)
+                    .frame(minHeight: 44)
+                    .background(.black.opacity(0.45), in: Capsule())
+            }
             Spacer()
         }
     }
