@@ -213,17 +213,24 @@ private struct GatherView: View {
     let diets: Set<Diet>
     let onStart: () -> Void
 
-    /// Nutmeg gives an approving nod as Cook Mode opens: you picked a good one.
+    /// Nutmeg puts his chef's hat on and gives an approving nod as Cook Mode
+    /// opens: you picked a good one.
     @State private var nod = 0
+    @State private var hatLift: CGFloat = 90
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                 HStack(spacing: Theme.Spacing.s) {
-                    NutmegView(nod: nod)
+                    NutmegView(nod: nod, hat: .chef, hatLift: hatLift)
                         .frame(width: 80)
                         .task {
-                            try? await Task.sleep(for: .milliseconds(500))
+                            try? await Task.sleep(for: .milliseconds(300))
+                            withAnimation(reduceMotion ? nil : .spring(response: 0.45, dampingFraction: 0.6)) {
+                                hatLift = 0
+                            }
+                            try? await Task.sleep(for: .milliseconds(450))
                             nod += 1
                         }
                     VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
@@ -313,43 +320,57 @@ private struct StepView: View {
     let session: CookSession
     let index: Int
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     private var step: RecipeStep { session.recipe.steps[index] }
     private var isLast: Bool { index == session.stepCount - 1 }
+    private var scene: CookScene { CookScene.for(step: index, in: session.recipe) }
 
     var body: some View {
         GeometryReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.m) {
-                    OtherTimersStrip(session: session)
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.Spacing.s) {
+                OtherTimersStrip(session: session)
 
+                HStack(spacing: Theme.Spacing.xs) {
                     Text("Step \(index + 1) of \(session.stepCount)")
                         .font(.subheadline.bold())
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-
-                    Text(step.text)
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(Theme.Palette.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    if session.timers[index] != nil {
-                        TimerPanel(session: session, step: index)
-                    } else {
-                        // Timer steps already fill the screen with the dial;
-                        // a quiet step gets the preview, then Nutmeg keeps
-                        // the rest of the screen from sitting empty.
-                        if index + 1 < session.stepCount {
-                            NextUpCard(text: session.recipe.steps[index + 1].text)
-                        }
-                        Spacer(minLength: Theme.Spacing.m)
-                        NutmegView(mood: .idle)
-                            .frame(height: 150)
-                            .frame(maxWidth: .infinity)
-                        Spacer(minLength: 0)
+                    Spacer(minLength: 0)
+                    // At the biggest text sizes the kitchen below says it well enough.
+                    if let tool = scene.tool, !typeSize.isAccessibilitySize {
+                        Label(tool.title, systemImage: tool.symbol)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                            .padding(.horizontal, Theme.Spacing.xs)
+                            .frame(minHeight: 30)
+                            .background(Theme.Palette.surface, in: Capsule())
                     }
                 }
-                .padding(Theme.Spacing.s)
-                .frame(minHeight: proxy.size.height, alignment: .top)
+
+                Text(step.text)
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Nutmeg's little kitchen, doing what this step says. It takes
+                // whatever room the screen has left, so no step sits half empty.
+                KitchenStage(scene: scene,
+                             variant: CookScene.variant(recipeID: session.recipe.id, step: index),
+                             emoji: session.recipe.emoji, timer: session.timers[index],
+                             cheer: session.finishedCount)
+                    .frame(maxHeight: typeSize.isAccessibilitySize ? 180 : 440)
+
+                if session.timers[index] != nil {
+                    TimerPanel(session: session, step: index)
+                }
+                if index + 1 < session.stepCount {
+                    NextUpCard(text: session.recipe.steps[index + 1].text)
+                }
             }
+            .padding(Theme.Spacing.s)
+            .frame(minHeight: proxy.size.height, alignment: .top)
+        }
         }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: Theme.Spacing.s) {
@@ -423,23 +444,26 @@ private struct TimerPanel: View {
 
     var body: some View {
         if let timer = session.timers[step] {
-            VStack(spacing: Theme.Spacing.m) {
+            // The dial and its buttons side by side, so the kitchen above has room.
+            HStack(spacing: Theme.Spacing.s) {
                 TimelineView(.periodic(from: .now, by: 0.25)) { context in
                     let remaining = timer.remaining(at: context.date)
                     ZStack {
                         Circle()
-                            .stroke(Theme.Palette.surface, lineWidth: 16)
+                            .stroke(Theme.Palette.surface, lineWidth: 12)
                         Circle()
                             .trim(from: 0, to: timer.isFinished ? 1 : remaining / timer.duration)
-                            .stroke(Theme.Palette.amber, style: StrokeStyle(lineWidth: 16, lineCap: .round))
+                            .stroke(Theme.Palette.amber, style: StrokeStyle(lineWidth: 12, lineCap: .round))
                             .rotationEffect(.degrees(-90))
                         Text(timer.isFinished ? "Time's up!" : ClockText.text(seconds: Int(ceil(remaining))))
-                            .font(.system(size: timer.isFinished ? 36 : 54, weight: .bold, design: .rounded))
+                            .font(.system(size: timer.isFinished ? 22 : 34, weight: .bold, design: .rounded))
                             .monospacedDigit()
                             .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                            .padding(.horizontal, Theme.Spacing.xs)
                             .foregroundStyle(Theme.Palette.textPrimary)
                     }
-                    .frame(width: 240, height: 240)
+                    .frame(width: 140, height: 140)
                 }
 
                 controls(for: timer)
@@ -452,7 +476,7 @@ private struct TimerPanel: View {
     /// action on the screen.
     @ViewBuilder
     private func controls(for timer: StepTimer) -> some View {
-        HStack(spacing: Theme.Spacing.s) {
+        VStack(spacing: Theme.Spacing.xs) {
             if timer.isIdle {
                 control("Start timer") { session.startTimer(step) }
             } else if timer.isRunning {
@@ -483,6 +507,7 @@ private struct DoneView: View {
     /// Most recipes make one serving. For the ones that make more, ask how
     /// many were eaten, so the calories logged are right.
     @State private var eaten = 1
+    @State private var cheer = 0
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
@@ -515,8 +540,13 @@ private struct DoneView: View {
 
     private var message: some View {
         VStack(spacing: Theme.Spacing.m) {
-            NutmegView()
-                .frame(height: 180)
+            // Nutmeg serving it up, with a cheer.
+            KitchenStage(scene: .serve, emoji: recipe.emoji, cheer: cheer)
+                .frame(height: typeSize.isAccessibilitySize ? 170 : 240)
+                .task {
+                    try? await Task.sleep(for: .milliseconds(500))
+                    cheer += 1
+                }
 
             VStack(spacing: Theme.Spacing.xs) {
                 Text("All done!")
