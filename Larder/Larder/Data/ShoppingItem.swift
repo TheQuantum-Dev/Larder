@@ -21,6 +21,10 @@ final class ShoppingItem {
     var addedAt: Date
     /// When it was ticked off; nil while it's still to get.
     var boughtAt: Date?
+    /// How much to get, if the person said (or a recipe did). Nil means "some".
+    var quantity: Double?
+    /// A `PantryUnit` raw value, alongside `quantity`.
+    var unit: String?
 
     init(item: ResolvedItem, addedAt: Date = Date()) {
         ingredientID = item.id
@@ -35,4 +39,7 @@ final class ShoppingItem {
     }
 
     var isBought: Bool { boughtAt != nil }
+
+    var amount: Amount? { Amount(quantity: quantity, unit: unit) }
+    var amountText: String? { amount?.text }
 }

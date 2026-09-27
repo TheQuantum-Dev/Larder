@@ -83,7 +83,7 @@ struct ShoppingListView: View {
 
     private var moveBar: some View {
         Button("Add \(inBasket.count) to my pantry") {
-            movedCount += ShoppingRepository.moveBoughtToPantry(in: context)
+            movedCount += ShoppingRepository.moveBoughtToPantry(in: context).count
         }
         .buttonStyle(PillButtonStyle())
         .padding(.horizontal, Theme.Spacing.s)

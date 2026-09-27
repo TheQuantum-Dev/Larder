@@ -42,6 +42,7 @@ final class PantryItem {
 
     /// "6 eggs"-style text for the amount, or nil if none was set.
     var amountText: String? { PantryAmount.text(quantity: quantity, unit: unit) }
+    var amount: Amount? { Amount(quantity: quantity, unit: unit) }
 
     /// Where it's grouped in the Pantry tab. Custom items have no catalog
     /// entry, so they get their own group.

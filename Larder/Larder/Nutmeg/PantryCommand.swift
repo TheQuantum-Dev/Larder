@@ -104,17 +104,17 @@ nonisolated struct PantryCommand: Equatable, Sendable {
         return pieces.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
     }
 
-    private static let numberWords: [String: Double] = [
+    static let numberWords: [String: Double] = [
         "a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8,
         "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "dozen": 12, "half": 0.5, "couple": 2,
     ]
 
-    private static func number(_ word: String) -> Double? {
+    static func number(_ word: String) -> Double? {
         if let value = Double(word), value >= 0, value < 10_000 { return value }
         return numberWords[word]
     }
 
-    private static let unitWords: [String: PantryUnit] = [
+    static let unitWords: [String: PantryUnit] = [
         "can": .cans, "cans": .cans, "tin": .cans, "tins": .cans,
         "bag": .bags, "bags": .bags,
         "pack": .packs, "packs": .packs, "packet": .packs, "packets": .packs, "box": .packs, "boxes": .packs,

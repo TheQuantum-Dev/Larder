@@ -17,12 +17,15 @@ struct RecipeListAction {
     /// For a recipe that's only one or two things away.
     static func nudge(for match: RecipeMatch, listed: Set<String>, context: ModelContext) -> RecipeListAction? {
         guard !match.isReady, (1...2).contains(match.missing.count) else { return nil }
-        let items = match.missing.compactMap { IngredientCatalog.resolvedItem(forID: $0.id) }
-        guard !items.isEmpty else { return nil }
-        let title = items.count == 1 ? "Add \(items[0].name.lowercased()) to my list" : "Add both to my list"
+        // With how much of each the recipe needs, where that can be worked out.
+        let entries = ShoppingRepository.entries(missingFrom: match)
+        guard let first = entries.first else { return nil }
+        let title = entries.count == 1
+            ? "Add \(first.item.name.lowercased())\(first.amount.map { " (\($0.text))" } ?? "") to my list"
+            : "Add both to my list"
         return RecipeListAction(title: title,
-                                isDone: items.allSatisfy { listed.contains($0.id) }) {
-            ShoppingRepository.add(items, in: context)
+                                isDone: entries.allSatisfy { listed.contains($0.item.id) }) {
+            ShoppingRepository.add(entries, in: context)
         }
     }
 }

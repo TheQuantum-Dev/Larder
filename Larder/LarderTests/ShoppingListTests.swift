@@ -45,7 +45,7 @@ struct ShoppingListTests {
         for item in ShoppingRepository.all(in: db.context) where item.ingredientID != "rice" {
             ShoppingRepository.toggleBought(item, in: db.context)
         }
-        #expect(ShoppingRepository.moveBoughtToPantry(in: db.context) == 2)
+        #expect(ShoppingRepository.moveBoughtToPantry(in: db.context).count == 2)
         #expect(ShoppingRepository.all(in: db.context).map(\.ingredientID) == ["rice"])
         #expect(PantryRepository.all(in: db.context).map(\.ingredientID).sorted() == ["egg", "milk"])
     }
@@ -53,7 +53,7 @@ struct ShoppingListTests {
     @Test func movingAnEmptyBasketDoesNothing() throws {
         let db = try TestDatabase()
         ShoppingRepository.add([egg], in: db.context)
-        #expect(ShoppingRepository.moveBoughtToPantry(in: db.context) == 0)
+        #expect(ShoppingRepository.moveBoughtToPantry(in: db.context).isEmpty)
         #expect(PantryRepository.all(in: db.context).isEmpty)
     }
 
@@ -100,7 +100,8 @@ struct ShoppingListTests {
         #expect(nudge([]) == nil, "too many missing")
         let one = try #require(nudge(["rice", "egg", "soy-sauce"]))
         let name = try #require(IngredientCatalog.ingredient(withID: "frozen-veg")).name.lowercased()
-        #expect(one.title == "Add \(name) to my list")
+        // With how much the recipe needs: 70 g of frozen veg rounds up to 100 g.
+        #expect(one.title == "Add \(name) (100 g) to my list")
         #expect(!one.isDone)
         #expect(try #require(nudge(["rice", "egg", "soy-sauce"], listed: ["frozen-veg"])).isDone)
     }
