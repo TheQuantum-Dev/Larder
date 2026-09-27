@@ -71,6 +71,17 @@ nonisolated enum PantryAmount {
         return label.isEmpty ? number : "\(number) \(label)"
     }
 
+    /// Nearly out: one (or none) of something counted, or a little of
+    /// something weighed. Things with no amount set are never "low".
+    static func isRunningLow(_ amount: Amount?) -> Bool {
+        guard let amount else { return false }
+        switch amount.unit {
+        case .grams, .millilitres: return amount.quantity <= 100
+        case .kilograms, .litres: return amount.quantity <= 0.1
+        default: return amount.quantity <= 1
+        }
+    }
+
     /// One step up or down, never below zero. Zero is allowed on purpose:
     /// it's how "all gone" is said before the item is taken off the list.
     static func stepped(_ quantity: Double, by direction: Int, unit: PantryUnit) -> Double {

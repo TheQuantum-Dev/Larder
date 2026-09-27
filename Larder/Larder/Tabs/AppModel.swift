@@ -19,6 +19,8 @@ nonisolated enum AppTab: String, Hashable, CaseIterable, Sendable {
 final class AppModel {
     var tab: AppTab
     var showScan = false
+    /// Opens the scan sheet straight on typing things in, rather than the camera.
+    var scanByHand = false
     /// A look that was just earned and hasn't been shown off yet.
     var unlockedLook: NutmegLook?
     /// Goes up when Nutmeg has something to cheer about on Home.

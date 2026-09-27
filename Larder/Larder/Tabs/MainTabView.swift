@@ -61,10 +61,10 @@ struct MainTabView: View {
             SettingsView()
                 .environment(online)
         }
-        .sheet(isPresented: $app.showScan) {
+        .sheet(isPresented: $app.showScan, onDismiss: { app.scanByHand = false }) {
             ZStack {
                 Theme.Palette.background.ignoresSafeArea()
-                TryItView(mode: .update) { review in
+                TryItView(mode: .update, startsByHand: app.scanByHand) { review in
                     // Anything marked all gone goes on the shopping list, same as after cooking.
                     let removed = PantryRepository.apply(review.update, in: context)
                     ShoppingRepository.addRunOut(removed, enabled: autoAddToShopping, in: context)

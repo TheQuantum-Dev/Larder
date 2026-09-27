@@ -131,3 +131,30 @@ struct ShoppingAmountListTests {
         #expect(item.amount == Amount(2))
     }
 }
+
+struct PantryLayoutTests {
+    @Test func runningLowMeansNearlyOut() {
+        #expect(PantryAmount.isRunningLow(Amount(1)))
+        #expect(!PantryAmount.isRunningLow(Amount(2)))
+        #expect(PantryAmount.isRunningLow(Amount(100, .grams)))
+        #expect(!PantryAmount.isRunningLow(Amount(500, .grams)))
+        #expect(PantryAmount.isRunningLow(Amount(0.1, .litres)))
+        #expect(!PantryAmount.isRunningLow(nil))
+    }
+
+    @Test func theChipsOfferOnlyAislesWithSomethingInThem() {
+        let options = PantryFilter.available(for: [.produce, .produce, .dairyAndEggs, nil])
+        #expect(options.map(\.filter) == [.all, .category(.produce), .category(.dairyAndEggs), .other])
+        #expect(options.map(\.count) == [4, 2, 1, 1])
+        #expect(PantryFilter.other.includes(nil))
+        #expect(!PantryFilter.category(.produce).includes(.grains))
+        #expect(PantryFilter.all.includes(.grains))
+    }
+
+    @Test func theMoveMessageSaysWhatChanged() {
+        let moved = [ShoppingRepository.Moved(name: "Eggs", total: Amount(9), wasInPantry: true),
+                     ShoppingRepository.Moved(name: "Spinach", total: Amount(1, .bags), wasInPantry: false),
+                     ShoppingRepository.Moved(name: "Yogurt", total: nil, wasInPantry: false)]
+        #expect(ShoppingListView.summary(of: moved) == "Added to your pantry: eggs (now 9), spinach (1 bag) and yogurt.")
+    }
+}

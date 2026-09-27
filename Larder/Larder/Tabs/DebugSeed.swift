@@ -32,11 +32,17 @@ enum DebugSeed {
         let ids = UserDefaults.standard.string(forKey: "seedPantry")?.split(separator: ",").map(String.init) ?? pantry
         PantryRepository.replace(with: ids.compactMap { IngredientCatalog.ingredient(withID: $0) }.map(ResolvedItem.init),
                                  in: context)
+        // A few amounts, so the pantry shows numbers and something running low.
+        PantryRepository.setAmount(1, unit: .items, for: "egg", in: context)
+        PantryRepository.setAmount(500, unit: .grams, for: "rice", in: context)
+        PantryRepository.setAmount(1, unit: .bottles, for: "milk", in: context)
         if UserDefaults.standard.bool(forKey: "seedShopping"), ShoppingRepository.all(in: context).isEmpty {
-            let items = ["eggs", "spinach", "soy-sauce", "yogurt"].compactMap { id -> ResolvedItem? in
-                IngredientCatalog.ingredient(withID: id == "eggs" ? "egg" : id).map(ResolvedItem.init)
+            let wanted: [(String, Amount?)] = [("egg", Amount(6)), ("spinach", Amount(1, .bags)),
+                                               ("soy-sauce", Amount(1, .bottles)), ("yogurt", nil), ("chicken", Amount(500, .grams))]
+            let entries = wanted.compactMap { id, amount in
+                IngredientCatalog.ingredient(withID: id).map { ShoppingEntry(item: ResolvedItem($0), amount: amount) }
             }
-            ShoppingRepository.add(items, in: context)
+            ShoppingRepository.add(entries, in: context)
             if let first = ShoppingRepository.all(in: context).first {
                 ShoppingRepository.toggleBought(first, in: context)
             }

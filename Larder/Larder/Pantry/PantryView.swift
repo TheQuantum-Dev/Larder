@@ -8,50 +8,51 @@
 import SwiftData
 import SwiftUI
 
-/// Everything in the kitchen, grouped the way a shop is: produce, dairy,
-/// and so on. Tap something to set how much is left, swipe to take it off.
+/// Everything in the kitchen, as tiles grouped the way a shop is: produce,
+/// dairy, and so on. A card up top says how things stand; chips narrow it to
+/// one aisle. Tap a tile to set how much is left, press and hold for more.
 struct PantryView: View {
-    private enum Mode { case pantry, shopping }
-
     @Environment(AppModel.self) private var app
     @Environment(\.modelContext) private var context
     @Query(sort: \PantryItem.name) private var pantry: [PantryItem]
     @Query private var shopping: [ShoppingItem]
+    @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
 
     @State private var query = ""
     @State private var editing: PantryItem?
-    @State private var mode = Self.launchMode
+    @State private var showsShopping = Self.launchesOnShopping
     @State private var showAddToList = false
+    @State private var filter = PantryFilter.all
 
     private var toGetCount: Int { shopping.filter { !$0.isBought }.count }
+    private var lowCount: Int { pantry.filter { PantryAmount.isRunningLow($0.amount) }.count }
 
     var body: some View {
         NavigationStack {
             Group {
-                switch mode {
-                case .pantry:
-                    if pantry.isEmpty {
-                        emptyState
-                    } else {
-                        list
-                    }
-                case .shopping:
+                if showsShopping {
                     ShoppingListView { showAddToList = true }
+                } else if pantry.isEmpty {
+                    emptyState
+                } else {
+                    grid
                 }
             }
             .background(Theme.Palette.background.ignoresSafeArea())
-            .navigationTitle(mode == .pantry ? "Pantry" : "Shopping list")
+            .navigationTitle(showsShopping ? "Shopping list" : "Pantry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) { modePicker }
+                ToolbarItem(placement: .principal) {
+                    PantryModeSwitcher(showsShopping: $showsShopping, toGetCount: toGetCount)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        if mode == .pantry { app.showScan = true } else { showAddToList = true }
+                        if showsShopping { showAddToList = true } else { app.showScan = true }
                     } label: {
                         Image(systemName: "plus")
                             .foregroundStyle(Theme.Palette.textPrimary)
                     }
-                    .accessibilityLabel(mode == .pantry ? "Update pantry" : "Add to shopping list")
+                    .accessibilityLabel(showsShopping ? "Add to shopping list" : "Update pantry")
                 }
             }
         }
@@ -65,99 +66,132 @@ struct PantryView: View {
                 .presentationDragIndicator(.visible)
         }
         .tapFeedback(pantry.count)
-        .tapFeedback(mode)
-    }
-
-    private var modePicker: some View {
-        Picker("Show", selection: $mode) {
-            Text("Pantry").tag(Mode.pantry)
-            Text(toGetCount > 0 ? "Shopping list · \(toGetCount)" : "Shopping list").tag(Mode.shopping)
-        }
-        .pickerStyle(.segmented)
-        .frame(width: 260)
+        .tapFeedback(showsShopping)
+        .tapFeedback(filter)
     }
 
     /// `-pantryMode shopping` opens the shopping list (debug builds only).
-    private static var launchMode: Mode {
+    private static var launchesOnShopping: Bool {
         #if DEBUG
-        UserDefaults.standard.string(forKey: "pantryMode") == "shopping" ? .shopping : .pantry
+        UserDefaults.standard.string(forKey: "pantryMode") == "shopping"
         #else
-        .pantry
+        false
         #endif
     }
 
-    // MARK: - The list
+    // MARK: - The grid
 
-    private var list: some View {
-        List {
-            Section {
-                Text(countLine)
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 0, leading: Theme.Spacing.s, bottom: 0, trailing: Theme.Spacing.s))
-            }
-
-            ForEach(sections, id: \.title) { section in
-                Section(section.title) {
-                    ForEach(section.items) { item in
-                        row(item)
-                            .swipeActions {
-                                Button("Remove", role: .destructive) { remove(item) }
+    private var grid: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.Spacing.m) {
+                summaryCard
+                CategoryChips(options: PantryFilter.available(for: pantry.map(\.category)), selection: $filter)
+                if sections.isEmpty {
+                    Text(query.isEmpty ? "Nothing in this aisle yet." : "Nothing called \"\(query)\" yet. Tap + to add it.")
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.top, Theme.Spacing.m)
+                }
+                ForEach(sections, id: \.title) { section in
+                    VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                        Text("\(section.emoji)  \(section.title) · \(section.items.count)")
+                            .font(.headline)
+                            .foregroundStyle(Theme.Palette.textPrimary)
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: Theme.Spacing.xs),
+                                            GridItem(.flexible(), spacing: Theme.Spacing.xs)],
+                                  spacing: Theme.Spacing.xs) {
+                            ForEach(section.items) { item in
+                                tile(item)
+                                    .transition(.scale(scale: 0.9).combined(with: .opacity))
                             }
+                        }
                     }
                 }
             }
-
-            if !query.isEmpty, sections.isEmpty {
-                Text("Nothing called \"\(query)\" yet. Tap + to add it.")
-                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                    .listRowBackground(Theme.Palette.surface)
-            }
+            .padding(Theme.Spacing.s)
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: pantry.map(\.ingredientID))
+            .animation(.spring(response: 0.4, dampingFraction: 0.85), value: filter)
         }
-        .scrollContentBackground(.hidden)
         .searchable(text: $query, prompt: "Search your pantry")
     }
 
-    private func row(_ item: PantryItem) -> some View {
-        Button { editing = item } label: {
+    /// How the pantry's doing, and the two ways to add to it.
+    private var summaryCard: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.s) {
             HStack(spacing: Theme.Spacing.s) {
-                Text(item.emoji)
-                    .font(.title2)
-                Text(item.name)
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                Spacer(minLength: Theme.Spacing.xs)
-                if let amount = item.amountText {
-                    Text(amount)
-                        .font(.subheadline.weight(.semibold))
+                LivelyNutmeg(seed: 2)
+                    .frame(width: 70, height: 55)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(pantry.count == 1 ? "1 thing in your kitchen" : "\(pantry.count) things in your kitchen")
+                        .font(.headline)
+                    Text(lowCount == 0 ? "Tap anything to say how much is left."
+                                       : "\(lowCount) running low. Tap one to update it.")
+                        .font(.subheadline)
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                } else {
-                    Text("Add amount")
-                        .font(.footnote)
-                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.4))
+                }
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            HStack(spacing: Theme.Spacing.xs) {
+                Button("Update pantry") { app.showScan = true }
+                    .buttonStyle(PillButtonStyle())
+                Button("Add by hand") {
+                    app.scanByHand = true
+                    app.showScan = true
+                }
+                .buttonStyle(PillButtonStyle(fill: Theme.Palette.softAmber))
+            }
+        }
+        .padding(Theme.Spacing.s)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+    }
+
+    private func tile(_ item: PantryItem) -> some View {
+        let isLow = PantryAmount.isRunningLow(item.amount)
+        return Button { editing = item } label: {
+            VStack(spacing: Theme.Spacing.xs) {
+                ItemBubble(emoji: item.emoji)
+                Text(item.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.85)
+                AmountBadge(amount: item.amount, isLow: isLow)
+            }
+            .frame(maxWidth: .infinity, minHeight: 150)
+            .padding(.horizontal, Theme.Spacing.xs)
+            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+            .overlay(alignment: .topTrailing) {
+                if isLow {
+                    Circle().fill(Theme.Palette.amber)
+                        .frame(width: 10, height: 10)
+                        .padding(12)
                 }
             }
-            .frame(minHeight: 40)
         }
-        .listRowBackground(Theme.Palette.surface)
-        .accessibilityLabel(item.amountText.map { "\(item.name), \($0)" } ?? item.name)
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button { editing = item } label: { Label("Change amount", systemImage: "number") }
+            Button { allGone(item) } label: { Label("All gone", systemImage: "cart.badge.plus") }
+            Button(role: .destructive) { remove(item) } label: { Label("Remove", systemImage: "trash") }
+        }
+        .accessibilityLabel(item.amountText.map { "\(item.name), \($0)\(isLow ? ", running low" : "")" } ?? item.name)
         .accessibilityHint("Set how much is left")
     }
 
-    private var countLine: String {
-        pantry.count == 1 ? "1 thing in your kitchen" : "\(pantry.count) things in your kitchen"
-    }
-
-    private var sections: [(title: String, items: [PantryItem])] {
-        let visible = query.isEmpty
-            ? pantry
-            : pantry.filter { $0.name.localizedCaseInsensitiveContains(query) }
-        var result: [(title: String, items: [PantryItem])] = IngredientCategory.allCases.compactMap { category in
+    private var sections: [(title: String, emoji: String, items: [PantryItem])] {
+        let visible = pantry.filter { item in
+            filter.includes(item.category)
+                && (query.isEmpty || item.name.localizedCaseInsensitiveContains(query))
+        }
+        var result: [(title: String, emoji: String, items: [PantryItem])] = IngredientCategory.allCases.compactMap { category in
             let items = visible.filter { $0.category == category }
-            return items.isEmpty ? nil : (category.title, items)
+            return items.isEmpty ? nil : (category.title, PantryFilter.emoji(for: category), items)
         }
         let other = visible.filter { $0.category == nil }
-        if !other.isEmpty { result.append(("Other", other)) }
+        if !other.isEmpty { result.append(("Other", PantryFilter.emoji(for: nil), other)) }
         return result
     }
 
@@ -167,12 +201,19 @@ struct PantryView: View {
         }
     }
 
+    /// Takes it off, and puts it on the shopping list if that's switched on.
+    private func allGone(_ item: PantryItem) {
+        let gone = item.resolved
+        remove(item)
+        ShoppingRepository.addRunOut([gone], enabled: autoAddToShopping, in: context)
+    }
+
     // MARK: - Empty
 
     private var emptyState: some View {
         VStack(spacing: Theme.Spacing.m) {
             Spacer(minLength: 0)
-            NutmegView()
+            LivelyNutmeg(mood: .peeking)
                 .frame(height: 160)
             VStack(spacing: Theme.Spacing.xs) {
                 Text("Nothing here yet")
@@ -191,106 +232,25 @@ struct PantryView: View {
     }
 }
 
-/// Setting how much of one thing is left. Changes save as they're made;
-/// there's no separate save step to forget.
+/// Setting how much of one pantry item is left. Changes save as they're made.
 struct PantryAmountEditor: View {
     let item: PantryItem
 
     @Environment(\.modelContext) private var context
-    @Environment(\.dismiss) private var dismiss
     @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
-    @State private var quantity: Double?
-    @State private var unit: PantryUnit
-
-    init(item: PantryItem) {
-        self.item = item
-        _quantity = State(initialValue: item.quantity)
-        _unit = State(initialValue: PantryUnit(rawValue: item.unit ?? "") ?? .items)
-    }
 
     var body: some View {
-        VStack(spacing: Theme.Spacing.m) {
-            HStack(spacing: Theme.Spacing.s) {
-                Text(item.emoji)
-                    .font(.largeTitle)
-                Text(item.name)
-                    .font(.title2.bold())
-                Spacer()
-                Button("Done") { dismiss() }
-                    .font(.body.weight(.semibold))
-            }
-            .foregroundStyle(Theme.Palette.textPrimary)
-
-            if let quantity {
-                amountControls(quantity)
-            } else {
-                Text("No amount set. That's fine, most things don't need one.")
-                    .font(.subheadline)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                Button("Set an amount") { set(unit.starting) }
-                    .buttonStyle(PillButtonStyle(fill: Theme.Palette.softAmber))
-            }
-
-            Spacer(minLength: 0)
-
-            Button("All gone, take it off", role: .destructive) {
-                let gone = item.resolved
-                PantryRepository.remove(ids: [item.ingredientID], in: context)
-                ShoppingRepository.addRunOut([gone], enabled: autoAddToShopping, in: context)
-                dismiss()
-            }
-            .font(.body.weight(.semibold))
-            .frame(minHeight: 44)
-        }
-        .padding(Theme.Spacing.s)
-        .background(Theme.Palette.background.ignoresSafeArea())
-        .tint(Theme.Palette.amber)
-        .tapFeedback(quantity)
-    }
-
-    private func amountControls(_ quantity: Double) -> some View {
-        VStack(spacing: Theme.Spacing.s) {
-            HStack(spacing: Theme.Spacing.m) {
-                stepButton("minus", direction: -1, disabled: quantity <= 0)
-                Text(PantryAmount.text(quantity: quantity, unit: unit.rawValue) ?? "")
-                    .font(.system(size: 40, weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .contentTransition(.numericText(value: quantity))
-                    .frame(minWidth: 140)
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                stepButton("plus", direction: 1, disabled: false)
-            }
-
-            Picker("Unit", selection: $unit) {
-                ForEach(PantryUnit.allCases) { Text($0.title).tag($0) }
-            }
-            .pickerStyle(.menu)
-            .onChange(of: unit) { _, newUnit in set(newUnit.starting) }
-
-            Button("Clear amount") { set(nil) }
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-        }
-    }
-
-    private func stepButton(_ symbol: String, direction: Int, disabled: Bool) -> some View {
-        Button {
-            set(PantryAmount.stepped(quantity ?? 0, by: direction, unit: unit))
-        } label: {
-            Image(systemName: symbol)
-                .font(.title2.bold())
-                .foregroundStyle(Theme.Palette.textPrimary)
-                .frame(width: 60, height: 60)
-                .background(Theme.Palette.surface, in: Circle())
-        }
-        .disabled(disabled)
-        .opacity(disabled ? 0.4 : 1)
-        .accessibilityLabel(direction > 0 ? "More" : "Less")
-    }
-
-    private func set(_ newQuantity: Double?) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { quantity = newQuantity }
-        PantryRepository.setAmount(newQuantity, unit: unit, for: item.ingredientID, in: context)
+        AmountEditorView(emoji: item.emoji, name: item.name, amount: item.amount,
+                         emptyNote: "No amount set. That's fine, most things don't need one.",
+                         onChange: { amount in
+                             PantryRepository.setAmount(amount?.quantity, unit: amount?.unit, for: item.ingredientID,
+                                                        in: context)
+                         },
+                         destructiveTitle: "All gone, take it off",
+                         onDestructive: {
+                             let gone = item.resolved
+                             PantryRepository.remove(ids: [item.ingredientID], in: context)
+                             ShoppingRepository.addRunOut([gone], enabled: autoAddToShopping, in: context)
+                         })
     }
 }

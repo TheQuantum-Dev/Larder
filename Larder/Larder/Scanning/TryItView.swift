@@ -16,6 +16,8 @@ import SwiftUI
 struct TryItView: View {
     /// Onboarding's first scan, or topping up the pantry later from the app.
     var mode = ScanMode.onboarding
+    /// Skips the camera and goes straight to typing things in.
+    var startsByHand = false
     /// Called with the confirmed review.
     let onFinish: (ScanReview) -> Void
 
@@ -46,6 +48,7 @@ struct TryItView: View {
         .onAppear {
             // Onboarding starts a pantry from scratch; an update checks against what's there.
             if mode == .update { model.pantry = pantry.map { PantrySnapshot($0) } }
+            if startsByHand, model.phaseID == 0 { model.startByHand() }
             PantryScanner.prewarm()
             openDebugPhotos()
         }
