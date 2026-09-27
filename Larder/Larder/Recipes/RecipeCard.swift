@@ -65,12 +65,13 @@ struct RecipeCard: View {
             Label(listAction.isDone ? "On your shopping list" : listAction.title,
                   systemImage: listAction.isDone ? "checkmark.circle.fill" : "cart.badge.plus")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Theme.Palette.textPrimary)
+                // The soft fill is light in dark mode too, so its text is always dark.
+                .foregroundStyle(Theme.Palette.onAccent.opacity(listAction.isDone ? 0.7 : 1))
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Theme.Spacing.s)
                 .padding(.vertical, Theme.Spacing.xs)
                 .frame(maxWidth: .infinity, minHeight: 40)
-                .background(Theme.Palette.softAmber.opacity(listAction.isDone ? 0.4 : 1), in: Capsule())
+                .background(Theme.Palette.softAmber.opacity(listAction.isDone ? 0.7 : 1), in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(listAction.isDone)

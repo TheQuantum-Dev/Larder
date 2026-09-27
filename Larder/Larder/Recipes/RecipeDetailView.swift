@@ -173,9 +173,10 @@ struct RecipeDetailView: View {
             Label(addedToList ? "On your shopping list" : "Add what's missing to my list",
                   systemImage: addedToList ? "checkmark.circle.fill" : "cart.badge.plus")
                 .font(.body.weight(.semibold))
-                .foregroundStyle(Theme.Palette.textPrimary)
+                // The soft fill is light in dark mode too, so its text is always dark.
+                .foregroundStyle(Theme.Palette.onAccent.opacity(addedToList ? 0.7 : 1))
                 .frame(maxWidth: .infinity, minHeight: 50)
-                .background(Theme.Palette.softAmber.opacity(addedToList ? 0.4 : 1), in: Capsule())
+                .background(Theme.Palette.softAmber.opacity(addedToList ? 0.7 : 1), in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(addedToList)
@@ -297,7 +298,10 @@ struct RecipeDetailView: View {
             FavoriteButton(ref: RecipeRef(recipe))
             closeButton
         }
-        .padding(Theme.Spacing.s)
+        .padding(6)
+        // One frosted backing, so text scrolling underneath doesn't peek out between them.
+        .background(.ultraThinMaterial, in: Capsule())
+        .padding(Theme.Spacing.xs)
     }
 
     private var closeButton: some View {

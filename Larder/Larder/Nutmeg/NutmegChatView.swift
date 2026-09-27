@@ -641,7 +641,7 @@ private struct PantryChangeCard: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.footnote.bold())
-                .foregroundStyle(Theme.Palette.textPrimary)
+                .foregroundStyle(Theme.Palette.onAccent)
                 .frame(width: 36, height: 36)
                 .background(Theme.Palette.softAmber, in: Circle())
         }

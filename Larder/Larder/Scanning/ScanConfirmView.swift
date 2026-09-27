@@ -391,7 +391,7 @@ private struct CountRow: View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.subheadline.bold())
-                .foregroundStyle(Theme.Palette.textPrimary)
+                .foregroundStyle(Theme.Palette.onAccent)
                 .frame(width: 40, height: 40)
                 .background(Theme.Palette.softAmber, in: Circle())
         }
@@ -417,7 +417,7 @@ private struct GoneRow: View {
             Button(action: action) {
                 Text(isGone ? "Keep it" : "All gone")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .foregroundStyle(isGone ? Theme.Palette.textPrimary : Theme.Palette.onAccent)
                     .padding(.horizontal, Theme.Spacing.s)
                     .frame(minHeight: 40)
                     .background(isGone ? Theme.Palette.surface : Theme.Palette.softAmber, in: Capsule())
