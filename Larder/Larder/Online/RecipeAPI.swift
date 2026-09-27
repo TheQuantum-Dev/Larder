@@ -15,9 +15,13 @@ nonisolated struct OnlineRequest: Hashable, Sendable {
     var goal: FitnessGoal?
     var diets: Set<Diet>
     var slot: MealSlot
-    var number = 10
+    var number = OnlineRequest.standardSize
     /// The longest a recipe may take, in minutes. Something to cook now, not overnight.
     var maxMinutes = 90
+
+    /// How many recipes one lookup asks for. Each extra recipe costs a hundredth
+    /// of a point, so twenty gives the list room without spending much.
+    static let standardSize = 20
 }
 
 nonisolated struct OnlineSearchOutcome: Sendable {

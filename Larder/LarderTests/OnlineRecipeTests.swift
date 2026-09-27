@@ -307,7 +307,7 @@ struct OnlineQueryTests {
         #expect(value("addRecipeInformation", in: r) == "true")
         #expect(value("addRecipeNutrition", in: r) == "true")
         #expect(value("instructionsRequired", in: r) == "true")
-        #expect(value("number", in: r) == "10")
+        #expect(value("number", in: r) == "20")
         #expect(value("maxReadyTime", in: r) == "90")
         #expect(value("type", in: request(slot: .breakfast)) == "breakfast")
         #expect(value("type", in: request(slot: .lunch)) == "main course")
