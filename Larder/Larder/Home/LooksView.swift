@@ -74,6 +74,7 @@ struct LooksView: View {
                 Text(look.title)
                     .font(.headline)
                     .foregroundStyle(Theme.Palette.textPrimary)
+                palette(look.theme)
                 status(look, isAvailable: isAvailable, isSelected: isSelected)
             }
             .padding(Theme.Spacing.s)
@@ -88,6 +89,20 @@ struct LooksView: View {
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    /// The colors the app takes on with this look: background, surface and
+    /// its main color, so the choice isn't a surprise.
+    private func palette(_ theme: AppTheme) -> some View {
+        HStack(spacing: 4) {
+            ForEach([theme.background, theme.surface, theme.accent].indices, id: \.self) { index in
+                Circle()
+                    .fill([theme.background, theme.surface, theme.accent][index])
+                    .frame(width: 16, height: 16)
+                    .overlay { Circle().strokeBorder(Theme.Palette.textPrimary.opacity(0.2), lineWidth: 1) }
+            }
+        }
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder
