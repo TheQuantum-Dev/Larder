@@ -82,6 +82,8 @@ struct OnboardingFlow: View {
             TryItView { review in
                 answers.pantry = review.selected
                 PantryRepository.replace(with: review.selected, in: modelContext)
+                // Along with how many of each, where that's known.
+                PantryRepository.apply(PantryUpdate(addAmounts: review.update.addAmounts), in: modelContext)
                 advance()
             }
         case .recipes:

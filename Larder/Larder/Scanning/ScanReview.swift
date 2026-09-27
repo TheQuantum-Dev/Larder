@@ -41,6 +41,8 @@ nonisolated struct PantryUpdate: Equatable, Sendable {
     /// New amounts for things already there, by ingredient id.
     var amounts: [String: Double] = [:]
     var remove: Set<String> = []
+    /// How many of the new things there are, where that's known.
+    var addAmounts: [String: Double] = [:]
 
     var isEmpty: Bool { add.isEmpty && amounts.isEmpty && remove.isEmpty }
 }
@@ -63,7 +65,8 @@ final class ScanReview {
     let pantry: [PantrySnapshot]
     private(set) var added: [ResolvedItem] = []
     private(set) var checked: Set<String>
-    /// Amounts changed here (or counted from the photo) for things already in the pantry.
+    /// Amounts changed here (or counted from the photo), for things already in
+    /// the pantry and for new ones.
     private(set) var amounts: [String: Double] = [:]
     /// Which of those amounts came from the photo and haven't been touched.
     private(set) var guessed: Set<String> = []
@@ -80,7 +83,7 @@ final class ScanReview {
         saved = Dictionary(pantry.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
         checked = Set(result.items.filter { $0.tier == .looksRight }.map(\.id))
         for detected in result.items {
-            guard let count = detected.count, let have = saved[detected.id], have.isCountable else { continue }
+            guard let count = detected.count, saved[detected.id]?.isCountable ?? true else { continue }
             amounts[detected.id] = Double(count)
             guessed.insert(detected.id)
         }
@@ -147,16 +150,26 @@ final class ScanReview {
 
     func isGuess(_ id: String) -> Bool { guessed.contains(id) }
 
-    /// One tap of + or −. From "some" (no number), + means one and − means none left.
+    /// Whether + and − make sense for it: anything new is counted, and things
+    /// already there are counted unless they're weighed.
+    func isCountable(_ id: String) -> Bool { saved[id]?.isCountable ?? true }
+
+    /// One tap of + or −. For something already there, from "some" (no number)
+    /// + means one and − means none left. For something new, going below one
+    /// goes back to "some", since it's being added either way.
     func step(_ id: String, by direction: Int) {
-        guard let have = saved[id], have.isCountable else { return }
-        let unit = have.unit ?? .items
+        guard isCountable(id) else { return }
+        defer { guessed.remove(id) }
+        guard let have = saved[id] else {
+            let next = (amounts[id] ?? 0) + Double(direction)
+            amounts[id] = next >= 1 ? next : nil
+            return
+        }
         if let current = amount(for: id) {
-            amounts[id] = PantryAmount.stepped(current, by: direction, unit: unit)
+            amounts[id] = PantryAmount.stepped(current, by: direction, unit: have.unit ?? .items)
         } else {
             amounts[id] = direction > 0 ? 1 : 0
         }
-        guessed.remove(id)
     }
 
     func isGone(_ id: String) -> Bool { gone.contains(id) }
@@ -177,8 +190,12 @@ final class ScanReview {
     /// What confirming does to an existing pantry. An amount taken down to
     /// zero means it's all gone.
     var update: PantryUpdate {
-        var result = PantryUpdate(add: selected.filter(isNew), remove: gone)
-        for (id, value) in amounts where !gone.contains(id) && value != saved[id]?.quantity {
+        let adding = selected.filter(isNew)
+        var result = PantryUpdate(add: adding, remove: gone)
+        for item in adding {
+            if let count = amounts[item.id] { result.addAmounts[item.id] = count }
+        }
+        for (id, value) in amounts where saved[id] != nil && !gone.contains(id) && value != saved[id]?.quantity {
             if value <= 0 { result.remove.insert(id) } else { result.amounts[id] = value }
         }
         return result

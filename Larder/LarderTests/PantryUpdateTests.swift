@@ -182,17 +182,51 @@ struct PantryUpdateTests {
         #expect(r.selected == [egg])
     }
 
+    @Test func newThingsGetACountToo() {
+        let r = review([found(onion, count: 3), found(egg)])
+        #expect(r.amount(for: "onion") == 3)
+        #expect(r.isGuess("onion"))
+        #expect(r.update.addAmounts == ["onion": 3])
+        // Down past one goes back to "some", since it's being added either way.
+        r.step("onion", by: -1)
+        r.step("onion", by: -1)
+        r.step("onion", by: -1)
+        #expect(r.amount(for: "onion") == nil)
+        #expect(r.update.addAmounts.isEmpty)
+        #expect(r.update.add == [onion])
+        r.step("onion", by: 1)
+        #expect(r.update.addAmounts == ["onion": 1])
+    }
+
+    @Test func aNewThingLeftOutTakesItsCountWithIt() {
+        let r = review([found(onion, count: 3)])
+        r.toggle(onion)
+        #expect(r.update.isEmpty)
+    }
+
+    @Test func aFirstScanKeepsItsCounts() throws {
+        let db = try TestDatabase()
+        let r = ScanReview(result: ScanResult(items: [found(egg, count: 6), found(milk)], usedModel: true))
+        PantryRepository.replace(with: r.selected, in: db.context)
+        PantryRepository.apply(PantryUpdate(addAmounts: r.update.addAmounts), in: db.context)
+        let saved = Dictionary(uniqueKeysWithValues: PantryRepository.all(in: db.context).map { ($0.ingredientID, $0) })
+        #expect(saved["egg"]?.quantity == 6)
+        #expect(saved["milk"]?.quantity == nil)
+    }
+
     @Test func applyingAddsSetsAndRemoves() throws {
         let db = try TestDatabase()
         PantryRepository.replace(with: [egg, milk, bread], in: db.context)
         PantryRepository.setAmount(6, unit: .items, for: "egg", in: db.context)
-        let update = PantryUpdate(add: [onion, egg], amounts: ["egg": 2, "milk": 1], remove: ["bread"])
+        let update = PantryUpdate(add: [onion, egg], amounts: ["egg": 2, "milk": 1], remove: ["bread"],
+                                  addAmounts: ["onion": 4])
         let removed = PantryRepository.apply(update, in: db.context)
         let saved = Dictionary(uniqueKeysWithValues: PantryRepository.all(in: db.context).map { ($0.ingredientID, $0) })
         #expect(Set(saved.keys) == ["egg", "milk", "onion"])
         #expect(saved["egg"]?.quantity == 2)
         #expect(saved["milk"]?.quantity == 1)
         #expect(saved["milk"]?.unit == PantryUnit.items.rawValue)
+        #expect(saved["onion"]?.quantity == 4)
         #expect(removed == [bread])
     }
 

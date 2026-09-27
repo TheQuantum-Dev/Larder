@@ -41,8 +41,12 @@ struct ScanConfirmView: View {
                 header
 
                 if !review.looksRight.isEmpty {
-                    section(review.isUpdate ? "New" : "Looks right") {
-                        chips(review.looksRight, isMaybe: false)
+                    section(review.isUpdate ? "New" : "Looks right", note: "Tap + and − to say how many, if you like.") {
+                        VStack(spacing: Theme.Spacing.xs) {
+                            ForEach(review.looksRight) { item in
+                                NewItemRow(item: item, review: review)
+                            }
+                        }
                     }
                 }
 
@@ -273,6 +277,21 @@ struct ScanConfirmView: View {
     }
 }
 
+/// Something found by the scan that's new to the pantry: a tick to keep it,
+/// and, once kept, how many. A count the model made is marked as a guess.
+private struct NewItemRow: View {
+    let item: ResolvedItem
+    let review: ScanReview
+
+    var body: some View {
+        let isKept = review.isChecked(item)
+        CountRow(emoji: item.emoji, name: item.name, note: nil,
+                 amount: isKept ? review.amount(for: item.id) : nil, unit: .items, showsStepper: isKept,
+                 isGuess: review.isGuess(item.id), isNew: true,
+                 checkbox: (isKept, { review.toggle(item) })) { review.step(item.id, by: $0) }
+    }
+}
+
 /// A pantry item the photos showed: its amount, with + and − for things you
 /// count. A count from the photo is marked, so it reads as a suggestion.
 private struct AmountRow: View {
@@ -281,55 +300,91 @@ private struct AmountRow: View {
 
     var body: some View {
         let amount = review.amount(for: have.id)
+        let was = PantryAmount.text(quantity: have.quantity, unit: have.unit?.rawValue)
+        CountRow(emoji: have.item.emoji, name: have.item.name,
+                 note: was.flatMap { amount != have.quantity ? "Was \($0)" : nil },
+                 amount: amount, unit: have.unit ?? .items, showsStepper: have.isCountable,
+                 isGuess: review.isGuess(have.id), isNew: false) { review.step(have.id, by: $0) }
+    }
+}
+
+/// One line with an amount: an optional tick, the name, and + and − around
+/// the number (or just the amount, for things that are weighed).
+private struct CountRow: View {
+    let emoji: String
+    let name: String
+    let note: String?
+    let amount: Double?
+    let unit: PantryUnit
+    let showsStepper: Bool
+    let isGuess: Bool
+    /// New things can't be "all gone", so their lowest is "some".
+    let isNew: Bool
+    var checkbox: (isOn: Bool, toggle: () -> Void)?
+    let onStep: (Int) -> Void
+
+    var body: some View {
         HStack(spacing: Theme.Spacing.xs) {
-            Text(have.item.emoji)
+            if let checkbox {
+                Button(action: checkbox.toggle) {
+                    Image(systemName: checkbox.isOn ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(checkbox.isOn ? Theme.Palette.amber : Theme.Palette.textPrimary.opacity(0.35))
+                        .symbolEffect(.bounce, value: checkbox.isOn)
+                        .frame(width: 30, height: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(checkbox.isOn ? "Keep \(name)" : "Leave out \(name)")
+            }
+            Text(emoji)
             VStack(alignment: .leading, spacing: 2) {
-                Text(have.item.name)
+                Text(name)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                if let was = PantryAmount.text(quantity: have.quantity, unit: have.unit?.rawValue),
-                   amount != have.quantity {
-                    Text("Was \(was)")
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(checkbox?.isOn == false ? 0.6 : 1))
+                if let note {
+                    Text(note)
                         .font(.caption)
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 }
             }
             Spacer(minLength: 0)
-            if have.isCountable {
-                stepButton("minus", label: "Less \(have.item.name)") { review.step(have.id, by: -1) }
-                    .disabled(amount == 0)
+            if showsStepper {
+                stepButton("minus", label: "Less \(name)") { onStep(-1) }
+                    .disabled(isNew ? amount == nil : amount == 0)
                 VStack(spacing: 0) {
-                    Text(amountText(amount))
+                    Text(amountText)
                         .font(.subheadline.bold())
                         .monospacedDigit()
                         .foregroundStyle(Theme.Palette.textPrimary)
                         .contentTransition(.numericText())
-                    if review.isGuess(have.id) {
+                    if isGuess {
                         Text("from photo")
                             .font(.caption2)
                             .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                     }
                 }
                 .frame(minWidth: 60)
-                stepButton("plus", label: "More \(have.item.name)") { review.step(have.id, by: 1) }
-            } else {
-                Text(amountText(amount))
+                stepButton("plus", label: "More \(name)") { onStep(1) }
+            } else if checkbox == nil {
+                Text(amountText)
                     .font(.subheadline.bold())
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
             }
         }
-        .padding(.horizontal, Theme.Spacing.s)
+        .padding(.leading, checkbox == nil ? Theme.Spacing.s : Theme.Spacing.xs)
+        .padding(.trailing, Theme.Spacing.s)
         .frame(minHeight: 60)
         .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: amount)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showsStepper)
         .tapFeedback(amount)
         .accessibilityElement(children: .contain)
     }
 
-    private func amountText(_ amount: Double?) -> String {
+    private var amountText: String {
         guard let amount else { return "Some" }
         if amount == 0 { return "All gone" }
-        return PantryAmount.text(quantity: amount, unit: (have.unit ?? .items).rawValue) ?? "Some"
+        return PantryAmount.text(quantity: amount, unit: unit.rawValue) ?? "Some"
     }
 
     private func stepButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
@@ -406,7 +461,7 @@ extension ScanReview {
             DetectedItem(item: item("eggs"), tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: true, count: 2),
             DetectedItem(item: item("cheese"), tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: false),
             DetectedItem(item: item("milk"), tier: .maybe, votes: 1, runs: 3, hasVisionSupport: false),
-            DetectedItem(item: item("onion"), tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: false),
+            DetectedItem(item: item("onion"), tier: .looksRight, votes: 3, runs: 3, hasVisionSupport: false, count: 3),
             DetectedItem(item: item("apple"), tier: .looksRight, votes: 2, runs: 3, hasVisionSupport: false),
             DetectedItem(item: item("carrot"), tier: .maybe, votes: 1, runs: 3, hasVisionSupport: false),
         ]
