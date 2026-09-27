@@ -11,6 +11,8 @@ import Foundation
 nonisolated struct ScanSignals {
     /// One set of guessed items per successful model run.
     var modelRuns: [Set<ResolvedItem>] = []
+    /// How many of each item each run counted, where it could count them.
+    var modelCounts: [[ResolvedItem: Int]] = []
     /// Ingredients whose names appear in text read off the photo.
     var ocrHits: Set<ResolvedItem> = []
     /// The image classifier's best confidence for each ingredient, 0 to 1.
@@ -31,6 +33,9 @@ nonisolated struct DetectedItem: Identifiable, Hashable, Sendable {
     let votes: Int
     let runs: Int
     let hasVisionSupport: Bool
+    /// How many the model counted, when it could. Only ever a suggestion:
+    /// Vision can't count, so phones without Apple Intelligence never set it.
+    var count: Int? = nil
 
     var id: String { item.id }
 }
@@ -76,12 +81,46 @@ nonisolated enum ScanAggregator {
             }
 
             if let tier {
-                detected.append(DetectedItem(item: candidate, tier: tier, votes: votes,
-                                             runs: runCount, hasVisionSupport: supported))
+                detected.append(DetectedItem(item: candidate, tier: tier, votes: votes, runs: runCount,
+                                             hasVisionSupport: supported,
+                                             count: count(of: candidate, in: signals.modelCounts)))
             }
         }
+        return sorted(detected)
+    }
 
-        return detected.sorted {
+    /// The biggest count believed: counts above this are more likely a guess
+    /// than a count.
+    static let largestCount = 24
+
+    /// The middle of what the runs counted, so one wild guess doesn't win.
+    static func count(of item: ResolvedItem, in runs: [[ResolvedItem: Int]]) -> Int? {
+        let counts = runs.compactMap { $0[item] }.filter { (1...largestCount).contains($0) }.sorted()
+        guard !counts.isEmpty else { return nil }
+        return counts[(counts.count - 1) / 2]
+    }
+
+    /// Puts several photos' results together. Each item keeps its best tier,
+    /// and its biggest count rather than the sum, because two photos of the
+    /// same shelf would otherwise count the same eggs twice.
+    static func combine(_ results: [ScanResult]) -> ScanResult {
+        var merged: [String: DetectedItem] = [:]
+        for item in results.flatMap(\.items) {
+            guard let current = merged[item.id] else {
+                merged[item.id] = item
+                continue
+            }
+            let counts = [current.count, item.count].compactMap { $0 }
+            merged[item.id] = DetectedItem(item: current.item, tier: min(current.tier, item.tier),
+                                           votes: max(current.votes, item.votes), runs: max(current.runs, item.runs),
+                                           hasVisionSupport: current.hasVisionSupport || item.hasVisionSupport,
+                                           count: counts.max())
+        }
+        return ScanResult(items: sorted(Array(merged.values)), usedModel: results.contains(where: \.usedModel))
+    }
+
+    private static func sorted(_ detected: [DetectedItem]) -> [DetectedItem] {
+        detected.sorted {
             if $0.tier != $1.tier { return $0.tier < $1.tier }
             if $0.votes != $1.votes { return $0.votes > $1.votes }
             return $0.item.name < $1.item.name

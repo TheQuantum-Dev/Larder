@@ -12,6 +12,8 @@ import FoundationModels
 struct ModelFood {
     @Guide(description: "Generic name of the food or drink, singular, lowercase, no brand. Example: 'ketchup'")
     var name: String
+    @Guide(description: "How many of it you can see, only if they can be counted one by one, like eggs or cans. Leave out for things like a bag of rice.")
+    var count: Int?
 }
 
 @Generable
@@ -51,15 +53,15 @@ enum ModelEngine {
     /// One run alone is unreliable, so the caller keeps only what repeats.
     /// Runs that fail (even after a retry) are left out; an empty result means
     /// "the model wasn't usable", not "nothing was found".
-    static func runs(for image: CGImage, count: Int = 3) async -> [Set<ResolvedItem>] {
+    static func runs(for image: CGImage, count: Int = 3) async -> [ModelRun] {
         guard #available(iOS 27.0, macOS 27.0, *), isSupported else { return [] }
         let scaled = image.downscaled(maxEdge: 1600)
 
-        return await withTaskGroup(of: Set<ResolvedItem>?.self) { group in
+        return await withTaskGroup(of: ModelRun?.self) { group in
             for _ in 0..<count {
                 group.addTask { await singleRun(scaled) }
             }
-            var results: [Set<ResolvedItem>] = []
+            var results: [ModelRun] = []
             for await run in group {
                 if let run { results.append(run) }
             }
@@ -68,7 +70,7 @@ enum ModelEngine {
     }
 
     @available(iOS 27.0, macOS 27.0, *)
-    private static func singleRun(_ image: CGImage) async -> Set<ResolvedItem>? {
+    private static func singleRun(_ image: CGImage) async -> ModelRun? {
         // Requests sometimes fail for a moment when several run together, so
         // each run gets one more try.
         for attempt in 0..<2 {
@@ -78,11 +80,23 @@ enum ModelEngine {
                     "List every distinct food or drink you can see in this photo."
                     Attachment(image)
                 }
-                return Set(response.content.items.compactMap { IngredientCatalog.resolve($0.name) })
+                var run = ModelRun()
+                for food in response.content.items {
+                    guard let item = IngredientCatalog.resolve(food.name) else { continue }
+                    run.items.insert(item)
+                    if let count = food.count { run.counts[item] = count }
+                }
+                return run
             } catch {
                 if attempt == 0 { try? await Task.sleep(for: .milliseconds(600)) }
             }
         }
         return nil
     }
+}
+
+/// What one model run saw: the items, and how many of each where it counted.
+nonisolated struct ModelRun: Sendable {
+    var items: Set<ResolvedItem> = []
+    var counts: [ResolvedItem: Int] = [:]
 }

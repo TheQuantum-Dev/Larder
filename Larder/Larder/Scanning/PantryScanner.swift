@@ -22,13 +22,15 @@ enum PantryScanner {
         ModelEngine.prewarm()
     }
 
-    static func scan(_ image: CGImage) async -> ScanResult {
+    /// Runs away from the main thread, so the camera and screen stay smooth
+    /// while earlier photos are still being looked at.
+    @concurrent nonisolated static func scan(_ image: CGImage) async -> ScanResult {
         async let vision = VisionEngine.analyze(image)
         async let runs = ModelEngine.runs(for: image)
 
         let evidence = await vision
         let modelRuns = await runs
-        let signals = ScanSignals(modelRuns: modelRuns,
+        let signals = ScanSignals(modelRuns: modelRuns.map(\.items), modelCounts: modelRuns.map(\.counts),
                                   ocrHits: evidence.ocrHits,
                                   classifierScores: evidence.classifierScores)
         return ScanResult(items: ScanAggregator.aggregate(signals), usedModel: !modelRuns.isEmpty)

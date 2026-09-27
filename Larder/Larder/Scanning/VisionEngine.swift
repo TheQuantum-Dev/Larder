@@ -16,8 +16,8 @@ nonisolated struct VisionEvidence {
     var classifierScores: [ResolvedItem: Double] = [:]
 }
 
-enum VisionEngine {
-    static func analyze(_ image: CGImage) async -> VisionEvidence {
+nonisolated enum VisionEngine {
+    @concurrent static func analyze(_ image: CGImage) async -> VisionEvidence {
         async let text = readText(in: image)
         async let labels = classify(image)
         return VisionEvidence(ocrHits: await text, classifierScores: await labels)
