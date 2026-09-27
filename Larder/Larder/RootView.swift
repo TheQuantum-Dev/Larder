@@ -10,6 +10,7 @@ import SwiftUI
 /// Shows onboarding until it's finished, then home.
 struct RootView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var showsSplash = true
 
     var body: some View {
         #if DEBUG
@@ -62,6 +63,10 @@ struct RootView: View {
             } else {
                 OnboardingFlow { hasCompletedOnboarding = true }
                     .transition(.opacity)
+            }
+            // Nutmeg changing into his outfit, once per launch, for any look but amber.
+            if showsSplash, ThemeStore.shared.look != .amber {
+                LookSplash(look: ThemeStore.shared.look) { showsSplash = false }
             }
         }
         .animation(.spring(response: 0.6, dampingFraction: 0.9), value: hasCompletedOnboarding)
