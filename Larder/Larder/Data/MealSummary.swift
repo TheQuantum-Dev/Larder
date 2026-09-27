@@ -84,6 +84,8 @@ nonisolated enum AppSettings {
     static let autoAddToShoppingKey = "autoAddToShoppingList"
     /// Whether extra recipes may be looked up online (off until the person says yes).
     static let onlineRecipesKey = "onlineRecipes"
+    /// Whether lists show only the online recipes while there are some (off by default).
+    static let onlineOnlyKey = "onlineRecipesOnly"
     /// Whether cooked meals are saved to Apple Health (off until the person connects it).
     static let healthSyncKey = "healthSync"
     /// Whether height and weight are typed in metric (true) or feet, inches and pounds.

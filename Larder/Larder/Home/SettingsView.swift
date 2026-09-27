@@ -25,6 +25,7 @@ struct SettingsView: View {
     @AppStorage(AppSettings.budgetRemindersKey) private var budgetReminders = true
     @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
     @AppStorage(AppSettings.onlineRecipesKey) private var onlineRecipes = false
+    @AppStorage(AppSettings.onlineOnlyKey) private var onlineOnly = false
 
     private enum Destination: Hashable { case goal, looks }
 
@@ -236,6 +237,8 @@ struct SettingsView: View {
                 .disabled(!OnlineRecipeConfig.isAvailable)
                 .listRowBackground(Theme.Palette.surface)
             if OnlineRecipeConfig.isAvailable, onlineRecipes {
+                Toggle("Only show online recipes", isOn: $onlineOnly)
+                    .listRowBackground(Theme.Palette.surface)
                 LabeledContent("Free lookups left today", value: lookupsLeft)
                     .foregroundStyle(Theme.Palette.textPrimary)
                     .listRowBackground(Theme.Palette.surface)
@@ -243,15 +246,22 @@ struct SettingsView: View {
         } header: {
             Text("Online recipes")
         } footer: {
-            Text(OnlineRecipeConfig.isAvailable
-                 ? "Looks up extra recipes for what's in your pantry, your goal and your diet. Only ingredient names and those filters are sent, never photos or anything that says who you are. Larder's own recipes are always there."
-                 : "Not set up in this build. Add a spoonacular key file to turn it on; the README says how.")
+            Text(onlineFooter)
         }
+    }
+
+    private var onlineFooter: String {
+        guard OnlineRecipeConfig.isAvailable else { return "Online recipes aren't available in this build." }
+        let privacy = "Looks up extra recipes for what's in your pantry, your goal and your diet. Only ingredient names and those filters are sent, never photos or anything that says who you are."
+        if onlineRecipes, onlineOnly {
+            return privacy + " Larder's own recipes come back automatically when you're offline or the day's lookups run out."
+        }
+        return privacy + " Larder's own recipes are always there."
     }
 
     /// The free plan's daily points, turned into roughly how many lookups that is.
     private var lookupsLeft: String {
-        let each = OnlineQuota.searchCost(recipes: 10, nutrientFilter: true)
+        let each = OnlineQuota.searchCost(recipes: OnlineRequest.standardSize, nutrientFilter: true)
         return "about \(Int(online.pointsLeft / each))"
     }
 
