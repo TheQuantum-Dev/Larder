@@ -34,6 +34,17 @@ struct NutmegView: View {
     var cheer = 0
     /// Falling snow or leaves on the seasonal looks. Off for the app icon.
     var showsWeather = true
+    /// Something on his head for the job at hand, like a chef's hat in Cook Mode.
+    var hat = Hat.none
+    /// How far above his head the hat is, in drawing units: lower it to 0 with
+    /// an animation and he puts it on.
+    var hatLift: CGFloat = 0
+    /// Where he's looking, in drawing units: (0, 0) is straight ahead.
+    var gaze: CGSize = .zero
+    /// 0 is eyes open, 1 is shut: a quick 0-1-0 is a blink.
+    var eyelids: Double = 0
+
+    enum Hat { case none, chef }
 
     private static let artSize = CGSize(width: 680, height: 530)
 
@@ -142,7 +153,12 @@ struct NutmegView: View {
                 circle(304, 302, 5, .white)
                 circle(414, 298, 5, .white)
             }
-            .offset(x: pupilShift, y: pupilLift)
+            .offset(x: pupilShift + gaze.width, y: pupilLift + gaze.height)
+
+            if eyelids > 0 {
+                eyelid(285, 300)
+                eyelid(395, 300)
+            }
 
             // Cheeks.
             circle(248, 345, 16, look.cheek, opacity: look.cheekOpacity)
@@ -158,7 +174,12 @@ struct NutmegView: View {
             .fill(Palette.mouth)
 
             if look.accessory == .winter {
-                winterGear
+                // In the chef's hat the beanie comes off, but the scarf stays on.
+                winterGear(beanie: hat == .none)
+            }
+            if hat == .chef {
+                chefHat
+                    .offset(y: -hatLift)
             }
 
             arms
@@ -266,7 +287,7 @@ struct NutmegView: View {
 
     /// A beanie with the leaf poking through, and a scarf around his middle.
     @ViewBuilder
-    private var winterGear: some View {
+    private func winterGear(beanie: Bool) -> some View {
         let hat = Color(red: 0xD6 / 255, green: 0x4A / 255, blue: 0x4A / 255)
         let fluff = Color(red: 0xF7 / 255, green: 0xF3 / 255, blue: 0xEA / 255)
         let scarf = Color(red: 0x8C / 255, green: 0xAE / 255, blue: 0x66 / 255)
@@ -277,17 +298,65 @@ struct NutmegView: View {
             RoundedRectangle(cornerRadius: 12).fill(scarf)
                 .frame(width: 38, height: 76).position(x: 452, y: 478)
             // Beanie: dome, then a cuff, then a pom-pom.
+            if beanie {
+                Path { p in
+                    p.move(to: CGPoint(x: 222, y: 238))
+                    p.addCurve(to: CGPoint(x: 458, y: 238),
+                               control1: CGPoint(x: 232, y: 108), control2: CGPoint(x: 448, y: 108))
+                    p.closeSubpath()
+                }
+                .fill(hat)
+                RoundedRectangle(cornerRadius: 19).fill(fluff)
+                    .frame(width: 264, height: 38).position(x: 340, y: 232)
+                Circle().fill(fluff)
+                    .frame(width: 44, height: 44).position(x: 418, y: 160)
+            }
+        }
+    }
+
+    /// A lid coming down over one eye, in his body color.
+    private func eyelid(_ cx: CGFloat, _ cy: CGFloat) -> some View {
+        Ellipse().fill(look.body)
+            .frame(width: 84, height: 92 * eyelids)
+            .position(x: cx, y: cy - 46 + 46 * eyelids)
+    }
+
+    // MARK: - Chef's hat
+
+    /// A puffy white chef's hat with the leaf poking out of the top, the way
+    /// it pokes through the winter beanie. The outline is drawn first and the
+    /// white on top, so only the outside edge shows.
+    @ViewBuilder
+    private var chefHat: some View {
+        let white = Color(red: 1, green: 0.99, blue: 0.97)
+        let edge = Color(red: 0xD9 / 255, green: 0xC7 / 255, blue: 0xB0 / 255)
+        let puffs: [(CGFloat, CGFloat, CGFloat)] = [(262, 150, 58), (340, 118, 70), (418, 150, 58)]
+        ZStack {
+            // The leaf, up through the top.
             Path { p in
-                p.move(to: CGPoint(x: 222, y: 238))
-                p.addCurve(to: CGPoint(x: 458, y: 238),
-                           control1: CGPoint(x: 232, y: 108), control2: CGPoint(x: 448, y: 108))
+                p.move(to: CGPoint(x: 340, y: 76))
+                p.addCurve(to: CGPoint(x: 352, y: 8),
+                           control1: CGPoint(x: 324, y: 52), control2: CGPoint(x: 334, y: 24))
+                p.addCurve(to: CGPoint(x: 340, y: 76),
+                           control1: CGPoint(x: 362, y: 28), control2: CGPoint(x: 368, y: 52))
                 p.closeSubpath()
             }
-            .fill(hat)
-            RoundedRectangle(cornerRadius: 19).fill(fluff)
-                .frame(width: 264, height: 38).position(x: 340, y: 232)
-            Circle().fill(fluff)
-                .frame(width: 44, height: 44).position(x: 418, y: 160)
+            .fill(look.leaf)
+            ForEach(puffs.indices, id: \.self) { i in
+                circle(puffs[i].0, puffs[i].1, puffs[i].2 + 6, edge)
+            }
+            RoundedRectangle(cornerRadius: 22).fill(edge)
+                .frame(width: 244, height: 76).position(x: 340, y: 212)
+            ForEach(puffs.indices, id: \.self) { i in
+                circle(puffs[i].0, puffs[i].1, puffs[i].2, white)
+            }
+            RoundedRectangle(cornerRadius: 18).fill(white)
+                .frame(width: 232, height: 64).position(x: 340, y: 212)
+            // Pleats on the band.
+            ForEach([290.0, 340, 390], id: \.self) { x in
+                Capsule().fill(edge.opacity(0.7))
+                    .frame(width: 6, height: 36).position(x: x, y: 214)
+            }
         }
     }
 
