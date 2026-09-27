@@ -412,7 +412,11 @@ struct NutmegChatScreen: View {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !chat.isThinking else { return }
         let kitchen = kitchen()
         draft = ""
-        Task { await chat.send(text, kitchen: kitchen, isVoice: isVoice) }
+        SoundPlayer.send()
+        Task {
+            await chat.send(text, kitchen: kitchen, isVoice: isVoice)
+            SoundPlayer.receive()
+        }
     }
 
     /// Saves a confirmed pantry change. Anything all gone goes on the shopping
@@ -422,6 +426,7 @@ struct NutmegChatScreen: View {
             let removed = PantryRepository.apply(update, in: context)
             ShoppingRepository.addRunOut(removed, enabled: autoAddToShopping, in: context)
         }
+        SoundPlayer.pop()
     }
 
     /// Larder's own recipes, or one found online that's still in memory.

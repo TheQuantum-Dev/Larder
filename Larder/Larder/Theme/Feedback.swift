@@ -16,11 +16,10 @@ extension SensoryFeedback {
 }
 
 extension View {
-    /// The standard tap: a firm haptic plus a short click, together. Used
-    /// wherever a selection or toggle happens.
+    /// The standard tap: a firm haptic, used wherever a selection or toggle
+    /// happens. It's felt, not heard: a click on every chip and stepper got
+    /// tiresome, so only the big pill buttons make a sound.
     func tapFeedback<T: Equatable>(_ trigger: T) -> some View {
-        self
-            .sensoryFeedback(.appTap, trigger: trigger)
-            .onChange(of: trigger) { _, _ in SoundPlayer.tap() }
+        sensoryFeedback(.appTap, trigger: trigger)
     }
 }

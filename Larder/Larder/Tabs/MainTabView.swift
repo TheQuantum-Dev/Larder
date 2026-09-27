@@ -68,6 +68,7 @@ struct MainTabView: View {
                     // Anything marked all gone goes on the shopping list, same as after cooking.
                     let removed = PantryRepository.apply(review.update, in: context)
                     ShoppingRepository.addRunOut(removed, enabled: autoAddToShopping, in: context)
+                    SoundPlayer.pop()
                     app.showScan = false
                 }
             }

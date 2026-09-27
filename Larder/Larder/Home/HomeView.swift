@@ -96,7 +96,7 @@ struct HomeView: View {
         .onChange(of: app.unlockedLook) { _, look in
             guard look != nil else { return }
             app.homeCheer += 1
-            SoundPlayer.success()
+            SoundPlayer.unlock()
         }
         .task(id: "\(goalReached)-\(app.tab == .home)") { celebrateGoalIfNew() }
         .task { await keepTimeCurrent() }
@@ -130,7 +130,7 @@ struct HomeView: View {
         guard lastGoalCheer != week else { return }
         lastGoalCheer = week
         app.homeCheer += 1
-        SoundPlayer.success()
+        SoundPlayer.congrats()
     }
 
     private func unlockCard(_ look: NutmegLook) -> some View {

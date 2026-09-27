@@ -1,13 +1,13 @@
 {
-  "data" : [
+  "data": [
     {
-      "filename" : "timerdone.wav",
-      "idiom" : "universal",
-      "universal-type-identifier" : "com.microsoft.waveform-audio"
+      "filename": "timerdone.wav",
+      "idiom": "universal",
+      "universal-type-identifier": "com.microsoft.waveform-audio"
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   }
 }

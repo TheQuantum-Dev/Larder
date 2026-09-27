@@ -8,10 +8,10 @@
 import AVFoundation
 import UIKit
 
-/// Three short, original sound effects that go alongside the app's haptics:
-/// a tap, a warm success chime, and a timer alert. Simple placeholder tones
-/// for now — worth a real sound pass later, but they give every tap and
-/// celebration something to be heard as well as felt.
+/// The app's sound effects, all original, made by Tools/sounds/make_sounds.py.
+/// Everyday sounds are short and quiet (the tap is barely there, and only on
+/// the big buttons); the celebrations are brighter and louder, and each big
+/// moment has its own, so a goal doesn't sound like an unlock.
 ///
 /// Plays through `.ambient`, which mixes with whatever else is playing and,
 /// like any well-behaved UI sound effect, stays quiet when the ringer
@@ -20,11 +20,25 @@ enum SoundPlayer {
     private static var players: [String: AVAudioPlayer] = [:]
     private static var configuredSession = false
 
+    /// The big pill buttons, and nothing else.
     static func tap() { play("Tap") }
-    static func success() { play("Success") }
+    /// Something saved: the pantry updated, a change confirmed.
+    static func pop() { play("Pop") }
+    static func send() { play("Send") }
+    static func receive() { play("Receive") }
+    static func recordStart() { play("RecordStart") }
+    static func recordStop() { play("RecordStop") }
     static func timerDone() { play("TimerDone") }
+    /// Every "I made it".
+    static func madeIt() { play("MadeIt") }
     /// The build-up, pop and settle that goes with the first meal ever made.
     static func firstMealCelebration() { play("FirstMeal") }
+    /// A goal met or a streak milestone.
+    static func congrats() { play("Congrats") }
+    /// A new look for Nutmeg.
+    static func unlock() { play("Unlock") }
+    /// Joining Larder Plus.
+    static func plusWelcome() { play("PlusWelcome") }
 
     private static func play(_ name: String) {
         configureSessionIfNeeded()
@@ -46,7 +60,7 @@ enum SoundPlayer {
     /// away from the main thread, so the first tap never waits on audio.
     static func prepare() {
         configureSessionIfNeeded()
-        for name in ["Tap", "Success", "TimerDone", "FirstMeal"] { _ = player(named: name) }
+        for name in ["Tap", "Pop", "Send", "Receive", "TimerDone"] { _ = player(named: name) }
     }
 
     private static func configureSessionIfNeeded() {

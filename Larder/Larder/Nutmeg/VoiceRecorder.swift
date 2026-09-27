@@ -64,6 +64,9 @@ final class VoiceRecorder {
             state = .denied
             return
         }
+        // The chime goes first: while the mic is on, the phone plays nothing.
+        SoundPlayer.recordStart()
+        try? await Task.sleep(for: .milliseconds(180))
         transcript = ""
         levels = Array(repeating: 0, count: Self.barCount)
         // The session holds on to this recorder only while it's listening:
@@ -141,8 +144,10 @@ final class VoiceRecorder {
     private func stopListening() {
         watcher?.cancel()
         watcher = nil
+        let wasListening = session != nil
         session?.stop()
         session = nil
+        if wasListening { SoundPlayer.recordStop() }
         levels = Array(repeating: 0, count: Self.barCount)
     }
 }

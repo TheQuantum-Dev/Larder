@@ -89,7 +89,7 @@ struct SynthesisView: View {
             }
             try? await Task.sleep(for: .milliseconds(450))
             cheer += 1
-            SoundPlayer.success()
+            SoundPlayer.pop()
         }
     }
 

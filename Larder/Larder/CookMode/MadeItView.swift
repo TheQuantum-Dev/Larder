@@ -112,12 +112,13 @@ struct MadeItView: View {
                 }
             } else {
                 hapticTick += 1
+                SoundPlayer.madeIt()
             }
-            // A milestone streak chimes as today's Nutmeg wakes up.
+            // A milestone streak cheers as today's Nutmeg wakes up.
             if result.streak?.milestone != nil, !result.isFirstMeal {
                 Task {
-                    try? await Task.sleep(for: .milliseconds(450))
-                    SoundPlayer.success()
+                    try? await Task.sleep(for: .milliseconds(900))
+                    SoundPlayer.congrats()
                 }
             }
             withAnimation(.easeOut(duration: 1.4)) {
