@@ -43,8 +43,11 @@ struct NutmegView: View {
     var gaze: CGSize = .zero
     /// 0 is eyes open, 1 is shut: a quick 0-1-0 is a blink.
     var eyelids: Double = 0
+    /// His face: the everyday smile, or a grin, a happy eyes-closed smile, or a little "oh!".
+    var expression = Expression.smile
 
     enum Hat { case none, chef }
+    enum Expression { case smile, grin, content, surprised }
 
     private static let artSize = CGSize(width: 680, height: 530)
 
@@ -144,34 +147,33 @@ struct NutmegView: View {
             }
             .fill(look.leaf)
 
-            // Eyes, pupils and highlights.
-            ellipse(285, 300, 40, 44, .white)
-            ellipse(395, 300, 40, 44, .white)
-            Group {
-                circle(298, 308, 18, Palette.pupil)
-                circle(408, 304, 18, Palette.pupil)
-                circle(304, 302, 5, .white)
-                circle(414, 298, 5, .white)
-            }
-            .offset(x: pupilShift + gaze.width, y: pupilLift + gaze.height)
+            if expression == .content {
+                // Happy closed eyes: two little upturned arcs.
+                happyEye(285, 306)
+                happyEye(395, 306)
+            } else {
+                // Eyes, pupils and highlights.
+                ellipse(285, 300, 40, 44, .white)
+                ellipse(395, 300, 40, 44, .white)
+                Group {
+                    circle(298, 308, 18, Palette.pupil)
+                    circle(408, 304, 18, Palette.pupil)
+                    circle(304, 302, 5, .white)
+                    circle(414, 298, 5, .white)
+                }
+                .offset(x: pupilShift + gaze.width, y: pupilLift + gaze.height)
 
-            if eyelids > 0 {
-                eyelid(285, 300)
-                eyelid(395, 300)
+                if eyelids > 0 {
+                    eyelid(285, 300)
+                    eyelid(395, 300)
+                }
             }
 
             // Cheeks.
             circle(248, 345, 16, look.cheek, opacity: look.cheekOpacity)
             circle(432, 345, 16, look.cheek, opacity: look.cheekOpacity)
 
-            // Open smile.
-            Path { p in
-                p.move(to: CGPoint(x: 296, y: 370))
-                p.addQuadCurve(to: CGPoint(x: 384, y: 370), control: CGPoint(x: 340, y: 412))
-                p.addQuadCurve(to: CGPoint(x: 296, y: 370), control: CGPoint(x: 340, y: 386))
-                p.closeSubpath()
-            }
-            .fill(Palette.mouth)
+            mouth
 
             if look.accessory == .winter {
                 // In the chef's hat the beanie comes off, but the scarf stays on.
@@ -312,6 +314,47 @@ struct NutmegView: View {
                     .frame(width: 44, height: 44).position(x: 418, y: 160)
             }
         }
+    }
+
+    // MARK: - Faces
+
+    @ViewBuilder
+    private var mouth: some View {
+        switch expression {
+        case .smile, .content:
+            // Open smile.
+            Path { p in
+                p.move(to: CGPoint(x: 296, y: 370))
+                p.addQuadCurve(to: CGPoint(x: 384, y: 370), control: CGPoint(x: 340, y: 412))
+                p.addQuadCurve(to: CGPoint(x: 296, y: 370), control: CGPoint(x: 340, y: 386))
+                p.closeSubpath()
+            }
+            .fill(Palette.mouth)
+        case .grin:
+            // A wider, deeper smile with a bit of tongue.
+            ZStack {
+                Path { p in
+                    p.move(to: CGPoint(x: 284, y: 362))
+                    p.addQuadCurve(to: CGPoint(x: 396, y: 362), control: CGPoint(x: 340, y: 440))
+                    p.addQuadCurve(to: CGPoint(x: 284, y: 362), control: CGPoint(x: 340, y: 376))
+                    p.closeSubpath()
+                }
+                .fill(Palette.mouth)
+                ellipse(340, 388, 20, 9, look.cheek)
+                    .opacity(0.9)
+            }
+        case .surprised:
+            ellipse(340, 384, 14, 18, Palette.mouth)
+        }
+    }
+
+    /// A closed, smiling eye.
+    private func happyEye(_ cx: CGFloat, _ cy: CGFloat) -> some View {
+        Path { p in
+            p.move(to: CGPoint(x: cx - 30, y: cy + 8))
+            p.addQuadCurve(to: CGPoint(x: cx + 30, y: cy + 8), control: CGPoint(x: cx, y: cy - 30))
+        }
+        .stroke(Palette.pupil, style: StrokeStyle(lineWidth: 12, lineCap: .round))
     }
 
     /// A lid coming down over one eye, in his body color.

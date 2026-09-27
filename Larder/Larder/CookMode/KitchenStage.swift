@@ -138,11 +138,8 @@ struct KitchenStage: View {
             .position(x: nutmegCenterX, y: Self.nutmegTop + height / 2)
     }
 
-    /// A smooth 0-1-0 bump lasting `lasting` seconds, once every `every` seconds.
     static func pulse(_ t: Double, every: Double, lasting: Double) -> Double {
-        let phase = t.truncatingRemainder(dividingBy: every)
-        guard phase >= 0, phase < lasting else { return 0 }
-        return sin(phase / lasting * .pi)
+        NutmegMotion.pulse(t, every: every, lasting: lasting)
     }
 
     private static func fraction(_ value: Double) -> Double {

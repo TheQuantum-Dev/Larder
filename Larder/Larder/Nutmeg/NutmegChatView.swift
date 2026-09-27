@@ -231,7 +231,7 @@ struct NutmegChatScreen: View {
 
     private var welcome: some View {
         VStack(spacing: Theme.Spacing.s) {
-            NutmegView()
+            LivelyNutmeg(seed: 1)
                 .frame(height: 120)
             Text("What are we cooking?")
                 .font(.title2.bold())
@@ -489,9 +489,13 @@ private struct MessageRow: View {
             ChatBubble(text: message.text, fromNutmeg: false, isVoice: message.isVoice)
         } else {
             HStack(alignment: .top, spacing: Theme.Spacing.xs) {
-                NutmegView()
-                    .frame(width: 40, height: 40)
-                    .accessibilityHidden(true)
+                // Only the newest reply's Nutmeg blinks and glances, so a long
+                // chat isn't a crowd of moving faces.
+                Group {
+                    if isLatest { LivelyNutmeg(seed: 3) } else { NutmegView() }
+                }
+                .frame(width: 40, height: 40)
+                .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                     ChatBubble(text: message.text, fromNutmeg: true)
                     ForEach(message.recipeIDs, id: \.self) { id in

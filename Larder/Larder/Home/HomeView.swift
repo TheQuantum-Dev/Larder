@@ -31,6 +31,8 @@ struct HomeView: View {
     /// The time Home is working from. It moves on at each meal boundary and
     /// whenever the app comes back, so the suggestion is never a meal behind.
     @State private var now = AppClock.now
+    @State private var giggles = 0
+    @State private var isGiggling = false
 
     /// What Home shows, worked out once per render from the pantry, the meal
     /// log, the person's goal, and their hearts and thumbs.
@@ -165,10 +167,45 @@ struct HomeView: View {
 
     // MARK: - Nutmeg and the streak
 
+    /// Grinning once something's been cooked today; otherwise his usual smile,
+    /// and a happy squint for a moment after a tap.
+    private var nutmegFace: NutmegView.Expression {
+        if isGiggling { return .content }
+        return cookedToday ? .grin : .smile
+    }
+
+    private var cookedToday: Bool {
+        meals.contains { Calendar.current.isDate($0.cookedAt, inSameDayAs: now) }
+    }
+
+    /// Late at night he's a little sleepy, until something's been cooked.
+    private var isLate: Bool {
+        let hour = Calendar.current.component(.hour, from: now)
+        return hour >= 22 || hour < 5
+    }
+
+    private func giggle() {
+        giggles += 1
+        isGiggling = true
+        Task {
+            try? await Task.sleep(for: .seconds(1.2))
+            isGiggling = false
+        }
+    }
+
     private func header(_ plan: Plan) -> some View {
         HStack(spacing: Theme.Spacing.s) {
-            NutmegView(cheer: app.homeCheer)
-                .frame(width: 100)
+            LivelyNutmeg(mood: pantry.isEmpty ? .peeking : .idle, expression: nutmegFace,
+                         cheer: app.homeCheer + giggles, sleepy: isLate && !cookedToday ? 0.2 : 0)
+                .frame(width: 100, height: 78)
+                .contentShape(Rectangle())
+                // A tap makes him giggle.
+                .onTapGesture { giggle() }
+                .sensoryFeedback(.impact(weight: .light), trigger: giggles)
+                .accessibilityElement()
+                .accessibilityLabel("Nutmeg")
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHint("Say hello")
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text(HomeGreeting.text(pantryCount: pantry.count,
                                        readyCount: plan.matches.filter(\.isReady).count))
