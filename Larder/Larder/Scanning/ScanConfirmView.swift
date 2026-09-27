@@ -12,13 +12,16 @@ import SwiftUI
 /// the scan guessed is trusted until they continue.
 struct ScanConfirmView: View {
     let review: ScanReview
+    var mode = ScanMode.onboarding
     let onContinue: () -> Void
 
     @State private var query: String
     @FocusState private var searchFocused: Bool
 
-    init(review: ScanReview, initialQuery: String = "", onContinue: @escaping () -> Void) {
+    init(review: ScanReview, mode: ScanMode = .onboarding, initialQuery: String = "",
+         onContinue: @escaping () -> Void) {
         self.review = review
+        self.mode = mode
         self.onContinue = onContinue
         _query = State(initialValue: initialQuery)
     }
@@ -174,8 +177,9 @@ struct ScanConfirmView: View {
 
     private var continueTitle: String {
         let count = review.selected.count
+        if count == 0 { return "Add something to continue" }
+        if mode == .update { return "Update pantry" }
         switch count {
-        case 0: return "Add something to continue"
         case 1: return "Find recipes with 1 item"
         default: return "Find recipes with \(count) items"
         }

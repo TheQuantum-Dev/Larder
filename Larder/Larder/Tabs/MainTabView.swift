@@ -63,7 +63,7 @@ struct MainTabView: View {
         .sheet(isPresented: $app.showScan) {
             ZStack {
                 Theme.Palette.background.ignoresSafeArea()
-                TryItView { items in
+                TryItView(mode: .update) { items in
                     PantryRepository.add(items, in: context)
                     app.showScan = false
                 }

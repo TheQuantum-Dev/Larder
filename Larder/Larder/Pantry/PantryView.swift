@@ -51,7 +51,7 @@ struct PantryView: View {
                         Image(systemName: "plus")
                             .foregroundStyle(Theme.Palette.textPrimary)
                     }
-                    .accessibilityLabel(mode == .pantry ? "Add to pantry" : "Add to shopping list")
+                    .accessibilityLabel(mode == .pantry ? "Update pantry" : "Add to shopping list")
                 }
             }
         }

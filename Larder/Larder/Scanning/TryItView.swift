@@ -12,6 +12,8 @@ import SwiftUI
 /// shelf, scanned on the spot, with no account needed. Typing things in by
 /// hand is offered right next to the camera, not tucked away.
 struct TryItView: View {
+    /// Onboarding's first scan, or topping up the pantry later from the app.
+    var mode = ScanMode.onboarding
     /// Called with the items the person confirmed.
     let onFinish: ([ResolvedItem]) -> Void
 
@@ -30,7 +32,7 @@ struct TryItView: View {
                 ScanningView(image: image)
                     .transition(.opacity.combined(with: .scale(scale: 1.04)))
             case .review(let review):
-                ScanConfirmView(review: review) { onFinish(review.selected) }
+                ScanConfirmView(review: review, mode: mode) { onFinish(review.selected) }
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
             }
         }
@@ -72,7 +74,7 @@ struct TryItView: View {
                 .frame(height: 160)
 
             VStack(spacing: Theme.Spacing.xs) {
-                Text("Let's peek in your fridge!")
+                Text(mode == .update ? "Update your pantry" : "Let's peek in your fridge!")
                     .font(.largeTitle.bold())
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary)
@@ -144,6 +146,12 @@ struct TryItView: View {
         model.begin(with: image)
         #endif
     }
+}
+
+/// Where the scan was opened from, which changes a few words: onboarding's
+/// first scan leads to recipes, and a later one updates the pantry.
+enum ScanMode {
+    case onboarding, update
 }
 
 /// The wait while a scan runs: the person's photo, a peeking Nutmeg, and a

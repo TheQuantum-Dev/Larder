@@ -66,7 +66,7 @@ struct HomeView: View {
                     StreakCard(dates: meals.map(\.cookedAt), now: now) { app.tab = .insights }
                     nextMealCard(plan)
                     weekCard
-                    Button(pantry.isEmpty ? "Scan my fridge" : "Add groceries") { app.showScan = true }
+                    Button(pantry.isEmpty ? "Scan my fridge" : "Update pantry") { app.showScan = true }
                         .buttonStyle(PillButtonStyle(fill: pantry.isEmpty ? Theme.Palette.amber : Theme.Palette.softAmber))
                 }
                 .padding(Theme.Spacing.s)
