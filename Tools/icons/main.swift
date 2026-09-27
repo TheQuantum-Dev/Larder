@@ -65,4 +65,10 @@ MainActor.assumeIsolated {
     render(IconArt(skin: .coral, background: hex(0x3B2A1A)), width: 1024, height: 1024, to: "\(out)/icon-coral.png")
     render(IconArt(skin: .snow, background: hex(0x1F3A5F), flakes: true), width: 1024, height: 1024, to: "\(out)/icon-snow.png")
     render(IconArt(skin: .harvest, background: hex(0x5A2E12)), width: 1024, height: 1024, to: "\(out)/icon-harvest.png")
+    // The launch screen: Nutmeg alone on a clear background, so the launch
+    // color (cream, or dark brown in dark mode) shows around him.
+    for (suffix, scale) in [("", 1.0), ("@2x", 2.0), ("@3x", 3.0)] {
+        render(NutmegView(skin: .amber, showsWeather: false), width: 231 * scale, height: 180 * scale,
+               to: "\(out)/launch-nutmeg\(suffix).png")
+    }
 }
