@@ -123,6 +123,49 @@ struct OnlineRecipeMapperTests {
         #expect(OnlineRecipeMapper.recipe(from: try variant { $0["nutrition"] = ["nutrients": []] }) == nil)
     }
 
+    /// A made-up recipe in the service's shape, with the given step, ingredient and score.
+    private func recipe(step: String, ingredient: String = "2 slices bread", score: Double? = nil) throws -> Recipe? {
+        let scoreField = score.map { #", "spoonacularScore": \#($0)"# } ?? ""
+        let object: [String: Any] = [
+            "id": 7, "title": "Toast", "servings": 1, "readyInMinutes": 10, "sourceName": "Foodista",
+            "extendedIngredients": [["nameClean": "bread", "original": ingredient]],
+            "analyzedInstructions": [["steps": [["number": 1, "step": step]]]],
+            "nutrition": ["nutrients": [["name": "Calories", "amount": 300, "unit": "kcal"]]],
+        ]
+        var json = String(decoding: try JSONSerialization.data(withJSONObject: object), as: UTF8.self)
+        json.removeLast()
+        json += scoreField + "}"
+        return OnlineRecipeMapper.recipe(from: try JSONDecoder().decode(OnlineRecipeDTO.self, from: Data(json.utf8)))
+    }
+
+    @Test func aJokeRecipeInAnotherLanguageIsLeftOut() throws {
+        // The one that got through: Hinglish steps telling people to glue bread to an egg.
+        let joke = "Pahile, pan garma garam kijiye....phir ek murga ka anda laiye....use sohlaiye.....phir chamach "
+            + "layiye....phir ande se sorry kahiye.....phir usko phod dijiye ..phir brad laiye .....use katiye aur "
+            + "uspar fevikol lagaiye aur ande se chipka dijiye .....phir palat dijiye"
+        #expect(try recipe(step: joke) == nil)
+        // Even without the glue, the language alone gives it away.
+        #expect(!OnlineRecipeQuality.isEnglish(joke.replacingOccurrences(of: "fevikol", with: "makhan")))
+    }
+
+    @Test func somethingThatIsNotFoodIsLeftOut() throws {
+        #expect(try recipe(step: "Spread a little glue on the bread and press it onto the egg until it sticks.") == nil)
+        #expect(try recipe(step: "Toast the bread.", ingredient: "1 tsp dish soap") == nil)
+    }
+
+    @Test func stepsInAnotherLanguageAreLeftOut() throws {
+        let french = "Faites chauffer la poêle, puis faites griller le pain des deux côtés jusqu'à ce qu'il soit doré."
+        #expect(try recipe(step: french) == nil)
+        let english = "Heat a pan over medium heat, then toast the bread on both sides until it is golden and crisp."
+        #expect(try recipe(step: english) != nil)
+    }
+
+    @Test func aRecipeTheServiceRatesPoorlyIsLeftOut() throws {
+        #expect(try recipe(step: "Toast the bread.", score: 4) == nil)
+        #expect(try recipe(step: "Toast the bread.", score: 62) != nil)
+        #expect(try recipe(step: "Toast the bread.") != nil)
+    }
+
     @Test func aRecipeThatTakesMostOfADayIsLeftOut() throws {
         func minutes(_ value: Int) throws -> Recipe? {
             let json = """

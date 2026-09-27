@@ -49,6 +49,8 @@ nonisolated struct OnlineRecipeDTO: Decodable, Sendable {
     let extendedIngredients: [OnlineIngredientDTO]?
     let analyzedInstructions: [OnlineInstructionDTO]?
     let nutrition: OnlineNutritionDTO?
+    /// The service's own quality score, 0 to 100.
+    var spoonacularScore: Double? = nil
 }
 
 nonisolated struct OnlineIngredientDTO: Decodable, Sendable {

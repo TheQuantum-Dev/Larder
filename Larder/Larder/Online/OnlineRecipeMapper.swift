@@ -154,6 +154,10 @@ nonisolated enum OnlineRecipeMapper {
         guard !steps.isEmpty, !lines.isEmpty, let nutrition = macros(from: dto.nutrition) else { return nil }
         // Marinating overnight or slow cooking all day isn't a student's cook-it-now recipe.
         guard (dto.readyInMinutes ?? 30) <= maxMinutes else { return nil }
+        // Jokes and junk don't make it to Cook Mode.
+        guard OnlineRecipeQuality.isTrustworthy(dto, steps: steps.map(\.text), ingredients: lines.map(\.amount)) else {
+            return nil
+        }
 
         let flagged = traits(for: dto, title: title, lines: lines)
         let fromIngredients = lines.compactMap { IngredientCatalog.ingredient(withID: $0.id)?.traits }
