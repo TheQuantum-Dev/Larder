@@ -18,7 +18,10 @@ struct RootView: View {
         // `-scanPreviewQuery onion` also fills the search box.
         // `-cookRecipe egg-fried-rice` opens Cook Mode; add `-cookPhase gather|done|<step number>`
         // to start elsewhere, and `-cookTimer YES` to start the step's timer.
-        if let id = UserDefaults.standard.string(forKey: "cookRecipe"),
+        if UserDefaults.standard.bool(forKey: "showPlusWelcome") {
+            // `-showPlusWelcome YES` shows the welcome for Larder Plus.
+            PlusWelcomeView {}
+        } else if let id = UserDefaults.standard.string(forKey: "cookRecipe"),
            let recipe = RecipeStore.recipe(withID: id) ?? Self.debugOnlineRecipe(id) {
             CookModeView(recipe: recipe, diets: [], startAt: Self.debugCookPhase, onFinish: {}, onClose: {})
         } else if let mode = UserDefaults.standard.string(forKey: "scanPreview") {

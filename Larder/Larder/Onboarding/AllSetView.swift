@@ -51,7 +51,7 @@ struct AllSetView: View {
     private var message: String {
         switch outcome {
         case .purchased:
-            "Thank you, it really helps. Now let's get cooking."
+            "Everything in Plus is ready whenever you are. Now let's get cooking."
         case .declined:
             "No pressure at all. Scanning and recipes are yours for free, and I'm here whenever you want more."
         }

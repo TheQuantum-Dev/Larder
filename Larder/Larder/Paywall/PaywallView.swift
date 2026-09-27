@@ -19,10 +19,23 @@ struct PaywallView: View {
     @State private var errorMessage: String?
     /// Bumped by both "get it" and "not now", so the two feel exactly the same.
     @State private var tapCount = 0
+    /// Set once Plus is theirs: the paywall turns into the welcome.
+    @State private var welcome: Welcome?
+
+    private enum Welcome { case joined, back }
 
     let onFinish: (Outcome) -> Void
 
     var body: some View {
+        if let welcome {
+            PlusWelcomeView(isRestore: welcome == .back) { onFinish(.purchased) }
+                .transition(.opacity)
+        } else {
+            offer
+        }
+    }
+
+    private var offer: some View {
         ScrollView {
             VStack(spacing: Theme.Spacing.s) {
                 header
@@ -246,7 +259,7 @@ struct PaywallView: View {
             let outcome = await store.purchase(package)
             isPurchasing = false
             switch outcome {
-            case .purchased: onFinish(.purchased)
+            case .purchased: withAnimation { welcome = .joined }
             case .cancelled: break
             case .failed(let message): errorMessage = message
             }
@@ -260,7 +273,7 @@ struct PaywallView: View {
 
     private func restore() {
         Task {
-            if await store.restore() { onFinish(.purchased) }
+            if await store.restore() { withAnimation { welcome = .back } }
         }
     }
 }
