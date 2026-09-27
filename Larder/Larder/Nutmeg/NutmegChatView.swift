@@ -136,7 +136,10 @@ struct NutmegChatScreen: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.85), value: chat.messages)
                     .animation(.spring(response: 0.4, dampingFraction: 0.85), value: chat.isThinking)
                 }
-                .scrollDismissesKeyboard(.interactively)
+                // Scrolling or tapping the conversation puts the keyboard away, so
+                // the tab bar is always a moment away.
+                .scrollDismissesKeyboard(.immediately)
+                .simultaneousGesture(TapGesture().onEnded { typing = false })
                 .onChange(of: chat.messages.count) { scrollToEnd(proxy) }
                 .onChange(of: chat.isThinking) { scrollToEnd(proxy) }
             }
@@ -206,11 +209,28 @@ struct NutmegChatScreen: View {
 
     private var inputBar: some View {
         HStack(alignment: .bottom, spacing: Theme.Spacing.xs) {
+            if typing {
+                Button { typing = false } label: {
+                    Image(systemName: "keyboard.chevron.compact.down")
+                        .font(.headline)
+                        .foregroundStyle(Theme.Palette.textPrimary)
+                        .frame(width: 44, height: 50)
+                }
+                .accessibilityLabel("Hide the keyboard")
+                .transition(.move(edge: .leading).combined(with: .opacity))
+            }
             TextField("Ask Nutmeg…", text: $draft, axis: .vertical)
                 .lineLimit(1...4)
                 .focused($typing)
                 .submitLabel(.send)
                 .onSubmit { send(draft) }
+                // A field that grows to several lines takes Return as a new
+                // line, so Return is caught here and sends instead.
+                .onChange(of: draft) { _, text in
+                    guard text.contains("\n") else { return }
+                    draft = text.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
+                    send(draft)
+                }
                 .padding(.horizontal, Theme.Spacing.s)
                 .padding(.vertical, Theme.Spacing.xs)
                 .frame(minHeight: 50)
@@ -228,6 +248,7 @@ struct NutmegChatScreen: View {
         }
         .padding(.horizontal, Theme.Spacing.s)
         .padding(.bottom, Theme.Spacing.xs)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: typing)
     }
 
     // MARK: - Actions
