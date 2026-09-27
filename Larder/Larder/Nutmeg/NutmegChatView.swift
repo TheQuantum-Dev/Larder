@@ -130,7 +130,9 @@ struct NutmegChatScreen: View {
     @State private var draft = ""
     @State private var selected: RecipeMatch?
     @State private var fetchMessage: String?
+    @State private var voice = VoiceRecorder()
     @FocusState private var typing: Bool
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         VStack(spacing: 0) {
@@ -171,10 +173,16 @@ struct NutmegChatScreen: View {
         .recipeCookingFlow(selected: $selected, diets: app.profile.dietSet, showsNutrition: app.profile.showsNutrition,
                            offersShoppingList: true)
         .tapFeedback(chat.messages.count)
+        .sensoryFeedback(.impact(weight: .medium), trigger: voice.state == .listening)
         .onAppear { chat.showsNutrition = app.profile.showsNutrition }
+        .onDisappear { voice.cancel() }
         .task {
             await chat.prewarm()
             await askDebugQuestions()
+            #if DEBUG
+            // `-fakeVoice "add 6 eggs" -voiceOpen YES` shows the recording strip with those words.
+            if UserDefaults.standard.bool(forKey: "voiceOpen") { await voice.start() }
+            #endif
         }
         .alert("Can't open that one", isPresented: Binding(get: { fetchMessage != nil },
                                                           set: { if !$0 { fetchMessage = nil } })) {
@@ -211,8 +219,10 @@ struct NutmegChatScreen: View {
         guard chat.messages.isEmpty, let list = UserDefaults.standard.string(forKey: "chatAsk") else { return }
         // Online recipes may still be on their way.
         if list.localizedCaseInsensitiveContains("online") { try? await Task.sleep(for: .seconds(3)) }
+        // A question starting with 🎙 is sent as if it were said out loud.
         for question in list.split(separator: "|").map(String.init) {
-            await chat.send(question, kitchen: kitchen(), isVoice: question.hasPrefix("🎙"))
+            let isVoice = question.hasPrefix("🎙")
+            await chat.send(isVoice ? String(question.dropFirst()) : question, kitchen: kitchen(), isVoice: isVoice)
         }
         #endif
     }
@@ -256,47 +266,144 @@ struct NutmegChatScreen: View {
     }
 
     private var inputBar: some View {
-        HStack(alignment: .bottom, spacing: Theme.Spacing.xs) {
-            if typing {
-                Button { typing = false } label: {
-                    Image(systemName: "keyboard.chevron.compact.down")
-                        .font(.headline)
-                        .foregroundStyle(Theme.Palette.textPrimary)
-                        .frame(width: 44, height: 50)
+        VStack(spacing: Theme.Spacing.xs) {
+            if voice.state == .denied { micOffNote }
+            HStack(alignment: .bottom, spacing: Theme.Spacing.xs) {
+                if voice.isActive {
+                    recordingStrip
+                        .transition(.opacity.combined(with: .scale(scale: 0.96, anchor: .trailing)))
+                } else {
+                    typingRow
+                        .transition(.opacity)
                 }
-                .accessibilityLabel("Hide the keyboard")
-                .transition(.move(edge: .leading).combined(with: .opacity))
             }
-            TextField("Ask Nutmeg…", text: $draft, axis: .vertical)
-                .lineLimit(1...4)
-                .focused($typing)
-                .submitLabel(.send)
-                .onSubmit { send(draft) }
-                // A field that grows to several lines takes Return as a new
-                // line, so Return is caught here and sends instead.
-                .onChange(of: draft) { _, text in
-                    guard text.contains("\n") else { return }
-                    draft = text.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
-                    send(draft)
-                }
-                .padding(.horizontal, Theme.Spacing.s)
-                .padding(.vertical, Theme.Spacing.xs)
-                .frame(minHeight: 50)
-                .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-            Button { send(draft) } label: {
-                Image(systemName: "arrow.up")
-                    .font(.headline.bold())
-                    .foregroundStyle(Theme.Palette.onAccent)
-                    .frame(width: 50, height: 50)
-                    .background(Theme.Palette.amber, in: Circle())
-            }
-            .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty || chat.isThinking)
-            .opacity(draft.trimmingCharacters(in: .whitespaces).isEmpty || chat.isThinking ? 0.5 : 1)
-            .accessibilityLabel("Send")
         }
         .padding(.horizontal, Theme.Spacing.s)
         .padding(.bottom, Theme.Spacing.xs)
         .animation(.spring(response: 0.3, dampingFraction: 0.85), value: typing)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: voice.isActive)
+    }
+
+    /// The text field, with a mic that becomes Send as soon as there's
+    /// something typed.
+    @ViewBuilder
+    private var typingRow: some View {
+        if typing {
+            Button { typing = false } label: {
+                Image(systemName: "keyboard.chevron.compact.down")
+                    .font(.headline)
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .frame(width: 44, height: 50)
+            }
+            .accessibilityLabel("Hide the keyboard")
+            .transition(.move(edge: .leading).combined(with: .opacity))
+        }
+        TextField("Ask Nutmeg…", text: $draft, axis: .vertical)
+            .lineLimit(1...4)
+            .focused($typing)
+            .submitLabel(.send)
+            .onSubmit { send(draft) }
+            // A field that grows to several lines takes Return as a new
+            // line, so Return is caught here and sends instead.
+            .onChange(of: draft) { _, text in
+                guard text.contains("\n") else { return }
+                draft = text.replacingOccurrences(of: "\n", with: " ").trimmingCharacters(in: .whitespaces)
+                send(draft)
+            }
+            .padding(.horizontal, Theme.Spacing.s)
+            .padding(.vertical, Theme.Spacing.xs)
+            .frame(minHeight: 50)
+            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        let isEmpty = draft.trimmingCharacters(in: .whitespaces).isEmpty
+        let showsMic = isEmpty && VoiceRecorder.isSupported
+        Button {
+            if showsMic {
+                typing = false
+                Task { await voice.start() }
+            } else {
+                send(draft)
+            }
+        } label: {
+            Image(systemName: showsMic ? "mic.fill" : "arrow.up")
+                .font(.headline.bold())
+                .foregroundStyle(Theme.Palette.onAccent)
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 50, height: 50)
+                .background(Theme.Palette.amber, in: Circle())
+        }
+        .disabled(chat.isThinking || (!showsMic && isEmpty))
+        .opacity(chat.isThinking || (!showsMic && isEmpty) ? 0.5 : 1)
+        .accessibilityLabel(showsMic ? "Talk to Nutmeg" : "Send")
+    }
+
+    /// While talking: the words as they're heard over a moving waveform, with
+    /// cancel on one side and send on the other. Tapping the words stops and
+    /// puts them in the text field to fix.
+    @ViewBuilder
+    private var recordingStrip: some View {
+        Button { voice.cancel() } label: {
+            Image(systemName: "xmark")
+                .font(.headline)
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(width: 44, height: 50)
+        }
+        .accessibilityLabel("Cancel the voice message")
+        Button {
+            draft = voice.finish()
+            typing = true
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                WaveformBars(levels: voice.levels, isLive: voice.state == .listening)
+                    .frame(height: 22)
+                Text(voice.transcript.isEmpty ? "Listening…" : voice.transcript)
+                    .font(.subheadline)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(4)
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(voice.transcript.isEmpty ? 0.6 : 1))
+                    .contentTransition(.opacity)
+            }
+            .padding(.horizontal, Theme.Spacing.s)
+            .padding(.vertical, Theme.Spacing.xs)
+            .frame(maxWidth: .infinity, minHeight: 50, alignment: .leading)
+            .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: Theme.cardRadius)
+                    .strokeBorder(Theme.Palette.amber, lineWidth: voice.state == .listening ? 2 : 0)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(voice.transcript.isEmpty ? "Listening" : "You said: \(voice.transcript)")
+        .accessibilityHint("Stops listening so you can edit the words")
+        Button {
+            send(voice.finish(), isVoice: true)
+        } label: {
+            Image(systemName: "arrow.up")
+                .font(.headline.bold())
+                .foregroundStyle(Theme.Palette.onAccent)
+                .frame(width: 50, height: 50)
+                .background(Theme.Palette.amber, in: Circle())
+        }
+        .disabled(voice.transcript.isEmpty || chat.isThinking)
+        .opacity(voice.transcript.isEmpty || chat.isThinking ? 0.5 : 1)
+        .accessibilityLabel("Send the voice message")
+    }
+
+    private var micOffNote: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            Image(systemName: "mic.slash")
+            Text("Larder can't use the microphone yet. You can turn it on in Settings.")
+                .font(.footnote)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button("Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+            }
+            .font(.footnote.bold())
+            Button { voice.clearDenied() } label: { Image(systemName: "xmark").font(.footnote.bold()) }
+                .accessibilityLabel("Dismiss")
+        }
+        .foregroundStyle(Theme.Palette.textPrimary)
+        .padding(Theme.Spacing.xs)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: 12))
     }
 
     // MARK: - Actions
@@ -531,6 +638,25 @@ private struct PantryChangeCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+    }
+}
+
+/// The voice waveform: a bar per slice of sound, newest on the right.
+private struct WaveformBars: View {
+    let levels: [Double]
+    let isLive: Bool
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 3) {
+            ForEach(levels.indices, id: \.self) { index in
+                Capsule()
+                    .fill(Theme.Palette.amber.opacity(isLive ? 1 : 0.5))
+                    .frame(width: 3, height: 3 + 19 * levels[index])
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .animation(.easeOut(duration: 0.12), value: levels)
+        .accessibilityHidden(true)
     }
 }
 

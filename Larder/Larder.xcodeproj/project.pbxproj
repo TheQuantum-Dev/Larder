@@ -428,6 +428,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Larder/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Larder uses the camera to look at your fridge or pantry and spot what you have.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Larder uses the microphone so you can talk to Nutmeg. What you say is turned into text on your phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Larder turns what you say to Nutmeg into text, right on your phone.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Larder reads your height, weight, age and sex from Apple Health to estimate a daily calorie target. It stays on your phone.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Larder can save the calories and nutrients of the meals you cook to Apple Health, only if you turn that on.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -466,6 +468,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Larder/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Larder uses the camera to look at your fridge or pantry and spot what you have.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Larder uses the microphone so you can talk to Nutmeg. What you say is turned into text on your phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Larder turns what you say to Nutmeg into text, right on your phone.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Larder reads your height, weight, age and sex from Apple Health to estimate a daily calorie target. It stays on your phone.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Larder can save the calories and nutrients of the meals you cook to Apple Health, only if you turn that on.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
