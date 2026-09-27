@@ -15,6 +15,16 @@ nonisolated struct ChatMessage: Identifiable, Equatable, Sendable {
     let role: Role
     let text: String
     var recipeIDs: [String] = []
+    /// Answers to tap, like "Something quick" after "what are you in the mood for?".
+    var quickReplies: [String] = []
+    /// A pantry change to confirm.
+    var pantryChange: PantryProposal?
+    /// Said out loud rather than typed.
+    var isVoice = false
+    /// Online recipes named here, kept as just their name, emoji and photo
+    /// (all the recipe service lets us keep), so a card still shows after the
+    /// recipe itself has been let go.
+    var onlineRefs: [RecipeRef] = []
 }
 
 /// Anything that can answer as Nutmeg. Both engines take the same frozen
@@ -62,10 +72,10 @@ final class ChatModel {
         if let model = brain as? ModelBrain { await model.prewarm() }
     }
 
-    func send(_ text: String, kitchen: KitchenSnapshot) async {
+    func send(_ text: String, kitchen: KitchenSnapshot, isVoice: Bool = false) async {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !isThinking else { return }
-        messages.append(ChatMessage(role: .person, text: trimmed))
+        messages.append(ChatMessage(role: .person, text: trimmed, isVoice: isVoice))
         isThinking = true
         let started = Date()
         let reply = await brain.reply(to: trimmed, in: kitchen)
@@ -74,7 +84,35 @@ final class ChatModel {
         let minimum = 0.4 - Date().timeIntervalSince(started)
         if minimum > 0 { try? await Task.sleep(for: .seconds(minimum)) }
         isThinking = false
-        messages.append(ChatMessage(role: .nutmeg, text: reply.text, recipeIDs: reply.recipeIDs))
+        let online = reply.recipeIDs.compactMap { id in kitchen.match(for: id)?.recipe }.filter(\.isOnline)
+        messages.append(ChatMessage(role: .nutmeg, text: reply.text, recipeIDs: reply.recipeIDs,
+                                    quickReplies: reply.quickReplies,
+                                    pantryChange: reply.pantryChange.map { PantryProposal($0, pantry: kitchen.pantry) },
+                                    onlineRefs: online.map(RecipeRef.init)))
+    }
+
+    // MARK: - Pantry changes
+
+    func stepChange(in messageID: UUID, line id: String, by direction: Int) {
+        guard let index = messages.firstIndex(where: { $0.id == messageID }) else { return }
+        messages[index].pantryChange?.step(id, by: direction)
+    }
+
+    /// Hands the change to `apply` (which saves it), marks the card done, and
+    /// has Nutmeg say what changed.
+    func confirmChange(in messageID: UUID, apply: (PantryUpdate) -> Void) {
+        guard let index = messages.firstIndex(where: { $0.id == messageID }),
+              let proposal = messages[index].pantryChange, proposal.state == .pending else { return }
+        apply(proposal.update)
+        messages[index].pantryChange?.state = .applied
+        messages.append(ChatMessage(role: .nutmeg, text: proposal.confirmation))
+    }
+
+    func dismissChange(in messageID: UUID) {
+        guard let index = messages.firstIndex(where: { $0.id == messageID }),
+              messages[index].pantryChange?.state == .pending else { return }
+        messages[index].pantryChange?.state = .dismissed
+        messages.append(ChatMessage(role: .nutmeg, text: "No problem, I've left your pantry as it was."))
     }
 
     /// Starters at first; afterwards, the ones not asked yet, so the chips

@@ -16,9 +16,36 @@ nonisolated enum NutmegIntent: Equatable, Sendable {
     case aboutRecipe(String)
     case pantryContents, savings, streak, budget
     case highProtein, lowCalorie, hearty
-    case caloriesToday, proteinToday
+    case caloriesToday, proteinToday, eatenToday
     case ingredientNutrition(String)
+    /// "Add 6 eggs", "I ran out of milk": shown as a card to confirm.
+    case pantryChange(PantryCommand)
+    /// Something new from the recipes found online.
+    case onlineIdea
+    /// "What should I eat?": Nutmeg asks what they're in the mood for.
+    case moodQuestion
+    case surprise
+    case craving(Craving)
     case offTopic
+}
+
+/// A mood that isn't a filter in the Recipes tab.
+nonisolated enum Craving: String, Sendable {
+    case sweet, warm, spicy
+
+    /// Words in a recipe's title or ingredients that fit the mood.
+    var words: [String] {
+        switch self {
+        case .sweet: ["banana", "honey", "pancake", "oat", "yogurt", "berry", "berries", "fruit", "chocolate",
+                      "peanut butter", "jam", "cinnamon", "sugar", "maple", "apple", "toast", "french toast", "smoothie"]
+        case .warm: ["soup", "stew", "curry", "chili", "chilli", "pasta", "noodle", "ramen", "rice", "potato", "mac",
+                     "porridge", "oatmeal", "risotto", "casserole", "bake", "hash", "dal", "chowder"]
+        case .spicy: ["chili", "chilli", "hot sauce", "sriracha", "curry", "jalapeno", "salsa", "chili flakes",
+                      "pepper flakes", "cayenne", "gochujang", "spicy", "harissa", "kimchi", "cajun", "peri"]
+        }
+    }
+
+    var name: String { rawValue }
 }
 
 /// Nutmeg without a language model: works on every phone, entirely offline.
@@ -48,7 +75,15 @@ nonisolated struct OfflineBrain: Sendable {
         if has(text, ["thank", "thanks", "thx", "cheers", "ty"]) { return .thanks }
         if has(text, ["help", "what can you do", "how do you work", "what do you do"]) { return .help }
 
+        // Changing the pantry comes first: "add 2 cans of beans" isn't a
+        // search for bean recipes.
+        if let command = PantryCommand.parse(message) { return .pantryChange(command) }
+
         if let recipe = mentionedRecipe(in: text) { return .aboutRecipe(recipe) }
+
+        if has(text, ["what did i eat", "what have i eaten", "what have i had", "what did i have", "what i ate",
+                      "what i ve eaten", "today s meals", "meals today", "my meals", "food log", "eaten today",
+                      "what i ve had"]) { return .eatenToday }
 
         // Numbers questions come before the money ones, so "calorie budget"
         // means calories, and before the ingredient rules, so "protein in
@@ -77,8 +112,16 @@ nonisolated struct OfflineBrain: Sendable {
             return ingredients.isEmpty ? .pantryContents : .withIngredients(ingredients)
         }
 
+        if has(text, ["online", "internet", "the web", "new recipe", "new recipes", "something new", "something different",
+                      "never made", "not made before"]) { return .onlineIdea }
+
         let ingredients = mentionedIngredients(in: message)
         if !ingredients.isEmpty { return .withIngredients(ingredients) }
+
+        if has(text, ["surprise me", "surprise", "you pick", "you choose", "random"]) { return .surprise }
+        if has(text, ["sweet", "sugary", "dessert", "treat"]) { return .craving(.sweet) }
+        if has(text, ["spicy", "spice", "hot sauce", "kick"]) { return .craving(.spicy) }
+        if has(text, ["warm", "warming", "cozy", "cosy", "comfort", "comforting", "hot meal"]) { return .craving(.warm) }
 
         if has(text, ["quick", "quicker", "fast", "faster", "hurry", "rush", "short on time", "no time", "minute", "min"]) { return .quick }
         if has(text, ["no stove", "without a stove", "microwave", "dorm", "no cooking", "no cook", "toaster", "kettle"]) {
@@ -86,6 +129,12 @@ nonisolated struct OfflineBrain: Sendable {
         }
         if has(text, ["healthy", "healthier", "light", "lighter", "veggie", "vegetable", "green", "nutritious", "fresh"]) {
             return .healthier
+        }
+        // Not sure what they want: ask, rather than guess.
+        if has(text, ["what should i eat", "what should i cook", "what should i have", "what should i make", "hungry",
+                      "any ideas", "no idea what", "don t know what", "dont know what", "help me decide",
+                      "what to eat", "what to cook", "feed me", "can t decide", "cant decide", "not sure what"]) {
+            return .moodQuestion
         }
         if has(text, ["what can i make", "what should i", "make", "cook", "dinner", "lunch", "breakfast", "hungry",
                       "eat", "recipe", "idea", "tonight", "craving", "food", "meal", "snack"]) {
@@ -135,6 +184,14 @@ nonisolated struct OfflineBrain: Sendable {
         case .hearty:
             return all.filter { $0.recipe.nutrition.kcal >= RecipeFilter.heartyKcal }
                 .sorted { $0.recipe.nutrition.kcal > $1.recipe.nutrition.kcal }
+        case .craving(let craving):
+            return all.filter { match in
+                let text = " " + IngredientCatalog.key(for: match.recipe.title + " "
+                    + match.recipe.ingredients.map(\.amount).joined(separator: " ")) + " "
+                return craving.words.contains { text.contains(" " + IngredientCatalog.key(for: $0)) }
+            }
+        case .onlineIdea:
+            return all.filter(\.recipe.isOnline)
         case .withIngredients(let ids):
             let wanted = Set(ids)
             return all
@@ -197,6 +254,26 @@ nonisolated struct OfflineBrain: Sendable {
             return ingredientNutrition(id)
         case .highProtein, .lowCalorie, .hearty, .caloriesToday, .proteinToday, .ingredientNutrition:
             return NutmegReply("You've turned numbers off, so I'll keep it to cooking! You can turn calories and macros back on any time in Settings, under your goal.")
+        case .eatenToday:
+            return eatenToday(kitchen)
+        case .pantryChange(let command):
+            return pantryChange(command, in: kitchen)
+        case .onlineIdea:
+            return onlineIdea(kitchen)
+        case .moodQuestion:
+            return NutmegReply("Ooh, let's pick something! What are you in the mood for?",
+                               quickReplies: Self.moods(for: kitchen))
+        case .surprise:
+            return surprise(kitchen)
+        case .craving(let craving):
+            let pool = candidates(for: .craving(craving), in: kitchen)
+            guard !pool.isEmpty || kitchen.pantry.isEmpty else {
+                return NutmegReply("Nothing \(craving.name) fits what you've got right now. Want to hear what you can make?",
+                                   quickReplies: ["What can I make?", "Surprise me"])
+            }
+            return suggestions(from: pool, in: kitchen,
+                               ready: "Something \(craving.name) you can make right now:",
+                               close: "Nothing \(craving.name) is fully ready, but these are close:")
         case .withIngredients(let ids):
             return withIngredients(ids, in: kitchen)
         case .aboutRecipe(let id):
@@ -248,7 +325,9 @@ nonisolated struct OfflineBrain: Sendable {
     }
 
     private func aboutRecipe(_ id: String, in kitchen: KitchenSnapshot) -> NutmegReply {
-        guard let recipe = RecipeStore.recipe(withID: id) else { return answer(.whatCanIMake, in: kitchen) }
+        guard let recipe = kitchen.match(for: id)?.recipe ?? RecipeStore.recipe(withID: id) else {
+            return answer(.whatCanIMake, in: kitchen)
+        }
         guard let match = kitchen.match(for: id) else {
             return NutmegReply("\(recipe.title) doesn't fit what you eat, so I've left it out. Want something similar?")
         }
@@ -263,7 +342,115 @@ nonisolated struct OfflineBrain: Sendable {
                            recipeIDs: [id])
     }
 
+    // MARK: - Moods, surprises and online ideas
+
+    /// The quick replies to "what are you in the mood for?". Numbers-based
+    /// ones only when numbers are on, and online only when it can answer.
+    static func moods(for kitchen: KitchenSnapshot) -> [String] {
+        var moods = ["Something quick"]
+        if kitchen.showsNutrition { moods.append("Something filling") }
+        moods += ["Something light", "Something warm", "Something sweet", "Something spicy", "Something cheap"]
+        if kitchen.online == .ready, kitchen.matches.contains(where: \.recipe.isOnline) {
+            moods.append("Something new from online")
+        }
+        moods.append("Surprise me")
+        return moods
+    }
+
+    private func surprise(_ kitchen: KitchenSnapshot) -> NutmegReply {
+        if kitchen.pantry.isEmpty { return answer(.whatCanIMake, in: kitchen) }
+        let pool = kitchen.readyMatches.isEmpty
+            ? kitchen.matches.filter { $0.missing.count <= 1 }
+            : kitchen.readyMatches
+        guard let pick = pool.randomElement() else { return answer(.whatCanIMake, in: kitchen) }
+        let text = pick.isReady
+            ? "Ta-da! How about \(pick.recipe.title)? You've got everything for it."
+            : "How about \(pick.recipe.title)? You'd just need \(Self.list(names(pick.missing)))."
+        return NutmegReply(text, recipeIDs: [pick.recipe.id], quickReplies: ["Surprise me again"])
+    }
+
+    private func onlineIdea(_ kitchen: KitchenSnapshot) -> NutmegReply {
+        let online = candidates(for: .onlineIdea, in: kitchen)
+        if kitchen.online == .ready, !online.isEmpty {
+            let ready = online.filter(\.isReady)
+            let picks = ready.isEmpty ? online.sorted { $0.missing.count < $1.missing.count } : ready
+            let intro = ready.isEmpty
+                ? "Here's something new I found online. You'd need a thing or two for these:"
+                : "Here's something new I found online that you can make right now:"
+            return NutmegReply(intro, recipeIDs: picks.map(\.recipe.id))
+        }
+        let why: String
+        switch kitchen.online {
+        case .off: why = "Online recipes are switched off. You can turn them on in Settings, under Online recipes."
+        case .resting: why = "Online ideas are resting for today."
+        case .offline: why = "I can't reach the online recipes right now."
+        case .looking: why = "I'm still looking online."
+        case .ready: why = "I couldn't find anything new online for this pantry yet."
+        case .unavailable: why = "I only have Larder's own recipes here."
+        }
+        let own = kitchen.readyMatches.filter { !$0.recipe.isOnline }
+        guard !own.isEmpty else { return NutmegReply(why) }
+        return NutmegReply(why + " Here are some of Larder's own you can make:", recipeIDs: own.map(\.recipe.id))
+    }
+
+    // MARK: - Changing the pantry
+
+    /// Shows what would change as a card to confirm. Taking something off
+    /// that isn't there is left out, with a word about it.
+    private func pantryChange(_ command: PantryCommand, in kitchen: KitchenSnapshot) -> NutmegReply {
+        let have = kitchen.pantryIDs
+        let notThere = command.lines.filter { $0.action == .remove && !have.contains($0.item.id) }
+        var kept = command
+        kept.lines.removeAll { $0.action == .remove && !have.contains($0.item.id) }
+        let missingNote = notThere.isEmpty ? ""
+            : " \(Self.list(notThere.map(\.item.name))) \(notThere.count == 1 ? "isn't" : "aren't") in your pantry, so there's nothing to take off."
+        guard !kept.lines.isEmpty else {
+            return NutmegReply(missingNote.trimmingCharacters(in: .whitespaces))
+        }
+        let intro: String
+        if kept.lines.allSatisfy({ $0.action == .add }) {
+            intro = "Got it! Here's what I'll add. Change the amounts if you need to."
+        } else if kept.lines.allSatisfy({ $0.action == .remove }) {
+            intro = "Oh no, all gone? I'll take these off your pantry."
+        } else {
+            intro = "Here's what I'll change in your pantry."
+        }
+        return NutmegReply(intro + missingNote, pantryChange: kept)
+    }
+
     // MARK: - Calories and macros
+
+    private func eatenToday(_ kitchen: KitchenSnapshot) -> NutmegReply {
+        let meals = kitchen.mealsTodayList
+        guard !meals.isEmpty else {
+            return NutmegReply("Nothing cooked in Larder yet today. Want an idea for your next meal?",
+                               quickReplies: ["What can I make?", "Surprise me"])
+        }
+        let listed = meals.map { meal -> String in
+            let time = meal.time.formatted(date: .omitted, time: .shortened)
+            let kcal = kitchen.showsNutrition ? meal.macros.map { ", about \($0.roundedKcal.formatted()) kcal" } ?? "" : ""
+            return "\(meal.title.lowercased()) (\(time)\(kcal))"
+        }
+        var text = "Today you've cooked \(Self.list(listed))."
+        guard kitchen.showsNutrition else { return NutmegReply(text + " Nice work!") }
+        let today = kitchen.today
+        text += " Together that's about \(today.roundedKcal.formatted()) kcal, \(today.roundedProtein) g protein, \(today.roundedCarbs) g carbs and \(today.roundedFat) g fat."
+        if let targets = kitchen.targets { text += Self.left(of: targets, after: today) }
+        return NutmegReply(text + " That's only meals cooked here, not everything you ate.")
+    }
+
+    /// " Left for today: about …", naming only what's still to go.
+    static func left(of targets: DailyTargets, after today: Macros) -> String {
+        var parts: [String] = []
+        let kcal = targets.kcal - today.roundedKcal
+        if kcal > 0 { parts.append("\(kcal.formatted()) kcal") }
+        for (name, target, had) in [("protein", targets.protein, today.roundedProtein),
+                                    ("carbs", targets.carbs, today.roundedCarbs), ("fat", targets.fat, today.roundedFat)]
+        where target - had > 0 {
+            parts.append("\(target - had) g \(name)")
+        }
+        return parts.isEmpty ? " That's your targets for today reached." : " Left for today: about \(list(parts))."
+    }
 
     private func caloriesToday(_ kitchen: KitchenSnapshot) -> NutmegReply {
         let target = kitchen.targets.map { " Your target for the day is about \($0.kcal.formatted()) kcal." } ?? ""
@@ -278,6 +465,10 @@ nonisolated struct OfflineBrain: Sendable {
             text += left > 0
                 ? " Your target is about \(targets.kcal.formatted()) kcal, so there's about \(left.formatted()) to go."
                 : " Your target is about \(targets.kcal.formatted()) kcal."
+            let macrosLeft = [("protein", targets.protein - today.roundedProtein),
+                              ("carbs", targets.carbs - today.roundedCarbs), ("fat", targets.fat - today.roundedFat)]
+                .filter { $0.1 > 0 }.map { "\($0.1) g \($0.0)" }
+            if !macrosLeft.isEmpty { text += " Still to go: about \(Self.list(macrosLeft))." }
         }
         return NutmegReply(text + " That's only meals cooked here, not everything you ate.")
     }
@@ -393,6 +584,8 @@ nonisolated enum IntentEmbeddings {
         (.lowCalorie, "something low in calories"),
         (.caloriesToday, "how am I doing on calories"),
         (.proteinToday, "how much protein did I get"),
+        (.eatenToday, "what have I eaten so far today"),
+        (.moodQuestion, "I don't know what I want to eat"),
     ]
 
     static func closest(_ message: String) -> NutmegIntent? {

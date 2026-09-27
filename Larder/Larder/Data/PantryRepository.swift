@@ -57,7 +57,7 @@ enum PantryRepository {
                 context.delete(item)
             } else if let quantity = update.amounts[item.ingredientID] ?? update.addAmounts[item.ingredientID] {
                 item.quantity = quantity
-                item.unit = item.unit ?? PantryUnit.items.rawValue
+                item.unit = update.units[item.ingredientID]?.rawValue ?? item.unit ?? PantryUnit.items.rawValue
             }
         }
         try? context.save()

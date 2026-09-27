@@ -51,7 +51,8 @@ actor ModelBrain: NutmegBrain {
             let prompt = Self.prompt(for: message, kitchen: kitchen, intent: intent, candidates: candidates,
                                      history: history)
             let answer = try await respond(session, to: prompt)
-            let reply = NutmegReply(answer.text, recipeIDs: Self.recipeIDs(forTitles: answer.recipes))
+            let reply = NutmegReply(answer.text, recipeIDs: Self.recipeIDs(forTitles: answer.recipes,
+                                                                            in: candidates.map(\.recipe) + RecipeStore.all))
             remember(message, reply.text)
             return reply
         } catch {
@@ -74,11 +75,14 @@ actor ModelBrain: NutmegBrain {
         history = Array(history.suffix(Self.historyLength))
     }
 
-    /// Savings, streak, budget and the pantry list are facts, not
-    /// conversation: they come from the offline Nutmeg, word for word.
+    /// Savings, streak, budget, the pantry list, today's meals and pantry
+    /// changes are facts, not conversation: they come from the offline Nutmeg,
+    /// word for word. So do the mood question and its answers, whose quick
+    /// replies and picks come from rules.
     static func answersFromFacts(_ intent: NutmegIntent) -> Bool {
         switch intent {
-        case .savings, .streak, .budget, .pantryContents, .caloriesToday, .proteinToday, .ingredientNutrition: true
+        case .savings, .streak, .budget, .pantryContents, .caloriesToday, .proteinToday, .ingredientNutrition,
+             .eatenToday, .pantryChange, .onlineIdea, .moodQuestion, .surprise, .craving: true
         default: false
         }
     }
@@ -190,11 +194,10 @@ actor ModelBrain: NutmegBrain {
     /// Titles the model picked, back to ids. Exact titles first; a title that
     /// only contains or is contained in one still counts, since small models
     /// sometimes trim words. Anything unrecognised is dropped.
-    static func recipeIDs(forTitles titles: [String]) -> [String] {
+    static func recipeIDs(forTitles titles: [String], in recipes: [Recipe] = RecipeStore.all) -> [String] {
         titles.compactMap { title in
             let key = IngredientCatalog.key(for: title)
             guard !key.isEmpty else { return nil }
-            let recipes = RecipeStore.all
             if let exact = recipes.first(where: { IngredientCatalog.key(for: $0.title) == key }) { return exact.id }
             return recipes.first { recipe in
                 let recipeKey = IngredientCatalog.key(for: recipe.title)

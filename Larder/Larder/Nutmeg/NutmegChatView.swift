@@ -79,22 +79,32 @@ struct NutmegChatIntro: View {
     }
 }
 
-/// One message. Nutmeg's sit on the left in amber; yours on the right.
+/// One message. Nutmeg's sit on the left in amber; yours on the right, with a
+/// small mic when it was said out loud.
 struct ChatBubble: View {
     let text: String
     let fromNutmeg: Bool
+    var isVoice = false
 
     var body: some View {
         HStack {
             if !fromNutmeg { Spacer(minLength: Theme.Spacing.l) }
-            Text(text)
-                .font(.body)
-                .foregroundStyle(Theme.Palette.textPrimary)
-                .padding(.horizontal, Theme.Spacing.s)
-                .padding(.vertical, Theme.Spacing.xs)
-                .background(fromNutmeg ? Theme.Palette.amber.opacity(0.3) : Theme.Palette.surface,
-                            in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                if isVoice {
+                    Image(systemName: "waveform")
+                        .font(.footnote.bold())
+                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))
+                        .accessibilityLabel("Voice message")
+                }
+                Text(text)
+                    .font(.body)
+                    .foregroundStyle(Theme.Palette.textPrimary)
+            }
+            .padding(.horizontal, Theme.Spacing.s)
+            .padding(.vertical, Theme.Spacing.xs)
+            .background(fromNutmeg ? Theme.Palette.amber.opacity(0.3) : Theme.Palette.surface,
+                        in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+            .fixedSize(horizontal: false, vertical: true)
             if fromNutmeg { Spacer(minLength: Theme.Spacing.l) }
         }
     }
@@ -105,14 +115,21 @@ struct ChatBubble: View {
 /// open the normal recipe and Cook Mode flow.
 struct NutmegChatScreen: View {
     @Environment(AppModel.self) private var app
+    @Environment(OnlineRecipes.self) private var online
+    @Environment(\.modelContext) private var context
     @Query private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
+    @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
+    @AppStorage(AppSettings.onlineOnlyKey) private var onlineOnly = false
+    @AppStorage(AppSettings.hiddenOnlineKey) private var hiddenOnline = ""
+    @AppStorage(AppSettings.autoAddToShoppingKey) private var autoAddToShopping = true
 
     @State private var chat = ChatModel()
     @State private var draft = ""
     @State private var selected: RecipeMatch?
+    @State private var fetchMessage: String?
     @FocusState private var typing: Bool
 
     var body: some View {
@@ -122,7 +139,12 @@ struct NutmegChatScreen: View {
                     LazyVStack(spacing: Theme.Spacing.s) {
                         if chat.messages.isEmpty { welcome }
                         ForEach(chat.messages) { message in
-                            MessageRow(message: message, showsNutrition: app.profile.showsNutrition) { open($0) }
+                            MessageRow(message: message, isLatest: message.id == chat.messages.last?.id,
+                                       showsNutrition: app.profile.showsNutrition, recipe: recipe(withID:),
+                                       onOpen: open, onQuickReply: { send($0) },
+                                       onStep: { chat.stepChange(in: message.id, line: $0, by: $1) },
+                                       onConfirm: { confirmChange(in: message.id) },
+                                       onDismiss: { chat.dismissChange(in: message.id) })
                                 .id(message.id)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                         }
@@ -154,6 +176,32 @@ struct NutmegChatScreen: View {
             await chat.prewarm()
             await askDebugQuestions()
         }
+        .alert("Can't open that one", isPresented: Binding(get: { fetchMessage != nil },
+                                                          set: { if !$0 { fetchMessage = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(fetchMessage ?? "")
+        }
+    }
+
+    /// Everything Nutmeg can see right now, including any recipes found online.
+    private func kitchen() -> KitchenSnapshot {
+        KitchenSnapshot.capture(pantry: pantry, meals: meals, profile: app.profile, weeklyBudget: weeklyBudget,
+                                mealGoal: mealGoal, online: online.recipes, onlineStatus: onlineAvailability,
+                                onlineOnly: onlineEnabled && onlineOnly, hiddenOnline: RecipePool.hiddenIDs(hiddenOnline))
+    }
+
+    private var onlineAvailability: KitchenSnapshot.OnlineAvailability {
+        guard OnlineRecipeConfig.isAvailable else { return .unavailable }
+        guard onlineEnabled else { return .off }
+        switch online.status {
+        case .ready: return .ready
+        case .loading, .idle: return .looking
+        case .exhausted: return .resting
+        case .offline, .failed: return .offline
+        case .off: return .off
+        case .unavailable: return .unavailable
+        }
     }
 
     /// `-chatAsk "What can I make?|How's my streak?"` asks those on open, one
@@ -161,10 +209,10 @@ struct NutmegChatScreen: View {
     private func askDebugQuestions() async {
         #if DEBUG
         guard chat.messages.isEmpty, let list = UserDefaults.standard.string(forKey: "chatAsk") else { return }
+        // Online recipes may still be on their way.
+        if list.localizedCaseInsensitiveContains("online") { try? await Task.sleep(for: .seconds(3)) }
         for question in list.split(separator: "|").map(String.init) {
-            let kitchen = KitchenSnapshot.capture(pantry: pantry, meals: meals, profile: app.profile,
-                                                  weeklyBudget: weeklyBudget, mealGoal: mealGoal)
-            await chat.send(question, kitchen: kitchen)
+            await chat.send(question, kitchen: kitchen(), isVoice: question.hasPrefix("🎙"))
         }
         #endif
     }
@@ -178,8 +226,8 @@ struct NutmegChatScreen: View {
             Text("What are we cooking?")
                 .font(.title2.bold())
             Text(chat.engine == .model
-                 ? "I can see your pantry, every recipe, and how your week's going. Ask me anything food-related."
-                 : "I can see your pantry, every recipe, and how your week's going. Tap a question below or ask your own.")
+                 ? "I can see your pantry, every recipe, and how your week's going. Ask me anything food-related, or tell me what to add to your pantry."
+                 : "I can see your pantry, every recipe, and how your week's going. Tap a question below, ask your own, or tell me what to add to your pantry.")
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
@@ -253,17 +301,48 @@ struct NutmegChatScreen: View {
 
     // MARK: - Actions
 
-    private func send(_ text: String) {
+    private func send(_ text: String, isVoice: Bool = false) {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, !chat.isThinking else { return }
-        let kitchen = KitchenSnapshot.capture(pantry: pantry, meals: meals, profile: app.profile,
-                                              weeklyBudget: weeklyBudget, mealGoal: mealGoal)
+        let kitchen = kitchen()
         draft = ""
-        Task { await chat.send(text, kitchen: kitchen) }
+        Task { await chat.send(text, kitchen: kitchen, isVoice: isVoice) }
     }
 
-    /// Opens a suggested recipe, matched against the pantry as it is now.
+    /// Saves a confirmed pantry change. Anything all gone goes on the shopping
+    /// list, the same as after cooking.
+    private func confirmChange(in messageID: UUID) {
+        chat.confirmChange(in: messageID) { update in
+            let removed = PantryRepository.apply(update, in: context)
+            ShoppingRepository.addRunOut(removed, enabled: autoAddToShopping, in: context)
+        }
+    }
+
+    /// Larder's own recipes, or one found online that's still in memory.
+    private func recipe(withID id: String) -> Recipe? {
+        RecipeStore.recipe(withID: id) ?? online.recipes.first { $0.id == id }
+    }
+
+    /// Opens a suggested recipe, matched against the pantry as it is now. An
+    /// online one that's been let go is fetched again first.
     private func open(_ recipeID: String) {
-        guard let recipe = RecipeStore.recipe(withID: recipeID) else { return }
+        if let recipe = recipe(withID: recipeID) {
+            select(recipe)
+            return
+        }
+        guard recipeID.hasPrefix(OnlineRecipeMapper.idPrefix), onlineEnabled else {
+            fetchMessage = "Turn on online recipes in Settings to open this one."
+            return
+        }
+        Task {
+            if let recipe = await online.recipe(id: recipeID) {
+                select(recipe)
+            } else {
+                fetchMessage = "That recipe lives online and can't be reached right now. Try again when you're connected."
+            }
+        }
+    }
+
+    private func select(_ recipe: Recipe) {
         selected = RecipeMatcher.matches(recipes: [recipe], pantry: Set(pantry.map(\.ingredientID)),
                                          diets: app.profile.dietSet, maxMissing: .max).first
     }
@@ -279,16 +358,23 @@ struct NutmegChatScreen: View {
     }
 }
 
-/// One message, with Nutmeg's small avatar beside his, and any recipes he
-/// suggested as compact cards underneath.
+/// One message, with Nutmeg's small avatar beside his, and anything that
+/// came with it underneath: recipe cards, a pantry change to confirm, or
+/// quick replies (only on the latest message, so old ones don't linger).
 private struct MessageRow: View {
     let message: ChatMessage
+    let isLatest: Bool
     let showsNutrition: Bool
+    let recipe: (String) -> Recipe?
     let onOpen: (String) -> Void
+    let onQuickReply: (String) -> Void
+    let onStep: (String, Int) -> Void
+    let onConfirm: () -> Void
+    let onDismiss: () -> Void
 
     var body: some View {
         if message.role == .person {
-            ChatBubble(text: message.text, fromNutmeg: false)
+            ChatBubble(text: message.text, fromNutmeg: false, isVoice: message.isVoice)
         } else {
             HStack(alignment: .top, spacing: Theme.Spacing.xs) {
                 NutmegView()
@@ -297,39 +383,65 @@ private struct MessageRow: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                     ChatBubble(text: message.text, fromNutmeg: true)
                     ForEach(message.recipeIDs, id: \.self) { id in
-                        if let recipe = RecipeStore.recipe(withID: id) {
-                            ChatRecipeCard(recipe: recipe, showsNutrition: showsNutrition) { onOpen(id) }
+                        if let recipe = recipe(id) {
+                            ChatRecipeCard(title: recipe.title, emoji: recipe.emoji, imageURL: recipe.imageURL,
+                                           detail: detail(for: recipe), isOnline: recipe.isOnline) { onOpen(id) }
+                        } else if let ref = message.onlineRefs.first(where: { $0.id == id }) {
+                            // Let go of since (online recipes are only kept a little
+                            // while): the name and photo, fetched again on tap.
+                            ChatRecipeCard(title: ref.title, emoji: ref.emoji, imageURL: ref.imageURL,
+                                           detail: "Tap to open", isOnline: true) { onOpen(id) }
                         }
+                    }
+                    if let proposal = message.pantryChange {
+                        PantryChangeCard(proposal: proposal, onStep: onStep, onConfirm: onConfirm, onDismiss: onDismiss)
+                    }
+                    if isLatest, !message.quickReplies.isEmpty {
+                        FlowLayout(fillsWidth: true) {
+                            ForEach(message.quickReplies, id: \.self) { reply in
+                                Button(reply) { onQuickReply(reply) }
+                                    .font(.subheadline.weight(.semibold))
+                                    .foregroundStyle(Theme.Palette.textPrimary)
+                                    .padding(.horizontal, Theme.Spacing.s)
+                                    .frame(minHeight: 40)
+                                    .overlay { Capsule().strokeBorder(Theme.Palette.amber, lineWidth: 2) }
+                                    .buttonStyle(.plain)
+                            }
+                        }
+                        .transition(.opacity)
                     }
                 }
             }
         }
     }
+
+    private func detail(for recipe: Recipe) -> String {
+        var parts = ["\(recipe.minutes) min", recipe.costText]
+        if showsNutrition { parts.append(recipe.nutrition.summaryText) }
+        return parts.joined(separator: " · ")
+    }
 }
 
 private struct ChatRecipeCard: View {
-    let recipe: Recipe
-    let showsNutrition: Bool
+    let title: String
+    let emoji: String
+    let imageURL: String?
+    let detail: String
+    let isOnline: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: Theme.Spacing.s) {
-                Text(recipe.emoji)
-                    .font(.title2)
-                    .frame(width: 40, height: 40)
-                    .background(Theme.Palette.amber.opacity(0.25), in: Circle())
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(recipe.title)
+                RecipeThumb(emoji: emoji, imageURL: imageURL, size: 44, emojiSize: 24)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
                         .font(.subheadline.bold())
-                    Text("\(recipe.minutes) min · \(recipe.costText)")
+                        .multilineTextAlignment(.leading)
+                    Text(detail)
                         .font(.caption)
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                    if showsNutrition {
-                        Text(recipe.nutrition.summaryText)
-                            .font(.caption)
-                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                    }
+                    if isOnline { OnlineTag() }
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
@@ -342,6 +454,83 @@ private struct ChatRecipeCard: View {
         }
         .buttonStyle(.plain)
         .accessibilityHint("Opens the recipe")
+    }
+}
+
+/// A pantry change to confirm: one row per item with + and −, then a button
+/// to do it and one to leave it. Afterwards it says what happened.
+private struct PantryChangeCard: View {
+    let proposal: PantryProposal
+    let onStep: (String, Int) -> Void
+    let onConfirm: () -> Void
+    let onDismiss: () -> Void
+
+    private var isPending: Bool { proposal.state == .pending }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+            ForEach(proposal.lines) { line in
+                HStack(spacing: Theme.Spacing.xs) {
+                    Text(line.item.emoji)
+                    Text(line.item.name)
+                        .font(.subheadline.weight(.semibold))
+                        .strikethrough(line.action == .remove && proposal.state == .applied)
+                    Spacer(minLength: 0)
+                    if isPending, line.hasStepper {
+                        stepButton("minus", label: "Less \(line.item.name)") { onStep(line.id, -1) }
+                            .disabled(line.quantity == nil || line.quantity == 0)
+                    }
+                    Text(line.label)
+                        .font(.subheadline.bold())
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .frame(minWidth: 60)
+                    if isPending, line.hasStepper {
+                        stepButton("plus", label: "More \(line.item.name)") { onStep(line.id, 1) }
+                    }
+                }
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(minHeight: 44)
+            }
+            switch proposal.state {
+            case .pending:
+                Button(proposal.isAllAdds ? "Add to pantry" : "Update pantry", action: onConfirm)
+                    .buttonStyle(PillButtonStyle())
+                    .padding(.top, Theme.Spacing.xs)
+                Button("Not now", action: onDismiss)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: 44)
+            case .applied:
+                Label("Your pantry's updated", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Theme.Palette.sage)
+            case .dismissed:
+                Text("Left as it was")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))
+            }
+        }
+        .padding(Theme.Spacing.s)
+        .background(Theme.Palette.surface, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: Theme.cardRadius)
+                .strokeBorder(Theme.Palette.amber, lineWidth: isPending ? 2 : 0)
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: proposal)
+        .tapFeedback(proposal.lines.map(\.quantity))
+    }
+
+    private func stepButton(_ symbol: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.footnote.bold())
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(width: 36, height: 36)
+                .background(Theme.Palette.softAmber, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
     }
 }
 

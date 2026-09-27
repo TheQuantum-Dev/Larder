@@ -43,6 +43,8 @@ nonisolated struct PantryUpdate: Equatable, Sendable {
     var remove: Set<String> = []
     /// How many of the new things there are, where that's known.
     var addAmounts: [String: Double] = [:]
+    /// The unit an amount is in, when it isn't a plain count ("2 cans").
+    var units: [String: PantryUnit] = [:]
 
     var isEmpty: Bool { add.isEmpty && amounts.isEmpty && remove.isEmpty }
 }

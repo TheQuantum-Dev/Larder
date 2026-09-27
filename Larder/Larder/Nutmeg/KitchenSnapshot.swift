@@ -18,6 +18,31 @@ nonisolated struct KitchenSnapshot: Sendable {
         let emoji: String
         /// "6", "500 g" and so on; nil when no amount was set.
         let amount: String?
+        /// The same amount as a number and a unit, for adding to it.
+        var quantity: Double? = nil
+        var unit: String? = nil
+    }
+
+    /// Something cooked in Larder today.
+    struct MealLine: Sendable, Equatable {
+        let title: String
+        let time: Date
+        /// What was eaten of it; nil for meals logged before numbers were kept.
+        let macros: Macros?
+    }
+
+    /// Whether online recipes can be offered right now, and if not, why not.
+    enum OnlineAvailability: Sendable, Equatable {
+        /// This build can't look recipes up.
+        case unavailable
+        /// The person hasn't switched them on.
+        case off
+        /// A lookup is on its way.
+        case looking
+        case ready
+        /// The day's free lookups are used up.
+        case resting
+        case offline
     }
 
     var pantry: [Item] = []
@@ -45,6 +70,9 @@ nonisolated struct KitchenSnapshot: Sendable {
     var mealsToday = 0
     var dailyAverage: Macros?
 
+    var mealsTodayList: [MealLine] = []
+    var online = OnlineAvailability.unavailable
+
     var readyMatches: [RecipeMatch] { matches.filter(\.isReady) }
     var pantryIDs: Set<String> { Set(pantry.map(\.id)) }
 
@@ -57,16 +85,24 @@ extension KitchenSnapshot {
     /// Builds a snapshot from the live data. Runs on the main actor, where
     /// SwiftData's objects live.
     static func capture(pantry: [PantryItem], meals: [CookedMeal], profile: Profile,
-                        weeklyBudget: Int, mealGoal: Int, now: Date = Date()) -> KitchenSnapshot {
+                        weeklyBudget: Int, mealGoal: Int, online: [Recipe] = [],
+                        onlineStatus: OnlineAvailability = .unavailable, onlineOnly: Bool = false,
+                        hiddenOnline: Set<String> = [], now: Date = Date()) -> KitchenSnapshot {
         let stats = MealStats.compute(from: meals, now: now)
         let budget = BudgetInsights.compute(from: meals, budget: weeklyBudget, now: now)
         let dates = meals.map(\.cookedAt)
         let nutrition = NutritionInsights.compute(from: meals, now: now)
         return KitchenSnapshot(
-            pantry: pantry.map { Item(id: $0.ingredientID, name: $0.name, emoji: $0.emoji, amount: $0.amountText) },
-            matches: RecipeMatcher.matches(pantry: Set(pantry.map(\.ingredientID)), diets: profile.dietSet,
-                                           priorities: profile.prioritySet, cooking: profile.cookingSet,
-                                           goal: profile.goalContext, maxMissing: .max),
+            pantry: pantry.map { Item(id: $0.ingredientID, name: $0.name, emoji: $0.emoji, amount: $0.amountText,
+                                      quantity: $0.quantity, unit: $0.unit) },
+            // Larder's own recipes and any found online, ranked together the
+            // same way the Recipes tab ranks them.
+            matches: RecipePool.matches(bundled: RecipeStore.all, online: online, onlineOnly: onlineOnly,
+                                        hidden: hiddenOnline) { recipes in
+                RecipeMatcher.matches(recipes: recipes, pantry: Set(pantry.map(\.ingredientID)),
+                                      diets: profile.dietSet, priorities: profile.prioritySet,
+                                      cooking: profile.cookingSet, goal: profile.goalContext, maxMissing: .max)
+            },
             mealCount: stats.mealCount,
             mealsThisWeek: stats.mealsThisWeek,
             totalSaved: stats.totalSaved,
@@ -82,29 +118,40 @@ extension KitchenSnapshot {
             targets: profile.dailyTargets,
             today: nutrition.today,
             mealsToday: nutrition.mealsToday,
-            dailyAverage: nutrition.dailyAverage)
+            dailyAverage: nutrition.dailyAverage,
+            mealsTodayList: meals.filter { Calendar.current.isDate($0.cookedAt, inSameDayAs: now) }
+                .sorted { $0.cookedAt < $1.cookedAt }
+                .map { MealLine(title: $0.title, time: $0.cookedAt, macros: $0.nutrition) },
+            online: onlineStatus)
     }
 }
 
-/// One answer from Nutmeg: what to say, plus any recipes to show as cards.
-/// Recipe ids are checked against the bundled book, so neither engine can
-/// ever put a made-up recipe in front of someone.
+/// One answer from Nutmeg: what to say, plus any recipes to show as cards,
+/// quick replies to tap, or a pantry change to confirm. Recipe ids are checked
+/// against the bundled book (or are ids of recipes found online, which only
+/// ever come from the kitchen snapshot), so neither engine can ever put a
+/// made-up recipe in front of someone.
 nonisolated struct NutmegReply: Equatable, Sendable {
     static let maxRecipes = 3
 
     let text: String
     let recipeIDs: [String]
+    var quickReplies: [String] = []
+    var pantryChange: PantryCommand?
 
-    init(_ text: String, recipeIDs: [String] = []) {
+    init(_ text: String, recipeIDs: [String] = [], quickReplies: [String] = [], pantryChange: PantryCommand? = nil) {
         self.text = text
         self.recipeIDs = Self.valid(recipeIDs)
+        self.quickReplies = quickReplies
+        self.pantryChange = pantryChange
     }
 
     /// Known ids only, no repeats, at most three.
     static func valid(_ ids: [String]) -> [String] {
         var seen: Set<String> = []
         return ids
-            .filter { RecipeStore.recipe(withID: $0) != nil && seen.insert($0).inserted }
+            .filter { (RecipeStore.recipe(withID: $0) != nil || $0.hasPrefix(OnlineRecipeMapper.idPrefix))
+                && seen.insert($0).inserted }
             .prefix(maxRecipes)
             .map { $0 }
     }
