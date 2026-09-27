@@ -55,6 +55,15 @@ struct RecipePoolTests {
         #expect(pool(online: [bigShop], onlineOnly: true).count == 2)
     }
 
+    @Test func aHiddenOnlineRecipeNeverShows() {
+        let online = [recipe("sp-1", needs: ["egg"], online: true), recipe("sp-2", needs: ["rice"], online: true)]
+        let ids = RecipePool.matches(bundled: bundled, online: online, onlineOnly: true, hidden: ["sp-1"]) { recipes in
+            RecipeMatcher.matches(recipes: recipes, pantry: pantry, maxMissing: .max)
+        }.map(\.id)
+        #expect(ids == ["sp-2"])
+        #expect(RecipePool.hiddenIDs(RecipePool.hiding("sp-9", in: "sp-1")) == ["sp-1", "sp-9"])
+    }
+
     @Test func theOnlineChipKeepsOnlyOnlineRecipes() {
         let matches = pool(online: [recipe("sp-1", needs: ["egg"], online: true)], onlineOnly: false)
         #expect(RecipeFilter.apply(.online, query: "", to: matches).map(\.id) == ["sp-1"])

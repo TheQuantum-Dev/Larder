@@ -86,6 +86,9 @@ nonisolated enum AppSettings {
     static let onlineRecipesKey = "onlineRecipes"
     /// Whether lists show only the online recipes while there are some (off by default).
     static let onlineOnlyKey = "onlineRecipesOnly"
+    /// Online recipes the person chose to hide, as comma-separated ids. Only
+    /// ids are kept, which the recipe service allows.
+    static let hiddenOnlineKey = "hiddenOnlineRecipes"
     /// Whether cooked meals are saved to Apple Health (off until the person connects it).
     static let healthSyncKey = "healthSync"
     /// Whether height and weight are typed in metric (true) or feet, inches and pounds.

@@ -86,6 +86,7 @@ struct RecipesView: View {
     @Query private var notes: [RecipeNote]
     @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
     @AppStorage(AppSettings.onlineOnlyKey) private var onlineOnly = false
+    @AppStorage(AppSettings.hiddenOnlineKey) private var hiddenOnline = ""
 
     @State private var filter = RecipesView.launchFilter
     @State private var query = RecipesView.launchQuery
@@ -117,7 +118,8 @@ struct RecipesView: View {
     private var allMatches: [RecipeMatch] {
         let taste = RecipeTaste(notes: notes)
         return RecipePool.matches(bundled: RecipeStore.all, online: online.recipes,
-                                  onlineOnly: showsOnlyOnline && filter != .favorites) { recipes in
+                                  onlineOnly: showsOnlyOnline && filter != .favorites,
+                                  hidden: RecipePool.hiddenIDs(hiddenOnline)) { recipes in
             RecipeMatcher.matches(recipes: recipes, pantry: Set(pantry.map(\.ingredientID)),
                                   diets: app.profile.dietSet, priorities: app.profile.prioritySet,
                                   cooking: app.profile.cookingSet, goal: app.profile.goalContext,

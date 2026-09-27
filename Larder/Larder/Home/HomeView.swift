@@ -25,6 +25,7 @@ struct HomeView: View {
     @AppStorage(AppSettings.lastGoalCheerKey) private var lastGoalCheer = ""
     @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
     @AppStorage(AppSettings.onlineOnlyKey) private var onlineOnly = false
+    @AppStorage(AppSettings.hiddenOnlineKey) private var hiddenOnline = ""
 
     @State private var selected: RecipeMatch?
     /// The time Home is working from. It moves on at each meal boundary and
@@ -51,7 +52,8 @@ struct HomeView: View {
         // Larder's own recipes and any found online, ranked together (or only
         // the online ones, if that's what the person picked and there are some).
         let matches = RecipePool.matches(bundled: RecipeStore.all, online: online.recipes,
-                                         onlineOnly: onlineEnabled && onlineOnly) { recipes in
+                                         onlineOnly: onlineEnabled && onlineOnly,
+                                         hidden: RecipePool.hiddenIDs(hiddenOnline)) { recipes in
             RecipeMatcher.bestMatches(recipes: recipes, pantry: Set(pantry.map(\.ingredientID)),
                                       diets: app.profile.dietSet, priorities: app.profile.prioritySet,
                                       cooking: app.profile.cookingSet, goal: goal, taste: taste).matches

@@ -21,6 +21,8 @@ struct RecipeDetailView: View {
     @Environment(\.modelContext) private var context
     @State private var addedToList = false
     @State private var nod = 0
+    @State private var confirmingHide = false
+    @AppStorage(AppSettings.hiddenOnlineKey) private var hiddenOnline = ""
 
     private var recipe: Recipe { match.recipe }
     private var missingIDs: Set<String> { Set(match.missing.map(\.id)) }
@@ -47,6 +49,15 @@ struct RecipeDetailView: View {
         .overlay(alignment: .topTrailing) { topButtons }
         .safeAreaInset(edge: .bottom) { cookBar }
         .presentationDragIndicator(.visible)
+        .alert("Hide this recipe?", isPresented: $confirmingHide) {
+            Button("Keep it", role: .cancel) {}
+            Button("Hide it", role: .destructive) {
+                hiddenOnline = RecipePool.hiding(recipe.id, in: hiddenOnline)
+                dismiss()
+            }
+        } message: {
+            Text("You won't see it in your recipes or as a pick again.")
+        }
     }
 
     /// `-detailScroll bottom` scrolls a recipe sheet to its footnotes (debug builds only).
@@ -263,6 +274,13 @@ struct RecipeDetailView: View {
                     .tint(Theme.Palette.textPrimary.opacity(0.75))
             }
             SpoonacularCredit()
+            // Anyone can post a recipe online, so anything odd can be put away for good.
+            Button { confirmingHide = true } label: {
+                Label("Something wrong with it? Hide this recipe", systemImage: "eye.slash")
+                    .underline()
+            }
+            .tint(Theme.Palette.textPrimary.opacity(0.75))
+            .padding(.top, 4)
         }
     }
 
