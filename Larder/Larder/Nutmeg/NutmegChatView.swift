@@ -119,6 +119,7 @@ struct NutmegChatScreen: View {
     @Environment(\.modelContext) private var context
     @Query private var pantry: [PantryItem]
     @Query private var meals: [CookedMeal]
+    @Query private var shopping: [ShoppingItem]
     @AppStorage(AppSettings.weeklyBudgetKey) private var weeklyBudget = 0
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
     @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
@@ -174,7 +175,14 @@ struct NutmegChatScreen: View {
                            offersShoppingList: true)
         .tapFeedback(chat.messages.count)
         .sensoryFeedback(.impact(weight: .medium), trigger: voice.state == .listening)
-        .onAppear { chat.showsNutrition = app.profile.showsNutrition }
+        .onAppear {
+            chat.showsNutrition = app.profile.showsNutrition
+            // Things Nutmeg puts on the list are saved here, where the database is.
+            chat.onAddToList = { entries in
+                ShoppingRepository.add(entries, in: context)
+                SoundPlayer.pop()
+            }
+        }
         .onDisappear { voice.cancel() }
         .task {
             await chat.prewarm()
@@ -195,7 +203,7 @@ struct NutmegChatScreen: View {
     /// Everything Nutmeg can see right now, including any recipes found online.
     private func kitchen() -> KitchenSnapshot {
         KitchenSnapshot.capture(pantry: pantry, meals: meals, profile: app.profile, weeklyBudget: weeklyBudget,
-                                mealGoal: mealGoal, online: online.recipes, onlineStatus: onlineAvailability,
+                                mealGoal: mealGoal, shopping: shopping, online: online.recipes, onlineStatus: onlineAvailability,
                                 onlineOnly: onlineEnabled && onlineOnly, hiddenOnline: RecipePool.hiddenIDs(hiddenOnline))
     }
 

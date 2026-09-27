@@ -82,7 +82,8 @@ actor ModelBrain: NutmegBrain {
     static func answersFromFacts(_ intent: NutmegIntent) -> Bool {
         switch intent {
         case .savings, .streak, .budget, .pantryContents, .caloriesToday, .proteinToday, .ingredientNutrition,
-             .eatenToday, .pantryChange, .onlineIdea, .moodQuestion, .surprise, .craving: true
+             .eatenToday, .pantryChange, .onlineIdea, .moodQuestion, .surprise, .craving, .shoppingList,
+             .addToShoppingList, .runningLow: true
         default: false
         }
     }

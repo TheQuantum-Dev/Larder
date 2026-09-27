@@ -72,6 +72,22 @@ nonisolated struct KitchenSnapshot: Sendable {
 
     var mealsTodayList: [MealLine] = []
     var online = OnlineAvailability.unavailable
+    /// Which meal it is now, so ideas for it come first.
+    var slot = MealSlot.dinner
+    /// The shopping list.
+    var shopping: [ShoppingLine] = []
+
+    /// One thing on the shopping list.
+    struct ShoppingLine: Sendable, Equatable {
+        let name: String
+        let amount: String?
+        let isBought: Bool
+    }
+
+    /// Pantry items that are nearly out, going by their amounts.
+    var lowItems: [Item] {
+        pantry.filter { PantryAmount.isRunningLow(Amount(quantity: $0.quantity, unit: $0.unit)) }
+    }
 
     var readyMatches: [RecipeMatch] { matches.filter(\.isReady) }
     var pantryIDs: Set<String> { Set(pantry.map(\.id)) }
@@ -85,7 +101,7 @@ extension KitchenSnapshot {
     /// Builds a snapshot from the live data. Runs on the main actor, where
     /// SwiftData's objects live.
     static func capture(pantry: [PantryItem], meals: [CookedMeal], profile: Profile,
-                        weeklyBudget: Int, mealGoal: Int, online: [Recipe] = [],
+                        weeklyBudget: Int, mealGoal: Int, shopping: [ShoppingItem] = [], online: [Recipe] = [],
                         onlineStatus: OnlineAvailability = .unavailable, onlineOnly: Bool = false,
                         hiddenOnline: Set<String> = [], now: Date = Date()) -> KitchenSnapshot {
         let stats = MealStats.compute(from: meals, now: now)
@@ -122,7 +138,9 @@ extension KitchenSnapshot {
             mealsTodayList: meals.filter { Calendar.current.isDate($0.cookedAt, inSameDayAs: now) }
                 .sorted { $0.cookedAt < $1.cookedAt }
                 .map { MealLine(title: $0.title, time: $0.cookedAt, macros: $0.nutrition) },
-            online: onlineStatus)
+            online: onlineStatus,
+            slot: MealPlan.slot(at: now),
+            shopping: shopping.map { ShoppingLine(name: $0.name, amount: $0.amountText, isBought: $0.isBought) })
     }
 }
 
@@ -138,12 +156,22 @@ nonisolated struct NutmegReply: Equatable, Sendable {
     let recipeIDs: [String]
     var quickReplies: [String] = []
     var pantryChange: PantryCommand?
+    /// What Nutmeg offered to do next, so "yes" can mean something.
+    var offer: FollowUp?
+    /// Every recipe that fit, beyond the few shown, for "show me more".
+    var pool: [String] = []
+    /// Things to put on the shopping list right away (asked for outright).
+    var listAdditions: [ShoppingEntry] = []
 
-    init(_ text: String, recipeIDs: [String] = [], quickReplies: [String] = [], pantryChange: PantryCommand? = nil) {
+    init(_ text: String, recipeIDs: [String] = [], quickReplies: [String] = [], pantryChange: PantryCommand? = nil,
+         offer: FollowUp? = nil, pool: [String] = [], listAdditions: [ShoppingEntry] = []) {
         self.text = text
         self.recipeIDs = Self.valid(recipeIDs)
         self.quickReplies = quickReplies
         self.pantryChange = pantryChange
+        self.offer = offer
+        self.pool = pool
+        self.listAdditions = listAdditions
     }
 
     /// Known ids only, no repeats, at most three.
@@ -155,4 +183,12 @@ nonisolated struct NutmegReply: Equatable, Sendable {
             .prefix(maxRecipes)
             .map { $0 }
     }
+}
+
+/// Something Nutmeg offered, waiting on a yes or no.
+nonisolated enum FollowUp: Equatable, Sendable {
+    /// Put these on the shopping list.
+    case addToList([ShoppingEntry])
+    /// Some ideas for what to cook.
+    case ideas
 }

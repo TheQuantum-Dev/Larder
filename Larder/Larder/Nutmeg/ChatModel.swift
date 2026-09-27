@@ -47,6 +47,16 @@ final class ChatModel {
     private(set) var isThinking = false
     let engine: Engine
     @ObservationIgnored private let brain: any NutmegBrain
+    /// Answers follow-ups ("yes", "show me more", "the first one") from rules.
+    @ObservationIgnored private let offline = OfflineBrain()
+    /// Saves things Nutmeg puts on the shopping list; set by the chat screen.
+    @ObservationIgnored var onAddToList: ([ShoppingEntry]) -> Void = { _ in }
+
+    // What the conversation is about, so short replies make sense.
+    @ObservationIgnored private var pendingOffer: FollowUp?
+    @ObservationIgnored private var lastRecipeIDs: [String] = []
+    @ObservationIgnored private var pool: [String] = []
+    @ObservationIgnored private var shown = 0
 
     init(engine: Engine = ChatModel.defaultEngine) {
         self.engine = engine
@@ -78,7 +88,14 @@ final class ChatModel {
         messages.append(ChatMessage(role: .person, text: trimmed, isVoice: isVoice))
         isThinking = true
         let started = Date()
-        let reply = await brain.reply(to: trimmed, in: kitchen)
+        let reply: NutmegReply
+        if let followUp = followUp(to: trimmed, in: kitchen) {
+            reply = followUp
+        } else {
+            reply = await brain.reply(to: trimmed, in: kitchen)
+        }
+        remember(reply)
+        if !reply.listAdditions.isEmpty { onAddToList(reply.listAdditions) }
         // The offline answer is instant; a short beat lets the reply read as
         // a reply instead of appearing before the question has settled.
         let minimum = 0.4 - Date().timeIntervalSince(started)
@@ -89,6 +106,79 @@ final class ChatModel {
                                     quickReplies: reply.quickReplies,
                                     pantryChange: reply.pantryChange.map { PantryProposal($0, pantry: kitchen.pantry) },
                                     onlineRefs: online.map(RecipeRef.init)))
+    }
+
+    // MARK: - Follow-ups
+
+    /// Short replies that only make sense after what Nutmeg just said: a yes
+    /// or no to his offer, "show me more", or "the first one". Nil for
+    /// anything else, which goes to the brain as usual.
+    func followUp(to message: String, in kitchen: KitchenSnapshot) -> NutmegReply? {
+        let text = " " + IngredientCatalog.key(for: message) + " "
+        let wordCount = text.split(separator: " ").count
+        func has(_ phrases: [String]) -> Bool {
+            phrases.contains { text.contains(" " + IngredientCatalog.key(for: $0) + " ") }
+        }
+        let isYes = wordCount <= 7 && (has(["yes", "yeah", "yep", "yup", "sure", "ok", "okay", "go on", "do it",
+                                            "sounds good", "why not", "please do", "go for it"])
+                                       || (pendingOfferIsList && has(["add"]) && !has(["no"])))
+        let isNo = wordCount <= 5 && has(["no", "nah", "nope", "not now", "never mind", "nevermind", "no thanks"])
+
+        if isNo {
+            let hadOffer = pendingOffer != nil
+            pendingOffer = nil
+            return NutmegReply(hadOffer ? "No problem! I'm here if you change your mind." : "Okay! Anything else I can help with?")
+        }
+        if isYes {
+            if let offer = pendingOffer { return offline.accept(offer, in: kitchen) }
+            return NutmegReply("Great! What are you in the mood for?", quickReplies: OfflineBrain.moods(for: kitchen))
+        }
+        if wordCount <= 6, has(["more", "show me more", "anything else", "other ideas", "what else", "others",
+                                "something else", "other ones"]), shown < pool.count {
+            let next = Array(pool.dropFirst(shown).prefix(NutmegReply.maxRecipes))
+            let left = pool.count - shown - next.count
+            return NutmegReply("Here are a few more:", recipeIDs: next,
+                               quickReplies: left > 0 ? ["Show me more"] : [], pool: pool)
+        }
+        if let id = referencedRecipe(in: text, wordCount: wordCount) {
+            return offline.answer(.aboutRecipe(id), in: kitchen)
+        }
+        return nil
+    }
+
+    private var pendingOfferIsList: Bool {
+        if case .addToList = pendingOffer { return true }
+        return false
+    }
+
+    /// "The first one", "the second", "that one", "what do I need for it".
+    private func referencedRecipe(in text: String, wordCount: Int) -> String? {
+        guard !lastRecipeIDs.isEmpty, wordCount <= 10 else { return nil }
+        let ordinals: [(String, Int)] = [("first", 0), ("1st", 0), ("second", 1), ("2nd", 1), ("third", 2), ("3rd", 2)]
+        for (word, index) in ordinals where text.contains(" \(word) ") {
+            return lastRecipeIDs.indices.contains(index) ? lastRecipeIDs[index] : nil
+        }
+        if text.contains(" last one ") { return lastRecipeIDs.last }
+        let pointsBack = [" that one ", " this one ", " that ", " it "].contains { text.contains($0) }
+        let asksAbout = [" need ", " make ", " cook ", " how ", " what ", " tell ", " long ", " cost "].contains { text.contains($0) }
+        return pointsBack && asksAbout ? lastRecipeIDs.first : nil
+    }
+
+    /// Keeps what a reply offered and showed, for the next short reply.
+    private func remember(_ reply: NutmegReply) {
+        pendingOffer = reply.offer
+        if !reply.recipeIDs.isEmpty {
+            lastRecipeIDs = reply.recipeIDs
+            if reply.pool.isEmpty {
+                pool = reply.recipeIDs
+                shown = reply.recipeIDs.count
+            } else if reply.pool == pool {
+                shown += reply.recipeIDs.count
+            } else {
+                pool = reply.pool
+                shown = reply.recipeIDs.count
+            }
+        }
     }
 
     // MARK: - Pantry changes

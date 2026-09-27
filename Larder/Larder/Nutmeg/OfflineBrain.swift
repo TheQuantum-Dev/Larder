@@ -26,6 +26,12 @@ nonisolated enum NutmegIntent: Equatable, Sendable {
     case moodQuestion
     case surprise
     case craving(Craving)
+    /// "What's on my shopping list?"
+    case shoppingList
+    /// "Add milk to my shopping list", "I need to buy eggs".
+    case addToShoppingList([ShoppingEntry])
+    /// "What's running low?"
+    case runningLow
     case offTopic
 }
 
@@ -75,6 +81,13 @@ nonisolated struct OfflineBrain: Sendable {
         if has(text, ["thank", "thanks", "thx", "cheers", "ty"]) { return .thanks }
         if has(text, ["help", "what can you do", "how do you work", "what do you do"]) { return .help }
 
+        // The shopping list before the pantry: "add milk to my list" is
+        // something to buy, not something that's already in the kitchen.
+        if let entries = Self.shoppingAdditions(in: message, text: text) { return .addToShoppingList(entries) }
+        if has(text, ["shopping list", "my list", "on my list", "on the list", "what do i need to buy",
+                      "what do i need to get", "what should i buy"]) { return .shoppingList }
+        if has(text, ["running low", "run low", "almost out", "low on", "nearly out", "about to run out",
+                      "running out"]) { return .runningLow }
         // Changing the pantry comes first: "add 2 cans of beans" isn't a
         // search for bean recipes.
         if let command = PantryCommand.parse(message) { return .pantryChange(command) }
@@ -141,6 +154,26 @@ nonisolated struct OfflineBrain: Sendable {
             return .whatCanIMake
         }
         return fallback(message) ?? .offTopic
+    }
+
+    /// "Add milk to my shopping list", "I need to buy 6 eggs": the things
+    /// to put on the list, with amounts. Nil unless it's about the list.
+    static func shoppingAdditions(in message: String, text: String) -> [ShoppingEntry]? {
+        let aboutList = ["shopping list", "my list", "the list", "to buy", "to get", "remind me to buy"]
+        let wantsToAdd = ["add", "put", "need", "remind", "buy", "get", "stick"]
+        func has(_ phrases: [String]) -> Bool {
+            phrases.contains { text.contains(" " + IngredientCatalog.key(for: $0) + " ") }
+        }
+        guard has(aboutList), has(wantsToAdd), !message.contains("?") else { return nil }
+        var cleaned = " " + message.lowercased() + " "
+        for phrase in ["to my shopping list", "to the shopping list", "on my shopping list", "on the shopping list",
+                       "onto my list", "to my list", "on my list", "to the list", "on the list", "shopping list",
+                       "my list", "remind me to buy", "remind me to get", "i need to buy", "i need to get",
+                       "need to buy", "need to get", "i have to buy", "please", "can you", "could you"] {
+            cleaned = cleaned.replacingOccurrences(of: " " + phrase + " ", with: " ")
+        }
+        guard let lines = PantryCommand.parse("add " + cleaned)?.lines, !lines.isEmpty else { return nil }
+        return lines.map { line in ShoppingEntry(item: line.item, amount: line.quantity.map { Amount($0, line.unit ?? .items) }) }
     }
 
     /// Whole-word or whole-phrase matches against the normalised message.
@@ -215,7 +248,10 @@ nonisolated struct OfflineBrain: Sendable {
         case .help:
             return NutmegReply("I can find recipes from what you've got, tell you what's missing for one, and check your savings, streak, budget and calories. Try \"something quick\" or \"what can I make with eggs?\"")
         case .whatCanIMake:
-            return suggestions(from: kitchen.matches, in: kitchen,
+            // Ideas for the meal it is now come first: breakfast in the morning.
+            let forNow = kitchen.matches.filter { $0.recipe.suits(kitchen.slot) }
+                + kitchen.matches.filter { !$0.recipe.suits(kitchen.slot) }
+            return suggestions(from: forNow, in: kitchen,
                                ready: "You can make %d things right now. Here are my top picks:",
                                close: "Nothing's fully ready yet, but these are close:")
         case .quick:
@@ -286,8 +322,17 @@ nonisolated struct OfflineBrain: Sendable {
             return streak(kitchen)
         case .budget:
             return budget(kitchen)
+        case .shoppingList:
+            return shoppingList(kitchen)
+        case .addToShoppingList(let entries):
+            return NutmegReply("Done! I've put \(Self.list(entries.map(Self.named))) on your shopping list.",
+                               listAdditions: entries)
+        case .runningLow:
+            return runningLow(kitchen)
         case .offTopic:
-            return NutmegReply("I'm best with food things: what to cook, what's in your pantry, and how your week's going. Want some ideas for tonight?")
+            return NutmegReply("I'm best with food things: what to cook, what's in your pantry, and how your week's going. Want some ideas?",
+                               quickReplies: ["What can I make?", "Surprise me", "What's in my pantry?"],
+                               offer: .ideas)
         }
     }
 
@@ -300,14 +345,34 @@ nonisolated struct OfflineBrain: Sendable {
         let ready = pool.filter(\.isReady)
         if !ready.isEmpty {
             let text = readyLine.contains("%d") ? String(format: readyLine, ready.count) : readyLine
-            return NutmegReply(text, recipeIDs: ready.map(\.recipe.id))
+            return NutmegReply(text, recipeIDs: ready.map(\.recipe.id),
+                               quickReplies: ready.count > NutmegReply.maxRecipes ? ["Show me more"] : [],
+                               pool: ready.map(\.recipe.id))
         }
         let close = pool.filter { $0.missing.count <= 2 }.sorted { $0.missing.count < $1.missing.count }
         guard let best = close.first else {
-            return NutmegReply("Nothing like that is close with what you've got. Want to see everything that is?")
+            // Nothing's near: still show the closest, and offer to put what the
+            // best one needs on the list, rather than a dead end.
+            let nearest = pool.sorted { $0.missing.count < $1.missing.count }
+            guard let first = nearest.first else {
+                return NutmegReply("I couldn't find anything like that yet. Want to hear what you can make?",
+                                   quickReplies: ["What can I make?", "Surprise me"], offer: .ideas)
+            }
+            let needs = first.missing.compactMap { line in
+                IngredientCatalog.resolvedItem(forID: line.id).map { ShoppingEntry(item: $0, amount: ShoppingAmount.amount(for: line)) }
+            }
+            return NutmegReply("Nothing's ready with what you've got yet. The closest is \(first.recipe.title), which needs \(Self.list(names(first.missing))). Want me to put that on your shopping list?",
+                               recipeIDs: nearest.map(\.recipe.id),
+                               quickReplies: ["Yes, add it to my list", "Show me more", "Surprise me"],
+                               offer: needs.isEmpty ? nil : .addToList(needs), pool: nearest.map(\.recipe.id))
         }
-        return NutmegReply("\(closeLine) \(best.recipe.title) only needs \(Self.list(names(best.missing))).",
-                           recipeIDs: close.map(\.recipe.id))
+        let needs = best.missing.compactMap { line in
+            IngredientCatalog.resolvedItem(forID: line.id).map { ShoppingEntry(item: $0, amount: ShoppingAmount.amount(for: line)) }
+        }
+        return NutmegReply("\(closeLine) \(best.recipe.title) only needs \(Self.list(names(best.missing))). Want me to put that on your shopping list?",
+                           recipeIDs: close.map(\.recipe.id),
+                           quickReplies: needs.isEmpty ? [] : ["Yes, add it to my list", "Show me more"],
+                           offer: needs.isEmpty ? nil : .addToList(needs), pool: close.map(\.recipe.id))
     }
 
     private func withIngredients(_ ids: [String], in kitchen: KitchenSnapshot) -> NutmegReply {
@@ -340,6 +405,57 @@ nonisolated struct OfflineBrain: Sendable {
         }
         return NutmegReply("For \(recipe.title) you're missing \(Self.list(names(match.missing))). Everything else is already in your kitchen.\(numbers)",
                            recipeIDs: [id])
+    }
+
+    // MARK: - Shopping list and running low
+
+    private func shoppingList(_ kitchen: KitchenSnapshot) -> NutmegReply {
+        let toGet = kitchen.shopping.filter { !$0.isBought }
+        let bought = kitchen.shopping.count - toGet.count
+        guard !toGet.isEmpty else {
+            let basket = bought > 0 ? " Everything's in your basket already." : ""
+            return NutmegReply("Nothing left to get.\(basket) Tell me what to add, like \"add milk to my list\".")
+        }
+        let items = toGet.prefix(8).map { line in line.amount.map { "\(line.name.lowercased()) (\($0))" } ?? line.name.lowercased() }
+        let more = toGet.count > items.count ? ", and \(toGet.count - items.count) more" : ""
+        let basket = bought > 0 ? " \(bought) already in your basket." : ""
+        return NutmegReply("On your list: \(items.joined(separator: ", "))\(more).\(basket)")
+    }
+
+    private func runningLow(_ kitchen: KitchenSnapshot) -> NutmegReply {
+        let low = kitchen.lowItems
+        guard !low.isEmpty else {
+            return NutmegReply("Nothing's running low that I can tell. Setting amounts in your pantry helps me keep an eye on it.")
+        }
+        let listed = Set(kitchen.shopping.filter { !$0.isBought }.map { $0.name.lowercased() })
+        let names = low.map { item in item.amount.map { "\(item.name.lowercased()) (\($0))" } ?? item.name.lowercased() }
+        let toAdd = low.filter { !listed.contains($0.name.lowercased()) }
+            .compactMap { IngredientCatalog.resolvedItem(forID: $0.id).map { ShoppingEntry(item: $0) } }
+        guard !toAdd.isEmpty else {
+            return NutmegReply("You're running low on \(Self.list(names)). They're already on your shopping list.")
+        }
+        return NutmegReply("You're running low on \(Self.list(names)). Want me to add \(toAdd.count == 1 ? "it" : "them") to your shopping list?",
+                           quickReplies: ["Yes, add \(toAdd.count == 1 ? "it" : "them")", "No thanks"],
+                           offer: .addToList(toAdd))
+    }
+
+    /// "eggs (6)" or "milk".
+    static func named(_ entry: ShoppingEntry) -> String {
+        let name = entry.item.name.lowercased()
+        return entry.amount.map { "\(name) (\($0.text))" } ?? name
+    }
+
+    // MARK: - Follow-ups
+
+    /// Saying yes to what Nutmeg offered.
+    func accept(_ offer: FollowUp, in kitchen: KitchenSnapshot) -> NutmegReply {
+        switch offer {
+        case .addToList(let entries):
+            return NutmegReply("Done! \(Self.list(entries.map(Self.named)).capitalizedFirstLetter) \(entries.count == 1 ? "is" : "are") on your shopping list.",
+                               listAdditions: entries)
+        case .ideas:
+            return answer(.whatCanIMake, in: kitchen)
+        }
     }
 
     // MARK: - Moods, surprises and online ideas
@@ -594,4 +710,9 @@ nonisolated enum IntentEmbeddings {
         guard let best = scored.min(by: { $0.1 < $1.1 }), best.1 < threshold else { return nil }
         return best.0
     }
+}
+
+nonisolated extension String {
+    /// "eggs and milk" → "Eggs and milk".
+    var capitalizedFirstLetter: String { prefix(1).uppercased() + dropFirst() }
 }
