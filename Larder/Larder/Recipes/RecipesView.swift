@@ -11,14 +11,15 @@ import SwiftUI
 /// Quick ways to narrow the list. One at a time, so it's always obvious why
 /// something is or isn't showing.
 nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
-    case all, favorites, ready, quick, cheap, noStove, highProtein, lighter, hearty
+    case all, favorites, online, ready, quick, cheap, noStove, highProtein, lighter, hearty
 
     var id: String { rawValue }
 
     /// The chips to offer. The calorie and protein ones go away entirely when
-    /// someone has chosen not to see numbers.
-    static func available(showsNutrition: Bool) -> [RecipeFilter] {
-        showsNutrition ? allCases : allCases.filter { !$0.needsNutrition }
+    /// someone has chosen not to see numbers, and "Online" only shows while
+    /// online recipes are switched on.
+    static func available(showsNutrition: Bool, offersOnline: Bool = false) -> [RecipeFilter] {
+        allCases.filter { (showsNutrition || !$0.needsNutrition) && (offersOnline || $0 != .online) }
     }
 
     var needsNutrition: Bool { [.highProtein, .lighter, .hearty].contains(self) }
@@ -27,6 +28,7 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .all: "All"
         case .favorites: "Favorites"
+        case .online: "Online"
         case .ready: "Ready now"
         case .quick: "Quick"
         case .cheap: "Cheap"
@@ -51,6 +53,7 @@ nonisolated enum RecipeFilter: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .all: true
         case .favorites: favorites.contains(match.id)
+        case .online: match.recipe.isOnline
         case .ready: match.isReady
         case .quick: match.recipe.minutes <= Self.quickMinutes
         case .cheap: match.recipe.costPerServing <= Self.cheapPerServing
@@ -82,6 +85,7 @@ struct RecipesView: View {
     @Query private var listed: [ShoppingItem]
     @Query private var notes: [RecipeNote]
     @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
+    @AppStorage(AppSettings.onlineOnlyKey) private var onlineOnly = false
 
     @State private var filter = RecipesView.launchFilter
     @State private var query = RecipesView.launchQuery
@@ -108,51 +112,53 @@ struct RecipesView: View {
         #endif
     }
 
+    /// Larder's recipes and the online ones, ranked together. Favorites always
+    /// include Larder's own, even with "only online recipes" on: they're yours.
     private var allMatches: [RecipeMatch] {
-        RecipeMatcher.matches(pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
-                              priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
-                              goal: app.profile.goalContext, taste: RecipeTaste(notes: notes), maxMissing: .max)
+        let taste = RecipeTaste(notes: notes)
+        return RecipePool.matches(bundled: RecipeStore.all, online: online.recipes,
+                                  onlineOnly: showsOnlyOnline && filter != .favorites) { recipes in
+            RecipeMatcher.matches(recipes: recipes, pantry: Set(pantry.map(\.ingredientID)),
+                                  diets: app.profile.dietSet, priorities: app.profile.prioritySet,
+                                  cooking: app.profile.cookingSet, goal: app.profile.goalContext,
+                                  taste: taste, maxMissing: .max)
+        }
     }
+
+    private var offersOnline: Bool { OnlineRecipeConfig.isAvailable && onlineEnabled }
+    private var showsOnlyOnline: Bool { offersOnline && onlineOnly }
 
     private var favorites: Set<String> {
         Set(notes.filter(\.isFavorite).map(\.recipeID))
     }
 
-    /// Recipes found online, ranked the same way as Larder's own.
-    private var onlineMatches: [RecipeMatch] {
-        RecipeMatcher.matches(recipes: online.recipes, pantry: Set(pantry.map(\.ingredientID)),
-                              diets: app.profile.dietSet, priorities: app.profile.prioritySet,
-                              cooking: app.profile.cookingSet, goal: app.profile.goalContext,
-                              taste: RecipeTaste(notes: notes), maxMissing: 6)
-    }
-
     var body: some View {
         let shown = RecipeFilter.apply(filter, query: query, favorites: favorites, to: allMatches)
-        let shownOnline = RecipeFilter.apply(filter, query: query, favorites: favorites, to: onlineMatches)
-        let savedOnline = savedOnlineNotes(excluding: shownOnline)
+        let savedOnline = savedOnlineNotes(excluding: shown)
+        let hasOnline = shown.contains(where: \.recipe.isOnline)
         NavigationStack {
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.m) {
                     filterChips
-                    if shown.isEmpty, shownOnline.isEmpty, savedOnline.isEmpty {
+                    // With only online recipes on, say why Larder's own are showing instead.
+                    if showsOnlyOnline, filter != .favorites, !hasOnline { onlineStatusNote }
+                    if filter == .online, !hasOnline {
+                        if !showsOnlyOnline { onlineStatusNote }
+                    } else if shown.isEmpty, savedOnline.isEmpty {
                         emptyState
                     } else {
                         section("Ready now", shown.filter(\.isReady))
                         section("One ingredient away", shown.filter { $0.missing.count == 1 })
                         section("Just a couple of things away", shown.filter { $0.missing.count == 2 })
                         section("Worth a shop", shown.filter { $0.missing.count > 2 })
+                        savedOnlineSection(savedOnline)
                     }
-                    Color.clear.frame(height: 0).id("online")
-                    if filter == .favorites {
-                        savedOnlineSection(shownOnline, savedOnline)
-                    } else {
-                        onlineSection(shownOnline)
-                    }
+                    onlineFooter(hasOnline: hasOnline)
                 }
                 .padding(Theme.Spacing.s)
             }
-            .task { await scrollForDebug(proxy) }
+            .task { await scrollForDebug(proxy, to: shown.first(where: \.recipe.isOnline)?.id) }
             }
             .background(Theme.Palette.background.ignoresSafeArea())
             .navigationTitle("Recipes")
@@ -170,14 +176,15 @@ struct RecipesView: View {
         }
     }
 
-    /// `-recipesScroll online` scrolls down to the online recipes once they've had
+    /// `-recipesScroll online` scrolls to the first online recipe once they've had
     /// time to load (debug builds only).
-    private func scrollForDebug(_ proxy: ScrollViewProxy) async {
+    private func scrollForDebug(_ proxy: ScrollViewProxy, to id: String?) async {
         #if DEBUG
         guard UserDefaults.standard.string(forKey: "recipesScroll") == "online" else { return }
         // A real lookup can take a few seconds, so wait for it rather than scrolling to a gap.
         try? await Task.sleep(for: .seconds(8))
-        withAnimation { proxy.scrollTo("online", anchor: .top) }
+        let first = allMatches.first(where: \.recipe.isOnline)?.id ?? id
+        if let first { withAnimation { proxy.scrollTo(first, anchor: .top) } }
         #endif
     }
 
@@ -187,7 +194,7 @@ struct RecipesView: View {
         #if DEBUG
         guard let id = UserDefaults.standard.string(forKey: "openRecipe") else { return }
         for _ in 0..<20 {
-            if selected == nil, let match = (allMatches + onlineMatches).first(where: { $0.id == id }) {
+            if selected == nil, let match = allMatches.first(where: { $0.id == id }) {
                 selected = match
                 return
             }
@@ -199,7 +206,8 @@ struct RecipesView: View {
     private var filterChips: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: Theme.Spacing.xs) {
-                ForEach(RecipeFilter.available(showsNutrition: app.profile.showsNutrition)) { option in
+                ForEach(RecipeFilter.available(showsNutrition: app.profile.showsNutrition,
+                                               offersOnline: offersOnline)) { option in
                     Button { filter = option } label: {
                         Text(option.title)
                             .font(.subheadline.weight(.semibold))
@@ -239,15 +247,10 @@ struct RecipesView: View {
                           isFavorite: favorites.contains(match.id),
                           listAction: RecipeListAction.nudge(for: match, listed: Set(listed.map(\.ingredientID)),
                                                              context: context)) { selected = match }
+            .id(match.id)
     }
 
     // MARK: - Online
-
-    /// "Picked for your goal: build muscle", when there's a goal to pick for.
-    private var goalLine: String? {
-        guard app.profile.showsNutrition, let goal = app.profile.fitnessGoal, goal != .justCook else { return nil }
-        return "Picked for your goal: \(goal.title.lowercased())"
-    }
 
     /// Nutmeg's line for whatever the online lookup is doing, so there's never a silent gap.
     private var onlineMessage: (text: String, busy: Bool) {
@@ -268,38 +271,30 @@ struct RecipesView: View {
         }
     }
 
-    /// More recipes from online, after Larder's own; or, if online recipes are
-    /// still switched off, a friendly ask.
+    private var onlineStatusNote: some View {
+        OnlineNote(text: onlineMessage.text, showsProgress: onlineMessage.busy)
+    }
+
+    /// Under the list: the credit the online recipes need whenever one is
+    /// showing, a note while they're still on their way, or, if online recipes
+    /// are switched off, a friendly ask.
     @ViewBuilder
-    private func onlineSection(_ items: [RecipeMatch]) -> some View {
+    private func onlineFooter(hasOnline: Bool) -> some View {
         let isPlainView = filter == .all && query.isEmpty
-        if OnlineRecipeConfig.isAvailable {
+        if hasOnline {
+            SpoonacularCredit()
+        } else if OnlineRecipeConfig.isAvailable, isPlainView {
             if !onlineEnabled {
-                if isPlainView { OnlineOptInCard { onlineEnabled = true } }
-            } else if !items.isEmpty || isPlainView {
-                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                    Text("More ideas online")
-                        .font(.headline)
-                        .foregroundStyle(Theme.Palette.textPrimary)
-                    if let goalLine {
-                        Text(goalLine)
-                            .font(.subheadline)
-                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                    }
-                    if items.isEmpty {
-                        OnlineNote(text: onlineMessage.text, showsProgress: onlineMessage.busy)
-                    } else {
-                        ForEach(items.prefix(10)) { match in card(for: match) }
-                    }
-                    SpoonacularCredit()
-                }
+                OnlineOptInCard { onlineEnabled = true }
+            } else if !showsOnlyOnline {
+                onlineStatusNote
             }
         }
     }
 
-    /// Favorites that came from online. A recipe still in memory shows as a
-    /// full card; one that isn't (they aren't kept between sessions) is a row
-    /// that fetches it again when tapped.
+    /// Favorites that came from online but aren't in memory any more (they
+    /// aren't kept between sessions): a row that fetches it again when tapped.
+    /// The ones still in memory are already in the list as full cards.
     private func savedOnlineNotes(excluding shown: [RecipeMatch]) -> [RecipeNote] {
         guard filter == .favorites else { return [] }
         let inMemory = Set(shown.map(\.id))
@@ -310,13 +305,12 @@ struct RecipesView: View {
     }
 
     @ViewBuilder
-    private func savedOnlineSection(_ items: [RecipeMatch], _ saved: [RecipeNote]) -> some View {
-        if !items.isEmpty || !saved.isEmpty {
+    private func savedOnlineSection(_ saved: [RecipeNote]) -> some View {
+        if !saved.isEmpty {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text("Saved from online")
                     .font(.headline)
                     .foregroundStyle(Theme.Palette.textPrimary)
-                ForEach(items) { match in card(for: match) }
                 ForEach(saved) { note in
                     SavedOnlineRow(note: note, isLoading: fetchingID == note.recipeID) { openSaved(note) }
                 }

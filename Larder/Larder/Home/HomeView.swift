@@ -23,6 +23,8 @@ struct HomeView: View {
     @Query private var notes: [RecipeNote]
     @AppStorage(AppSettings.weeklyMealGoalKey) private var mealGoal = 0
     @AppStorage(AppSettings.lastGoalCheerKey) private var lastGoalCheer = ""
+    @AppStorage(AppSettings.onlineRecipesKey) private var onlineEnabled = false
+    @AppStorage(AppSettings.onlineOnlyKey) private var onlineOnly = false
 
     @State private var selected: RecipeMatch?
     /// The time Home is working from. It moves on at each meal boundary and
@@ -46,11 +48,14 @@ struct HomeView: View {
         let logged = meals.compactMap { meal in meal.nutrition.map { (date: meal.cookedAt, macros: $0) } }
         let goal = MealPlan.goalContext(base: app.profile.goalContext, targets: app.profile.dailyTargets,
                                         eaten: MealPlan.eaten(logged, onMealDay: next.day), mealsLeft: next.mealsLeft)
-        // Larder's own recipes, plus any found online that fit the pantry better.
-        let matches = RecipeMatcher.bestMatches(recipes: RecipeStore.all + online.recipes,
-                                                pantry: Set(pantry.map(\.ingredientID)), diets: app.profile.dietSet,
-                                                priorities: app.profile.prioritySet, cooking: app.profile.cookingSet,
-                                                goal: goal, taste: taste).matches
+        // Larder's own recipes and any found online, ranked together (or only
+        // the online ones, if that's what the person picked and there are some).
+        let matches = RecipePool.matches(bundled: RecipeStore.all, online: online.recipes,
+                                         onlineOnly: onlineEnabled && onlineOnly) { recipes in
+            RecipeMatcher.bestMatches(recipes: recipes, pantry: Set(pantry.map(\.ingredientID)),
+                                      diets: app.profile.dietSet, priorities: app.profile.prioritySet,
+                                      cooking: app.profile.cookingSet, goal: goal, taste: taste).matches
+        }
         let picks = NextMealPicker.candidates(from: matches, next: next,
                                               cookedToday: MealPlan.cookedIDs(cooked, onMealDayOf: now), taste: taste)
         return Plan(next: next, matches: matches, pick: picks.first, goal: goal)
