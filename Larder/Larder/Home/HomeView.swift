@@ -241,6 +241,8 @@ struct HomeView: View {
                 .frame(width: 44, height: 44)
                 .background(Theme.Palette.surface, in: Circle())
         }
+        // Only on the way in, not again when Settings closes.
+        .sensoryFeedback(.appTap, trigger: app.showSettings) { _, isOpen in isOpen }
         .accessibilityLabel("Settings")
     }
 
