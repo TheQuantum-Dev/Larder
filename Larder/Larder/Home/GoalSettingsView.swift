@@ -50,7 +50,7 @@ struct GoalSettingsView: View {
         .onChange(of: profile) { _, new in save(new) }
         .onAppear(perform: debugTargets)
         .sheet(item: $editingTarget) { kind in
-            TargetEditorSheet(kind: kind, value: profile.dailyTargets.map(kind.value(in:)) ?? 0,
+            TargetEditorSheet(kind: kind, value: profile.dailyTargets.map(kind.value(in:)) ?? kind.range.lowerBound,
                               suggested: profile.suggestedTargets.map(kind.value(in:))) { custom in
                 var targets = profile.customTargets ?? CustomTargets()
                 targets[keyPath: kind.field] = custom
@@ -65,7 +65,9 @@ struct GoalSettingsView: View {
     /// target's editor (debug builds only).
     private func debugTargets() {
         #if DEBUG
-        editingTarget = UserDefaults.standard.string(forKey: "editTarget").flatMap(TargetKind.init(rawValue:))
+        if profile.dailyTargets != nil {
+            editingTarget = UserDefaults.standard.string(forKey: "editTarget").flatMap(TargetKind.init(rawValue:))
+        }
         guard let text = UserDefaults.standard.string(forKey: "customTargets") else { return }
         let values = text.split(separator: ",", omittingEmptySubsequences: false).map { Int($0) }
         func value(_ index: Int) -> Int? { values.indices.contains(index) ? values[index] : nil }
