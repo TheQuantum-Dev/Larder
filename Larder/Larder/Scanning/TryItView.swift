@@ -94,7 +94,7 @@ struct TryItView: View {
                     .foregroundStyle(Theme.Palette.textPrimary)
                 Text(mode == .update
                      ? "Snap the fridge, the cupboard, every shelf. I'll start looking while you shoot, then you check what I found."
-                     : "Snap your fridge, cupboard or a shelf, as many photos as you like. I'll spot what's there, and you fix anything I get wrong.")
+                     : "Take a few photos of your fridge or cupboard. I'll spot what's there, and you can fix anything I get wrong.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))

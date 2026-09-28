@@ -253,7 +253,11 @@ struct SettingsView: View {
     }
 
     private var onlineFooter: String {
-        guard OnlineRecipeConfig.isAvailable else { return "Online recipes aren't available in this build." }
+        // Only builds made from the source without a key end up here.
+        guard OnlineRecipeConfig.isAvailable else {
+            return "This build doesn't have a recipe key yet, so it's using Larder's own recipes. "
+                + "To turn these on, add a free spoonacular key: the README shows how."
+        }
         let privacy = "Finds more recipes online based on what's in your pantry. Larder only sends ingredient names, your goal and your diet. No photos, nothing about you."
         if onlineRecipes, onlineOnly {
             return privacy + " If you're offline or you hit today's limit, you'll get Larder's own recipes instead."

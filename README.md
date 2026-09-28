@@ -158,9 +158,10 @@ Before Larder, I had never touched Swift or built a mobile app. Everything I'd m
 
 1. Clone the repo and open `Larder/Larder.xcodeproj`.
 2. You need **Xcode 27 or later** (iOS 27 SDK) to build, even though the app runs on iOS 26.5 and up. A couple of the on-device AI features need the newer SDK.
-3. Pick a simulator or your iPhone and press Run. If Xcode complains about signing, pick your own team under Signing & Capabilities.
-4. Purchases use RevenueCat's **Test Store**, so you can try Larder Plus without a paid Apple developer account. The flow is real, the payment is simulated.
-5. Everything works without any keys: barcode lookups use the free [Open Food Facts](https://world.openfoodfacts.org) API, and the RevenueCat key in the project only works with the Test Store. For online recipes, add a free spoonacular key (below).
+3. Pick a simulator and press Run. That's all a simulator needs.
+4. To run it on your own iPhone instead, select the **Larder** target, then under Signing & Capabilities pick your own team and change the bundle identifier to something of yours (for example `com.yourname.Larder`). Do the same for the **LarderTimers** target (the lock-screen timer), keeping it as your app's identifier plus `.LarderTimers`. A free Apple account works.
+5. Purchases use RevenueCat's **Test Store**, so you can try Larder Plus without a paid Apple developer account. The flow is real, the payment is simulated.
+6. Everything works without any keys: barcode lookups use the free [Open Food Facts](https://world.openfoodfacts.org) API, and the RevenueCat key in the project only works with the Test Store. For online recipes, add a free spoonacular key (below).
 
 ## Online recipes setup
 
