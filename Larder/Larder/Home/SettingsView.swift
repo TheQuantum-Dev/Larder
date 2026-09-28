@@ -114,12 +114,14 @@ struct SettingsView: View {
             updated.diets = newValue.map(\.rawValue).sorted()
             ProfileStore.save(updated)
         }
+        #if DEBUG
         .alert("Reset all app data?", isPresented: $showResetConfirm) {
             Button("Reset", role: .destructive) { resetAllData() }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This wipes your pantry, your cooked meals and your settings, and starts setup again. You can't undo it.")
         }
+        #endif
     }
 
     // MARK: - Sections
