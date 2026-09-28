@@ -12,7 +12,7 @@
 
 Larder is an iPhone app for students who cook on a small budget. You show it what food you have, it tells you what you can make with it, roughly what it costs, and how it fits the goal you're working toward. Nutmeg, the little round guy up there, helps you along the way.
 
-I'm a high school student, and I built Larder on my own. It started as a hackathon project, but somewhere along the way I started actually using it, a lot more than I expected to. So it isn't just a hackathon project anymore. It's something I'm going to keep working on.
+I'm a high school student, and I built Larder on my own. It started as a hackathon project, but somewhere along the way I started actually using it, a lot more than I expected to. So it isn't just a hackathon project anymore. It's something I'm going to keep working on, and it's [free and open source](#free-and-staying-open-source) on purpose.
 
 ## What it does
 
@@ -22,7 +22,7 @@ I'm a high school student, and I built Larder on my own. It started as a hackath
 
 **Your next meal on Home.** In the morning it suggests breakfast, at lunch it suggests lunch, and so on. It won't suggest the thing you just ate.
 
-**Cook Mode.** Step by step, with timers. Nutmeg stands in a little kitchen that changes with each step, so when the step says boil, there's a pot boiling.
+**Cook Mode.** Step by step, with timers that ring even when your phone is locked, and count down on your lock screen. Nutmeg stands in a little kitchen that changes with each step, so when the step says boil, there's a pot boiling.
 
 **Goals and nutrition.** Pick a goal (build muscle, lose weight, gain weight, stay fit, or "just cook" if you don't want numbers). Every recipe shows calories and macros per serving. Apple Health sync is optional and only saves the meals you cook.
 
@@ -35,6 +35,10 @@ I'm a high school student, and I built Larder on my own. It started as a hackath
 **Nutmeg's looks.** Coral unlocks after you've cooked a few times. Snow and Harvest come with Larder Plus. Each look changes the colors of the whole app, in light and dark mode, and can switch the app icon to match.
 
 **Privacy.** Photos and voice messages stay on your phone. A barcode scan sends only the barcode number. If you turn on online recipes, it sends a few ingredient names plus your goal and diet. There are no accounts and no sign in.
+
+## Free, and staying open source
+
+A lot of calorie and meal apps lock the useful parts behind a subscription, and a student budget doesn't stretch that far. That's a big part of why I made Larder, and it's why Larder is going to stay open source. If you'd rather not pay for anything, you can build it and run it on your own iPhone for free. All you need is a Mac, Xcode and a free Apple account (see [Running the project](#running-the-project)). Builds from this repo use RevenueCat's Test Store, so Larder Plus unlocks without being charged. One heads-up: apps installed with a free Apple account need reinstalling from Xcode every 7 days. That's Apple's rule, not mine.
 
 ## How Larder uses RevenueCat
 
@@ -94,7 +98,8 @@ Phones with and without Apple Intelligence both work.
 
 - Nutmeg is drawn in SwiftUI shapes, so he can blink, look around, cheer and change outfits. The app icons are rendered from the same code (`Tools/icons`), so they always match.
 - The sound effects are original and made by a script (`Tools/sounds`).
-- Cook Mode's kitchen is drawn with `Canvas` and `TimelineView`, picking one of 12 scenes from the words in each step.
+- Cook Mode's kitchen is drawn with `Canvas` and `TimelineView`, picking one of 18 scenes from the words in each step, and never showing the same one twice in a row.
+- Cook Mode timers are real system alarms (AlarmKit), so they ring on a locked phone and on silent. A small WidgetKit extension draws the countdown on the lock screen and in the Dynamic Island. If someone says no to alarms, timers fall back to notifications.
 - Colors are tokens with light and dark versions for each of Nutmeg's four looks. A unit test checks the contrast ratio of text and buttons in every theme.
 - Supports Dynamic Type, VoiceOver labels and Reduce Motion.
 
@@ -109,7 +114,9 @@ More than 550 unit tests using Swift Testing. They cover recipe matching, nutrit
 - **Foundation Models**, Apple's on-device AI, on phones that have Apple Intelligence
 - **Speech** for voice messages, transcribed on the phone
 - **HealthKit** for the optional Apple Health sync
-- **UserNotifications** for reminders and Cook Mode timers
+- **AlarmKit** so Cook Mode timers ring like the Clock app, even on a locked phone
+- **ActivityKit** and **WidgetKit** for the timer countdown on the lock screen and in the Dynamic Island
+- **UserNotifications** for reminders
 - **RevenueCat** for Larder Plus
 - **spoonacular**, **Open Food Facts** and **USDA FoodData Central** for recipes, barcodes and nutrition
 
@@ -118,7 +125,7 @@ More than 550 unit tests using Swift Testing. They cover recipe matching, nutrit
 A quick path through the app, if you only have a few minutes:
 
 1. Go through onboarding and scan whatever's in your fridge (or add a few things by hand).
-2. Open a recipe you can make right now and start Cook Mode. Start a timer and watch Nutmeg cook.
+2. Open a recipe you can make right now and start Cook Mode. Start a timer, watch Nutmeg cook, then lock your phone to see the countdown.
 3. Tap "I made it!" at the end to see the celebration and your streak.
 4. Tap "See Larder Plus" in Settings. It's the Test Store, so nothing is charged. Then chat with Nutmeg, or dress him up in the Snow look and watch the whole app change color.
 
