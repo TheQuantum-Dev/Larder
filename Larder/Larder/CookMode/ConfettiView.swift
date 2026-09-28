@@ -9,6 +9,8 @@ import SwiftUI
 
 /// Confetti that falls once over whatever it's layered on. The pieces are
 /// spread out by fixed arithmetic, not chance, so it looks the same every time.
+/// It fills the whole screen, and every piece starts at its own height above
+/// the top edge, so it pours in from above the phone instead of lining up.
 struct ConfettiView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var fallen = false
@@ -16,6 +18,8 @@ struct ConfettiView: View {
     private struct Piece: Identifiable {
         let id: Int
         let x: Double
+        /// How far above the top edge it starts, in points.
+        let height: Double
         let delay: Double
         let duration: Double
         let size: Double
@@ -33,7 +37,8 @@ struct ConfettiView: View {
         }
         return Piece(id: i,
                      x: fraction(0.618, 0.1),
-                     delay: fraction(0.37) * 0.9,
+                     height: 60 + fraction(0.43, 0.2) * 320,
+                     delay: fraction(0.37) * 0.6,
                      duration: 1.8 + fraction(0.53) * 1.4,
                      size: 8 + fraction(0.71) * 8,
                      spin: 200 + fraction(0.29) * 400,
@@ -49,11 +54,12 @@ struct ConfettiView: View {
                         .frame(width: piece.size, height: piece.size * 1.6)
                         .rotationEffect(.degrees(fallen ? piece.spin : 0))
                         .position(x: piece.x * proxy.size.width,
-                                  y: fallen ? proxy.size.height + 40 : -40)
+                                  y: fallen ? proxy.size.height + 60 : -piece.height)
                         .animation(.easeIn(duration: piece.duration).delay(piece.delay), value: fallen)
                 }
             }
         }
+        .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .onAppear {
