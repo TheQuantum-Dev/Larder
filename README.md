@@ -141,7 +141,7 @@ More than 550 unit tests using Swift Testing. They cover recipe matching, nutrit
 
 ## Trying it out
 
-A quick path through the app, if you only have a few minutes:
+A quick path through the app, if you only have a few minutes. For the full experience, use an [iPhone with Apple Intelligence](#recommended-an-iphone-with-apple-intelligence).
 
 1. Go through onboarding and scan whatever's in your fridge (or add a few things by hand).
 2. Open a recipe you can make right now and start Cook Mode. Start a timer, watch Nutmeg cook, then lock your phone to see the countdown.
@@ -170,8 +170,30 @@ Before Larder, I had never touched Swift or built a mobile app. Everything I'd m
 
 ## Requirements
 
-- iPhone with iOS 26.5 or later
-- Works on every supported iPhone. With Apple Intelligence, scanning is sharper and Nutmeg chats using the on-device model
+- iPhone with iOS 26.5 or later. Larder works on every iPhone that can run it.
+
+### Recommended: an iPhone with Apple Intelligence
+
+**Judges and anyone trying Larder: for the full experience, use an iPhone that supports Apple Intelligence**, with Apple Intelligence turned on in Settings.
+
+Larder's smartest parts run on Apple's on-device AI model (the Foundation Models framework). It lives on the phone itself, so nothing you show it or say to it leaves your iPhone. But Apple only puts that model on iPhones with enough memory and a new enough chip:
+
+| Year | iPhones with Apple Intelligence |
+|---|---|
+| 2023 | iPhone 15 Pro, iPhone 15 Pro Max |
+| 2024 | iPhone 16, iPhone 16 Plus, iPhone 16 Pro, iPhone 16 Pro Max |
+| 2025 | iPhone 16e, iPhone 17, iPhone Air, iPhone 17 Pro, iPhone 17 Pro Max |
+| 2026 | iPhone 17e, iPhone 18 Pro, iPhone 18 Pro Max |
+
+What the model adds:
+
+| | With Apple Intelligence | Without it |
+|---|---|---|
+| Pantry scan | Vision and the on-device model both look at each photo and check each other, so it spots more and can count things like eggs | Vision alone: still works, spots fewer things, and you add the rest by hand |
+| Chat with Nutmeg | Understands whatever you type or say, in your own words | A built-in offline Nutmeg that handles the common questions (what can I make, what's low, today's protein, adding to your pantry or list) |
+| Everything else | Same | Same: recipes, Cook Mode, the shopping list, nutrition and purchases all work fully |
+
+I built and tested most of Larder on an iPhone 12 Pro, which doesn't have Apple Intelligence, so the "without it" path is well worn too.
 
 ## Running the project
 
