@@ -156,6 +156,8 @@ struct PaywallView: View {
                         if let badge {
                             Text(badge)
                                 .font(.caption.bold())
+                                .lineLimit(1)
+                                .fixedSize()
                                 .foregroundStyle(Theme.Palette.onAccent)
                                 .padding(.horizontal, Theme.Spacing.xs)
                                 .background(Theme.Palette.coral, in: Capsule())
