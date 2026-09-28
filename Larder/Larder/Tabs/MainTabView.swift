@@ -48,7 +48,7 @@ struct MainTabView: View {
                 Label {
                     Text("Nutmeg")
                 } icon: {
-                    Image(.nutmegTab)
+                    Image(Self.tabImage(for: ThemeStore.shared.look))
                 }
             }
         }
@@ -110,6 +110,16 @@ struct MainTabView: View {
     private struct OnlineKey: Hashable {
         let request: OnlineRequest
         let enabled: Bool
+    }
+
+    /// The Nutmeg tab wears the same look as the app icon.
+    private static func tabImage(for look: NutmegLook) -> ImageResource {
+        switch look {
+        case .amber: .nutmegTab
+        case .coral: .nutmegTabCoral
+        case .snow: .nutmegTabSnow
+        case .harvest: .nutmegTabHarvest
+        }
     }
 
     /// Tells the person once when cooking earns Nutmeg a new look.

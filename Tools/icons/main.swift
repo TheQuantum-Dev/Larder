@@ -76,4 +76,13 @@ MainActor.assumeIsolated {
         render(NutmegView(skin: .amber, showsWeather: false), width: 231 * scale, height: 180 * scale,
                to: "\(out)/launch-nutmeg\(suffix).png")
     }
+    // The Nutmeg tab's icon in each look: the icon's crop of him a little closer, 30 points
+    // square, on a clear background.
+    for (name, skin) in [("", NutmegSkin.amber), ("-coral", .coral), ("-snow", .snow), ("-harvest", .harvest)] {
+        for (suffix, scale) in [("", 1.0), ("@2x", 2.0), ("@3x", 3.0)] {
+            let size = 30 * scale
+            render(IconArt(skin: skin, background: .clear).scaleEffect(size / 1024 * 1.1),
+                   width: size, height: size, to: "\(out)/nutmeg-tab\(name)\(suffix).png")
+        }
+    }
 }
