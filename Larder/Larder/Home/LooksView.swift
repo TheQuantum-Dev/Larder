@@ -68,9 +68,13 @@ struct LooksView: View {
         let isSelected = selected == look && isAvailable
         return Button { choose(look, isAvailable: isAvailable) } label: {
             VStack(spacing: Theme.Spacing.xs) {
+                // Locked looks show in full color, so you can see what you'd
+                // get; the lock sits beside him instead of fading him out.
                 NutmegView(skin: look.skin)
                     .frame(height: 100)
-                    .opacity(isAvailable ? 1 : 0.45)
+                    .overlay(alignment: .bottomTrailing) {
+                        if !isAvailable && !look.isPlus { lockMedal }
+                    }
                 Text(look.title)
                     .font(.headline)
                     .foregroundStyle(Theme.Palette.textPrimary)
@@ -114,7 +118,10 @@ struct LooksView: View {
             } else if isAvailable {
                 Text(look.blurb)
             } else if look.isPlus {
-                Label("Larder Plus", systemImage: "lock.fill")
+                VStack(spacing: Theme.Spacing.xs) {
+                    Text(look.blurb)
+                    plusBadge
+                }
             } else {
                 Label(look.unlockHint ?? "Locked", systemImage: "lock.fill")
             }
@@ -123,6 +130,32 @@ struct LooksView: View {
         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
         .multilineTextAlignment(.center)
         .frame(minHeight: 40, alignment: .top)
+    }
+
+    /// The same coral as the paywall's buy button, because that's where a tap
+    /// on it goes.
+    private var plusBadge: some View {
+        Label("Larder Plus", systemImage: "lock.fill")
+            .font(.subheadline.bold())
+            .foregroundStyle(AppTheme.coral.onAccent)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .padding(.horizontal, Theme.Spacing.xs)
+            .padding(.vertical, Theme.Spacing.xs)
+            .frame(maxWidth: .infinity)
+            .background(Theme.Palette.coral, in: Capsule())
+    }
+
+    /// A small padlock on the corner of a look you haven't earned yet. Plus
+    /// looks carry the badge underneath instead.
+    private var lockMedal: some View {
+        Image(systemName: "lock.fill")
+            .font(.system(size: 14, weight: .bold))
+            .foregroundStyle(Theme.Palette.textPrimary)
+            .frame(width: 30, height: 30)
+            .background(Theme.Palette.background, in: Circle())
+            .overlay { Circle().strokeBorder(Theme.Palette.surface, lineWidth: 3) }
+            .offset(x: -Theme.Spacing.xs)
     }
 
     // MARK: - Actions
