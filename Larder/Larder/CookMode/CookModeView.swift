@@ -28,6 +28,8 @@ struct CookModeView: View {
     /// What the person says ran out, kept here so closing with the X counts it too.
     @State private var usedUp: Set<String> = []
     @State private var made: MadeResult?
+    @State private var askingForNotifications = false
+    @AppStorage(AppSettings.askedTimerNotificationsKey) private var askedTimerNotifications = false
 
     init(recipe: Recipe, diets: Set<Diet>, startAt phase: CookSession.Phase = .gather,
          onFinish: @escaping () -> Void, onClose: @escaping () -> Void) {
@@ -40,6 +42,12 @@ struct CookModeView: View {
     var body: some View {
         VStack(spacing: 0) {
             topBar
+            if !session.ringing.isEmpty {
+                RingingBar(session: session)
+                    .padding(.horizontal, Theme.Spacing.s)
+                    .padding(.top, Theme.Spacing.xs)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
             ZStack {
                 content
                     .id(session.phase)
@@ -48,9 +56,20 @@ struct CookModeView: View {
         }
         .background(Theme.Palette.background.ignoresSafeArea())
         .animation(.spring(response: 0.5, dampingFraction: 0.85), value: session.phase)
-        // A timer going off gets its own buzz and chime, different from a tap.
-        .sensoryFeedback(.warning, trigger: session.finishedCount)
-        .onChange(of: session.finishedCount) { _, _ in SoundPlayer.timerDone() }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: session.ringing)
+        // A timer going off rings, with a buzz, until someone taps Stop.
+        .onChange(of: session.ringing.isEmpty) { _, isQuiet in
+            if isQuiet { TimerAlarm.shared.stop() } else { TimerAlarm.shared.start() }
+        }
+        .onChange(of: session.timersStarted) { _, _ in offerNotifications() }
+        .sheet(isPresented: $askingForNotifications) {
+            TimerNotificationAsk { allowed in
+                askingForNotifications = false
+                session.notificationsOff = !allowed
+                if allowed { session.rescheduleNotifications() }
+            }
+            .presentationDetents([.medium])
+        }
         .alert("Stop cooking?", isPresented: $confirmingExit) {
             Button("Keep cooking", role: .cancel) {}
             Button("Stop", role: .destructive) { onClose() }
@@ -59,16 +78,26 @@ struct CookModeView: View {
         }
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
+            session.notifier = TimerNotifications.shared
+            Task { session.notificationsOff = await TimerNotifications.status() == .denied }
             startDebugTimer()
             startDebugMade()
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
             session.stop()
+            TimerAlarm.shared.stop()
         }
         .onChange(of: scenePhase) { _, newPhase in
             // A timer can run out while the app is asleep, so check on return.
-            if newPhase == .active { session.refresh() }
+            // It has already rung through its notification, so it doesn't
+            // start ringing again here.
+            if newPhase == .active {
+                session.refresh(canRing: false)
+                session.appIsActive = true
+            } else {
+                session.appIsActive = false
+            }
         }
     }
 
@@ -110,6 +139,17 @@ struct CookModeView: View {
         case .step: confirmingExit = true
         case .made: finishMade(usedUp)   // the meal is already saved
         default: onClose()
+        }
+    }
+
+    /// The first time someone starts a timer, and only if they've never
+    /// been asked, Nutmeg offers a notification for when it's done.
+    private func offerNotifications() {
+        guard !askedTimerNotifications else { return }
+        Task {
+            guard await TimerNotifications.status() == .notDetermined else { return }
+            askedTimerNotifications = true
+            askingForNotifications = true
         }
     }
 
@@ -192,13 +232,19 @@ struct CookModeView: View {
         #endif
     }
 
-    /// `-cookTimer YES` starts the timer on the current step, and `-cookTimerStep 2`
-    /// starts the one on step 2 (debug builds only).
+    /// `-cookTimer YES` starts the timer on the current step, `-cookTimerStep 2`
+    /// starts the one on step 2, and `-cookRinging YES` shows the current
+    /// step's timer ringing, and `-askTimerNotifications YES` shows Nutmeg's offer
+    /// to ping you (debug builds only).
     private func startDebugTimer() {
         #if DEBUG
         if UserDefaults.standard.bool(forKey: "cookTimer"), let step = session.currentStep {
             session.startTimer(step)
         }
+        if UserDefaults.standard.bool(forKey: "cookRinging"), let step = session.currentStep {
+            session.debugRing(step)
+        }
+        if UserDefaults.standard.bool(forKey: "askTimerNotifications") { askingForNotifications = true }
         if let number = Int(UserDefaults.standard.string(forKey: "cookTimerStep") ?? "") {
             session.startTimer(number - 1)
         }
@@ -363,6 +409,12 @@ private struct StepView: View {
 
                 if session.timers[index] != nil {
                     TimerPanel(session: session, step: index)
+                    if session.notificationsOff {
+                        Text("Timers only ring while Larder is open.")
+                            .font(.footnote)
+                            .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                            .frame(maxWidth: .infinity)
+                    }
                 }
                 if index + 1 < session.stepCount {
                     NextUpCard(text: session.recipe.steps[index + 1].text)
@@ -477,7 +529,10 @@ private struct TimerPanel: View {
     @ViewBuilder
     private func controls(for timer: StepTimer) -> some View {
         VStack(spacing: Theme.Spacing.xs) {
-            if timer.isIdle {
+            if session.ringing.contains(step) {
+                Button("Stop") { session.stopRinging(step) }
+                    .buttonStyle(PillButtonStyle())
+            } else if timer.isIdle {
                 control("Start timer") { session.startTimer(step) }
             } else if timer.isRunning {
                 control("Pause") { session.pauseTimer(step) }

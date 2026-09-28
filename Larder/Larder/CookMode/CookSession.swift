@@ -26,12 +26,26 @@ final class CookSession {
     private(set) var timers: [Int: StepTimer] = [:]
     /// Goes up each time a timer runs out, which is what triggers the haptic.
     private(set) var finishedCount = 0
+    /// Steps whose timer ran out while you were looking and is still ringing.
+    /// One that ran out while Larder was in the background has already rung
+    /// through its notification, so it doesn't start again on return.
+    private(set) var ringing: Set<Int> = []
+    /// Goes up each time a timer is started, so Cook Mode can offer to send
+    /// a notification the first time.
+    private(set) var timersStarted = 0
+    /// True when notifications are turned off, so timers can only ring while
+    /// Larder is open.
+    var notificationsOff = false
 
     var checkedEquipment: Set<Equipment> = []
     var checkedIngredients: Set<Int> = []
 
     @ObservationIgnored private let clock: () -> Date
     @ObservationIgnored private var alarms: [Int: Task<Void, Never>] = [:]
+    /// Where timer notifications go. Nil sends none, which is what tests want.
+    @ObservationIgnored var notifier: TimerNotifying?
+    /// Whether Larder is on screen, so a timer running out can ring.
+    @ObservationIgnored var appIsActive = true
 
     /// `clock` is a parameter so tests can move time forward by hand.
     init(recipe: Recipe, phase: Phase = .gather, clock: @escaping () -> Date = { Date() }) {
@@ -96,11 +110,20 @@ final class CookSession {
     func startTimer(_ step: Int) {
         change(step) { $0.start(now: clock()) }
         scheduleAlarm(for: step)
+        timersStarted += 1
+    }
+
+    /// Sends the notifications again for every running timer, for right
+    /// after someone allows them.
+    func rescheduleNotifications() {
+        for (step, timer) in timers where timer.isRunning {
+            notifier?.schedule(TimerReminder.make(recipe: recipe, step: step, seconds: timer.remaining(at: clock())))
+        }
     }
 
     func pauseTimer(_ step: Int) {
         change(step) { $0.pause(now: clock()) }
-        alarms[step]?.cancel()
+        cancelAlarm(for: step)
     }
 
     func resumeTimer(_ step: Int) {
@@ -110,7 +133,18 @@ final class CookSession {
 
     func resetTimer(_ step: Int) {
         change(step) { $0.reset() }
-        alarms[step]?.cancel()
+        cancelAlarm(for: step)
+        stopRinging(step)
+    }
+
+    /// Stop on a ringing timer. It stays at "Time's up!" until it's reset.
+    func stopRinging(_ step: Int) {
+        ringing.remove(step)
+        notifier?.clearDelivered(id: TimerReminder.id(recipeID: recipe.id, step: step))
+    }
+
+    func stopAllRinging() {
+        for step in ringing { stopRinging(step) }
     }
 
     /// Timers on steps other than the one on screen that are running or have
@@ -125,20 +159,35 @@ final class CookSession {
     /// Checks every running timer against the clock. Called when an alarm
     /// fires and when the app comes back to the foreground, since a timer can
     /// run out while the app is asleep.
-    func refresh() {
+    ///
+    /// `canRing` is false when coming back from the background: anything that
+    /// ran out meanwhile already rang through its notification.
+    func refresh(canRing: Bool? = nil) {
+        let rings = canRing ?? appIsActive
         for (step, timer) in timers {
             var updated = timer
             if updated.finishIfDue(now: clock()) {
                 timers[step] = updated
                 finishedCount += 1
+                if rings { ringing.insert(step) }
             }
         }
     }
 
-    /// Stops any pending alarms, for when Cook Mode closes.
+    #if DEBUG
+    /// Makes a step's timer ring straight away, for screenshots.
+    func debugRing(_ step: Int) {
+        guard let duration = timers[step]?.duration else { return }
+        let past = clock().addingTimeInterval(-duration - 1)
+        change(step) { $0.start(now: past) }
+        refresh(canRing: true)
+    }
+    #endif
+
+    /// Stops any pending alarms and notifications, for when Cook Mode closes.
     func stop() {
-        alarms.values.forEach { $0.cancel() }
-        alarms.removeAll()
+        for step in Array(alarms.keys) { cancelAlarm(for: step) }
+        stopAllRinging()
     }
 
     // MARK: - Private
@@ -149,10 +198,17 @@ final class CookSession {
         timers[step] = timer
     }
 
+    private func cancelAlarm(for step: Int) {
+        alarms[step]?.cancel()
+        alarms[step] = nil
+        notifier?.cancel(id: TimerReminder.id(recipeID: recipe.id, step: step))
+    }
+
     private func scheduleAlarm(for step: Int) {
         alarms[step]?.cancel()
         guard let timer = timers[step] else { return }
         let seconds = timer.remaining(at: clock())
+        notifier?.schedule(TimerReminder.make(recipe: recipe, step: step, seconds: seconds))
         alarms[step] = Task { [weak self] in
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }

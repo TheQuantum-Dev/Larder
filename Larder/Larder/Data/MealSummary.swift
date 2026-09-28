@@ -82,6 +82,8 @@ nonisolated enum AppSettings {
     static let lastGoalCheerKey = "lastGoalCheerWeek"
     /// Whether things that run out are added to the shopping list (default on).
     static let autoAddToShoppingKey = "autoAddToShoppingList"
+    /// Set once Cook Mode has offered timer notifications, so it only asks once.
+    static let askedTimerNotificationsKey = "askedTimerNotifications"
     /// Whether extra recipes may be looked up online (off until the person says yes).
     static let onlineRecipesKey = "onlineRecipes"
     /// Whether lists show only the online recipes while there are some (off by default).

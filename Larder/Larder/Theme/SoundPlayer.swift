@@ -28,7 +28,6 @@ enum SoundPlayer {
     static func receive() { play("Receive") }
     static func recordStart() { play("RecordStart") }
     static func recordStop() { play("RecordStop") }
-    static func timerDone() { play("TimerDone") }
     /// Every "I made it".
     static func madeIt() { play("MadeIt") }
     /// The build-up, pop and settle that goes with the first meal ever made.
@@ -60,12 +59,18 @@ enum SoundPlayer {
     /// away from the main thread, so the first tap never waits on audio.
     static func prepare() {
         configureSessionIfNeeded()
-        for name in ["Tap", "Pop", "Send", "Receive", "TimerDone"] { _ = player(named: name) }
+        for name in ["Tap", "Pop", "Send", "Receive"] { _ = player(named: name) }
     }
 
     private static func configureSessionIfNeeded() {
         guard !configuredSession else { return }
         configuredSession = true
+        useAmbientSession()
+    }
+
+    /// Back to the everyday setup, after a recording or a timer alarm has
+    /// borrowed the audio session.
+    static func useAmbientSession() {
         try? AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
         // Activating is the slow part; doing it here, off the main thread,
         // means play() never has to.
