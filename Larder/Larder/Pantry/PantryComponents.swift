@@ -86,7 +86,7 @@ struct PantryModeSwitcher: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(isOn ? Theme.Palette.onAccent : Theme.Palette.textPrimary)
                 .padding(.horizontal, Theme.Spacing.s)
-                .frame(minHeight: 36)
+                .frame(minHeight: 44)
                 .background {
                     if isOn {
                         Capsule().fill(Theme.Palette.amber)

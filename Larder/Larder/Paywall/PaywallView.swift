@@ -207,6 +207,8 @@ struct PaywallView: View {
                 Button("Restore purchases", action: restore)
                     .font(.footnote)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .frame(minHeight: 44)
         }
