@@ -17,6 +17,12 @@ nonisolated enum NutmegIntent: Equatable, Sendable {
     case pantryContents, savings, streak, budget
     case highProtein, lowCalorie, hearty
     case caloriesToday, proteinToday, eatenToday
+    /// Today's carbs or fat ("how much fat have I eaten").
+    case macroToday(Macro)
+    /// About Nutmeg himself: who he is, who made him.
+    case aboutNutmeg, creator
+    /// "What's my name?": Larder has no accounts, so he doesn't know.
+    case userName
     case ingredientNutrition(String)
     /// "Add 6 eggs", "I ran out of milk": shown as a card to confirm.
     case pantryChange(PantryCommand)
@@ -33,6 +39,11 @@ nonisolated enum NutmegIntent: Equatable, Sendable {
     /// "What's running low?"
     case runningLow
     case offTopic
+}
+
+/// A macro Nutmeg can add up for today.
+nonisolated enum Macro: String, Equatable, Sendable {
+    case carbs, fat
 }
 
 /// A mood that isn't a filter in the Recipes tab.
@@ -68,7 +79,9 @@ nonisolated struct OfflineBrain: Sendable {
     }
 
     func reply(to message: String, in kitchen: KitchenSnapshot) -> NutmegReply {
-        answer(intent(for: message), in: kitchen)
+        let intent = intent(for: message)
+        if case .aboutRecipe(let id) = intent { return aboutRecipe(id, asking: message, in: kitchen) }
+        return answer(intent, in: kitchen)
     }
 
     // MARK: - Understanding
@@ -80,6 +93,13 @@ nonisolated struct OfflineBrain: Sendable {
         if words.count <= 4, has(text, ["hi", "hello", "hey", "yo", "hiya", "morning", "evening"]) { return .greeting }
         if has(text, ["thank", "thanks", "thx", "cheers", "ty"]) { return .thanks }
         if has(text, ["help", "what can you do", "how do you work", "what do you do"]) { return .help }
+        if has(text, ["who made you", "who created you", "who built you", "who is your creator", "who s your creator",
+                      "whos your creator", "your creator", "who designed you", "who programmed you", "who owns you"]) {
+            return .creator
+        }
+        if has(text, ["who are you", "what are you", "what s your name", "whats your name", "what is your name",
+                      "your name"]) { return .aboutNutmeg }
+        if has(text, ["my name", "who am i", "do you know me"]) { return .userName }
 
         // The shopping list before the pantry: "add milk to my list" is
         // something to buy, not something that's already in the kitchen.
@@ -112,7 +132,12 @@ nonisolated struct OfflineBrain: Sendable {
                       "cutting", "lose weight", "weight loss", "lean", "slim"]) { return .lowCalorie }
         if has(text, ["hearty", "filling", "big meal", "bulk", "bulking", "gain weight", "high calorie", "calorie dense",
                       "more calories", "starving"]) { return .hearty }
+        if has(text, ["carb", "carbs", "carbohydrate", "carbohydrates"]) { return .macroToday(.carbs) }
+        if has(text, ["fat", "fats"]) { return .macroToday(.fat) }
         if has(text, ["protein"]) { return .proteinToday }
+        if has(text, ["how much"]), has(text, ["eaten", "eat today", "ate today", "had today", "eaten today"]) {
+            return .caloriesToday
+        }
         if has(text, ["calorie", "calories", "calory", "kcal", "macro", "macros", "how much have i eaten",
                       "how much did i eat", "eaten today"]) { return .caloriesToday }
         if has(text, ["saved", "saving", "savings", "save money so far", "how much have i save"]) { return .savings }
@@ -288,7 +313,9 @@ nonisolated struct OfflineBrain: Sendable {
             return proteinToday(kitchen)
         case .ingredientNutrition(let id) where kitchen.showsNutrition:
             return ingredientNutrition(id)
-        case .highProtein, .lowCalorie, .hearty, .caloriesToday, .proteinToday, .ingredientNutrition:
+        case .macroToday(let macro) where kitchen.showsNutrition:
+            return macroToday(macro, in: kitchen)
+        case .highProtein, .lowCalorie, .hearty, .caloriesToday, .proteinToday, .ingredientNutrition, .macroToday:
             return NutmegReply("You've turned numbers off, so I'll keep it to cooking! You can turn calories and macros back on any time in Settings, under your goal.")
         case .eatenToday:
             return eatenToday(kitchen)
@@ -315,7 +342,9 @@ nonisolated struct OfflineBrain: Sendable {
         case .aboutRecipe(let id):
             return aboutRecipe(id, in: kitchen)
         case .pantryContents:
-            return pantryContents(kitchen)
+            var reply = pantryContents(kitchen)
+            reply.topic = .pantry
+            return reply
         case .savings:
             return savings(kitchen)
         case .streak:
@@ -323,12 +352,23 @@ nonisolated struct OfflineBrain: Sendable {
         case .budget:
             return budget(kitchen)
         case .shoppingList:
-            return shoppingList(kitchen)
+            var reply = shoppingList(kitchen)
+            reply.topic = .shoppingList
+            return reply
         case .addToShoppingList(let entries):
             return NutmegReply("Done! I've put \(Self.list(entries.map(Self.named))) on your shopping list.",
                                listAdditions: entries)
         case .runningLow:
             return runningLow(kitchen)
+        case .creator:
+            return NutmegReply("Joshua made me! He's a high school student who built Larder so students can eat well on a tight budget. I'm here to help you cook.",
+                               quickReplies: ["What can I make?", "Surprise me"])
+        case .aboutNutmeg:
+            return NutmegReply("I'm Nutmeg, Larder's kitchen helper! I know what's in your pantry, which recipes you can make, and how your week's going.",
+                               quickReplies: ["What can I make?", "What's in my pantry?"])
+        case .userName:
+            return NutmegReply("I don't know your name! Larder doesn't have accounts, so I only know your kitchen. What should we cook?",
+                               quickReplies: ["What can I make?", "Surprise me"])
         case .offTopic:
             return NutmegReply("I'm best with food things: what to cook, what's in your pantry, and how your week's going. Want some ideas?",
                                quickReplies: ["What can I make?", "Surprise me", "What's in my pantry?"],
@@ -389,6 +429,31 @@ nonisolated struct OfflineBrain: Sendable {
         return NutmegReply(intro, recipeIDs: using.map(\.recipe.id))
     }
 
+    /// A question about one recipe, answered for what it actually asks:
+    /// how long it takes, what it costs, its numbers, or what's missing.
+    func aboutRecipe(_ id: String, asking message: String, in kitchen: KitchenSnapshot) -> NutmegReply {
+        guard let recipe = kitchen.match(for: id)?.recipe ?? RecipeStore.recipe(withID: id) else {
+            return answer(.whatCanIMake, in: kitchen)
+        }
+        let text = " " + IngredientCatalog.key(for: message) + " "
+        let missing = kitchen.match(for: id).map { $0.isReady ? " You've got everything for it." : " You'd need \(Self.list(names($0.missing)))." } ?? ""
+        if has(text, ["how long", "long", "time", "minutes", "take", "quick"]) {
+            return NutmegReply("\(recipe.title) takes about \(recipe.minutes) minutes.\(missing)", recipeIDs: [id])
+        }
+        if has(text, ["cost", "price", "how much is", "how much does", "expensive", "cheap"]) {
+            return NutmegReply("\(recipe.title) comes to about \(recipe.costText) a serving.\(missing)", recipeIDs: [id])
+        }
+        if kitchen.showsNutrition, has(text, ["calorie", "calories", "kcal", "protein", "carb", "carbs", "fat", "macro", "macros", "healthy"]) {
+            let n = recipe.nutrition
+            return NutmegReply("\(recipe.title) is about \(n.roundedKcal) kcal a serving, with \(n.roundedProtein) g protein, \(n.roundedCarbs) g carbs and \(n.roundedFat) g fat.", recipeIDs: [id])
+        }
+        if has(text, ["how many", "serves", "servings", "people"]) {
+            let serves = recipe.servings == 1 ? "1 person" : "\(recipe.servings) people"
+            return NutmegReply("\(recipe.title) serves \(serves).\(missing)", recipeIDs: [id])
+        }
+        return aboutRecipe(id, in: kitchen)
+    }
+
     private func aboutRecipe(_ id: String, in kitchen: KitchenSnapshot) -> NutmegReply {
         guard let recipe = kitchen.match(for: id)?.recipe ?? RecipeStore.recipe(withID: id) else {
             return answer(.whatCanIMake, in: kitchen)
@@ -408,6 +473,27 @@ nonisolated struct OfflineBrain: Sendable {
     }
 
     // MARK: - Shopping list and running low
+
+    /// "How much of each?" after listing the shopping list or the pantry.
+    func amounts(for topic: NutmegReply.ReplyTopic, in kitchen: KitchenSnapshot) -> NutmegReply {
+        let lines: [(name: String, amount: String?)]
+        switch topic {
+        case .shoppingList:
+            lines = kitchen.shopping.filter { !$0.isBought }.map { ($0.name.lowercased(), $0.amount) }
+        case .pantry:
+            lines = kitchen.pantry.map { ($0.name.lowercased(), $0.amount) }
+        }
+        guard !lines.isEmpty else { return NutmegReply("There's nothing there right now.") }
+        let known = lines.filter { $0.amount != nil }.map { "\($0.name): \($0.amount!)" }
+        let unknown = lines.filter { $0.amount == nil }.map(\.name)
+        let place = topic == .shoppingList ? "your list" : "your pantry"
+        guard !known.isEmpty else {
+            return NutmegReply("You haven't set amounts for anything on \(place) yet. Tap an item there to add one, or tell me, like \"2 cans of beans\".")
+        }
+        var text = "Here's what I know: \(known.joined(separator: ", "))."
+        if !unknown.isEmpty { text += " No amount set for \(Self.list(unknown))." }
+        return NutmegReply(text)
+    }
 
     private func shoppingList(_ kitchen: KitchenSnapshot) -> NutmegReply {
         let toGet = kitchen.shopping.filter { !$0.isBought }
@@ -479,12 +565,18 @@ nonisolated struct OfflineBrain: Sendable {
         return moods
     }
 
-    private func surprise(_ kitchen: KitchenSnapshot) -> NutmegReply {
+    /// A random pick, skipping the ones already suggested, so "surprise me
+    /// again" really is something new (until they've all come up).
+    func surprise(_ kitchen: KitchenSnapshot, avoiding shown: Set<String> = []) -> NutmegReply {
         if kitchen.pantry.isEmpty { return answer(.whatCanIMake, in: kitchen) }
-        let pool = kitchen.readyMatches.isEmpty
-            ? kitchen.matches.filter { $0.missing.count <= 1 }
-            : kitchen.readyMatches
-        guard let pick = pool.randomElement() else { return answer(.whatCanIMake, in: kitchen) }
+        let ready = kitchen.readyMatches
+        let close = kitchen.matches.filter { !$0.isReady && $0.missing.count <= 1 }
+        let everything = ready + close
+        let fresh = everything.filter { !shown.contains($0.recipe.id) }
+        let pool = fresh.isEmpty ? everything : fresh
+        guard let pick = (pool.filter(\.isReady).randomElement() ?? pool.randomElement()) else {
+            return answer(.whatCanIMake, in: kitchen)
+        }
         let text = pick.isReady
             ? "Ta-da! How about \(pick.recipe.title)? You've got everything for it."
             : "How about \(pick.recipe.title)? You'd just need \(Self.list(names(pick.missing)))."
@@ -613,6 +705,22 @@ nonisolated struct OfflineBrain: Sendable {
                                recipeIDs: ideas)
         }
         return NutmegReply("About \(protein) g protein so far today, out of about \(targets.protein) g. Nicely done!")
+    }
+
+    private func macroToday(_ macro: Macro, in kitchen: KitchenSnapshot) -> NutmegReply {
+        let name = macro.rawValue
+        let target = kitchen.targets.map { macro == .carbs ? $0.carbs : $0.fat }
+        guard kitchen.mealsToday > 0 else {
+            let aim = target.map { " Your target is about \($0) g of \(name) a day." } ?? ""
+            return NutmegReply("Nothing cooked in Larder yet today, so no \(name) to add up.\(aim)")
+        }
+        let had = macro == .carbs ? kitchen.today.roundedCarbs : kitchen.today.roundedFat
+        guard let target else {
+            return NutmegReply("About \(had) g \(name) from what you've cooked in Larder today.")
+        }
+        let left = target - had
+        let tail = left > 0 ? "about \(left) g to go." : "that's your target reached."
+        return NutmegReply("About \(had) g \(name) so far today, out of about \(target) g, so \(tail) That's only meals cooked here.")
     }
 
     private func ingredientNutrition(_ id: String) -> NutmegReply {

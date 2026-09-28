@@ -83,7 +83,7 @@ actor ModelBrain: NutmegBrain {
         switch intent {
         case .savings, .streak, .budget, .pantryContents, .caloriesToday, .proteinToday, .ingredientNutrition,
              .eatenToday, .pantryChange, .onlineIdea, .moodQuestion, .surprise, .craving, .shoppingList,
-             .addToShoppingList, .runningLow: true
+             .addToShoppingList, .runningLow, .macroToday, .creator, .userName, .aboutNutmeg: true
         default: false
         }
     }

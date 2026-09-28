@@ -162,6 +162,10 @@ nonisolated struct NutmegReply: Equatable, Sendable {
     var pool: [String] = []
     /// Things to put on the shopping list right away (asked for outright).
     var listAdditions: [ShoppingEntry] = []
+    /// What the reply listed, so "how much of each?" knows what it means.
+    var topic: ReplyTopic?
+
+    enum ReplyTopic: Equatable, Sendable { case shoppingList, pantry }
 
     init(_ text: String, recipeIDs: [String] = [], quickReplies: [String] = [], pantryChange: PantryCommand? = nil,
          offer: FollowUp? = nil, pool: [String] = [], listAdditions: [ShoppingEntry] = []) {

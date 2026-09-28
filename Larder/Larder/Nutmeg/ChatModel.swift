@@ -55,6 +55,10 @@ final class ChatModel {
     // What the conversation is about, so short replies make sense.
     @ObservationIgnored private var pendingOffer: FollowUp?
     @ObservationIgnored private var lastRecipeIDs: [String] = []
+    /// Recipes "surprise me" has already suggested this conversation.
+    @ObservationIgnored private var surprised: Set<String> = []
+    /// What the last reply listed (the shopping list or the pantry).
+    @ObservationIgnored private var lastTopic: NutmegReply.ReplyTopic?
     @ObservationIgnored private var pool: [String] = []
     @ObservationIgnored private var shown = 0
 
@@ -140,8 +144,19 @@ final class ChatModel {
             return NutmegReply("Here are a few more:", recipeIDs: next,
                                quickReplies: left > 0 ? ["Show me more"] : [], pool: pool)
         }
+        if has(["surprise"]) {
+            let reply = offline.surprise(kitchen, avoiding: surprised)
+            surprised.formUnion(reply.recipeIDs)
+            return reply
+        }
+        if let topic = lastTopic, wordCount <= 7,
+           has(["how much of each", "how much of them", "how many of each", "how much of those", "how many of them",
+                "amounts", "how much", "how many"]),
+           !has(["eaten", "eat", "ate", "saved", "save", "calories", "protein", "carbs", "fat", "spend", "spent"]) {
+            return offline.amounts(for: topic, in: kitchen)
+        }
         if let id = referencedRecipe(in: text, wordCount: wordCount) {
-            return offline.answer(.aboutRecipe(id), in: kitchen)
+            return offline.aboutRecipe(id, asking: message, in: kitchen)
         }
         return nil
     }
@@ -167,6 +182,7 @@ final class ChatModel {
     /// Keeps what a reply offered and showed, for the next short reply.
     private func remember(_ reply: NutmegReply) {
         pendingOffer = reply.offer
+        lastTopic = reply.topic
         if !reply.recipeIDs.isEmpty {
             lastRecipeIDs = reply.recipeIDs
             if reply.pool.isEmpty {

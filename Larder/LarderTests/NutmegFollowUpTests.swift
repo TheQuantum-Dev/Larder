@@ -162,3 +162,62 @@ struct NutmegFollowUpTests {
         #expect(reply.offer == .ideas)
     }
 }
+
+/// Questions from Joshua's device testing on 2026-09-28.
+@MainActor
+struct NutmegChatFixesTests {
+    private let brain = OfflineBrain(fallback: { _ in nil })
+
+    private func kitchen(shopping: [KitchenSnapshot.ShoppingLine] = []) -> KitchenSnapshot {
+        let ids = ["egg", "rice", "frozen-veg", "soy-sauce", "bread", "cheese", "butter", "pasta", "tomato-sauce", "beans"]
+        var snapshot = KitchenSnapshot()
+        snapshot.pantry = ids.compactMap { IngredientCatalog.ingredient(withID: $0) }
+            .map { KitchenSnapshot.Item(id: $0.id, name: $0.name, emoji: $0.emoji, amount: nil, quantity: nil, unit: nil) }
+        snapshot.matches = RecipeMatcher.matches(pantry: Set(ids), maxMissing: .max)
+        snapshot.shopping = shopping
+        snapshot.targets = DailyTargets(kcal: 2000, protein: 100, carbs: 250, fat: 70, isPersonal: true)
+        return snapshot
+    }
+
+    @Test func carbsAndFatAreTheirOwnQuestions() {
+        #expect(brain.intent(for: "How much carbs have I eaten") == .macroToday(.carbs))
+        #expect(brain.intent(for: "How much fat have I eaten") == .macroToday(.fat))
+        #expect([.caloriesToday, .eatenToday].contains(brain.intent(for: "how much have I eaten today")))
+        #expect(brain.answer(.macroToday(.fat), in: kitchen()).text.contains("fat"))
+    }
+
+    @Test func nutmegKnowsWhoMadeHim() {
+        #expect(brain.intent(for: "Who created you") == .creator)
+        #expect(brain.intent(for: "Who is your creator") == .creator)
+        #expect(brain.intent(for: "Whats my name") == .userName)
+        #expect(brain.answer(.creator, in: kitchen()).text.contains("Joshua"))
+    }
+
+    @Test func howLongMeansTheTime() {
+        let k = kitchen()
+        let id = k.matches.first!.recipe.id
+        let minutes = k.matches.first!.recipe.minutes
+        let reply = brain.aboutRecipe(id, asking: "How long will it take to make this", in: k)
+        #expect(reply.text.contains("\(minutes) minutes"))
+    }
+
+    @Test func surpriseMeAgainIsSomethingNew() async {
+        let chat = ChatModel(engine: .offline)
+        let k = kitchen()
+        await chat.send("Surprise me", kitchen: k)
+        let first = chat.messages.last?.recipeIDs
+        await chat.send("Surprise me again", kitchen: k)
+        #expect(chat.messages.last?.recipeIDs != first)
+    }
+
+    @Test func howMuchOfEachAfterTheList() async {
+        let chat = ChatModel(engine: .offline)
+        let k = kitchen(shopping: [.init(name: "Potatoes", amount: "1 bag", isBought: false),
+                                   .init(name: "Apples", amount: nil, isBought: false)])
+        await chat.send("What's in my shopping list", kitchen: k)
+        await chat.send("How much of each", kitchen: k)
+        let text = chat.messages.last?.text ?? ""
+        #expect(text.contains("potatoes: 1 bag"))
+        #expect(text.contains("apples"))
+    }
+}
