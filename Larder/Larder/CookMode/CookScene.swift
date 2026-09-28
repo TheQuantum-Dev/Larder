@@ -22,7 +22,7 @@ nonisolated enum CookScene: String, CaseIterable, Sendable {
 
     /// What's being chopped, so the board shows the right thing (and an onion
     /// gets swim goggles).
-    enum Produce: Sendable { case carrot, onion, tomato, greens }
+    enum Produce: Sendable { case carrot, onion, tomato, greens, potato }
 
     static let variants = 3
 
@@ -113,6 +113,7 @@ nonisolated enum CookScene: String, CaseIterable, Sendable {
     static func produce(in text: String) -> Produce {
         let lower = text.lowercased()
         if lower.contains("onion") || lower.contains("shallot") { return .onion }
+        if lower.contains("potato") { return .potato }
         if lower.contains("tomato") || lower.contains("pepper") || lower.contains("chili") { return .tomato }
         if ["lettuce", "spinach", "cabbage", "herb", "parsley", "cilantro", "basil", "kale", "scallion", "green onion"]
             .contains(where: lower.contains) { return .greens }

@@ -29,6 +29,9 @@ struct KitchenStage: View {
     var timer: StepTimer?
     /// Goes up by one each time a timer runs out, for a little cheer.
     var cheer = 0
+    /// Said in a speech bubble on each cheer, instead of the "!" that marks
+    /// a timer going off. For the done screen: "Enjoy!" and friends.
+    var cheerLine: String?
 
     /// The smallest drawing: the counter, Nutmeg and the prop, with a strip of wall.
     static let size = CGSize(width: 360, height: 200)
@@ -93,7 +96,12 @@ struct KitchenStage: View {
             }
             nutmeg(t: t, date: date)
                 .offset(y: extra)
-            if isSurprised(at: date) {
+            if let cheerLine, isSpeaking(at: date) {
+                SpeechBubble(text: cheerLine, pointsLeft: !flipped)
+                    .fixedSize()
+                    .position(x: nutmegCenterX + (flipped ? -104 : 104), y: Self.nutmegTop + extra + 6)
+                    .transition(.scale(scale: 0.6, anchor: flipped ? .trailing : .leading).combined(with: .opacity))
+            } else if cheerLine == nil, isSurprised(at: date) {
                 surpriseMark
                     .position(x: nutmegCenterX + (flipped ? -52 : 52), y: Self.nutmegTop + extra - 4)
             }
@@ -132,6 +140,12 @@ struct KitchenStage: View {
     }
 
     /// The "oh!" lasts a moment after a timer goes off.
+    /// The speech bubble stays up long enough to read.
+    private func isSpeaking(at date: Date) -> Bool {
+        guard let surprisedAt else { return false }
+        return date.timeIntervalSince(surprisedAt) < 3.5
+    }
+
     private func isSurprised(at date: Date) -> Bool {
         guard let surprisedAt else { return false }
         return date.timeIntervalSince(surprisedAt) < 1.2
@@ -154,7 +168,7 @@ struct KitchenStage: View {
         let sleepy = scene == .chill ? 0.4 : 0
         let lean = Self.pulse(t + 3, every: 9, lasting: 1.4) * (flipped ? -6 : 6)
         let height = Self.nutmegWidth * 530 / 680
-        let surprised = isSurprised(at: date)
+        let surprised = cheerLine == nil && isSurprised(at: date)
         return NutmegView(pose: pose, nod: nod, cheer: cheer, showsWeather: false, hat: .chef,
                           gaze: gaze, eyelids: surprised ? 0 : max(sleepy, blink),
                           expression: surprised ? .surprised : .smile,
@@ -578,21 +592,34 @@ struct KitchenStage: View {
         c.fill(Path(roundedRect: CGRect(x: x - 70, y: 138, width: 132, height: 10), cornerRadius: 5), with: .color(Kit.board))
         c.fill(Path(roundedRect: CGRect(x: x - 70, y: 145, width: 132, height: 5), cornerRadius: 2.5),
                with: .color(Kit.boardEdge))
-        // Slices pile up as the carrot gets shorter, then it starts again.
-        let slices = Int(Self.fraction(t / 6) * 7)
-        let cut = x - 10 + CGFloat(slices) * 5
+        // One chop per beat: the knife rises and falls smoothly, gliding along
+        // to the next cut while it's up. After eight slices it lifts, slides
+        // back and the pile clears, then it starts again.
+        let beat = 0.55 / max(1, heat)
+        let beats = t / beat
+        let index = Int(beats.rounded(.down)) % 9
+        let phase = Self.fraction(beats)
+        let ease = phase * phase * (3 - 2 * phase)
+        let isReset = index == 8
+        let slices = isReset ? 8 : index
+        let base = x - 10
+        let cut = base + CGFloat(slices) * 5
+        let knifeX = isReset ? base + CGFloat(8 * (1 - ease)) * 5 : base + (CGFloat(index) + CGFloat(ease)) * 5
+        let pileFade = isReset ? 1 - ease : 1
         let (skinColor, flesh): (Color, Color) = switch produce {
         case .carrot: (Kit.carrot, Kit.egg)
         case .onion: (Kit.onionSkin, Kit.onion)
         case .tomato: (Kit.tomato, Kit.tomatoFlesh)
         case .greens: (Kit.greens, Kit.leafLight)
+        case .potato: (Kit.potatoSkin, Kit.potato)
         }
         for i in 0..<slices {
             let sx = x - 58 + CGFloat(i) * 6
-            c.fill(Path(ellipseIn: CGRect(x: sx, y: 130 + CGFloat(i % 2), width: 9, height: 9)), with: .color(skinColor))
-            c.fill(Kit.circle(CGPoint(x: sx + 4.5, y: 134.5 + CGFloat(i % 2)), 2), with: .color(flesh))
+            c.fill(Path(ellipseIn: CGRect(x: sx, y: 130 + CGFloat(i % 2), width: 9, height: 9)),
+                   with: .color(skinColor.opacity(pileFade)))
+            c.fill(Kit.circle(CGPoint(x: sx + 4.5, y: 134.5 + CGFloat(i % 2)), 2), with: .color(flesh.opacity(pileFade)))
         }
-        if produce == .onion || produce == .tomato {
+        if produce == .onion || produce == .tomato || produce == .potato {
             // A round thing, cut down to a shrinking dome.
             let width = x + 44 - cut
             c.fill(Path(roundedRect: CGRect(x: cut, y: 118, width: width, height: 20), cornerRadius: 10),
@@ -616,18 +643,19 @@ struct KitchenStage: View {
                        with: .color(Kit.water.opacity(1 - phase)))
             }
         }
-        // The knife comes down, again and again.
-        let lift = CGFloat(max(0, sin(t * 6 * max(1, heat)))) * 10
+        // Up and down in one smooth wave, lifting higher for the slide back.
+        let lift = CGFloat((1 - cos(2 * .pi * phase)) / 2) * (isReset ? 18 : 11)
+        let k = knifeX
         var blade = Path()
-        blade.move(to: CGPoint(x: cut - 26, y: 116 - lift))
-        blade.addLine(to: CGPoint(x: cut + 3, y: 116 - lift))
-        blade.addLine(to: CGPoint(x: cut + 3, y: 137 - lift))
-        blade.addQuadCurve(to: CGPoint(x: cut - 26, y: 128 - lift), control: CGPoint(x: cut - 16, y: 137 - lift))
+        blade.move(to: CGPoint(x: k - 26, y: 116 - lift))
+        blade.addLine(to: CGPoint(x: k + 3, y: 116 - lift))
+        blade.addLine(to: CGPoint(x: k + 3, y: 137 - lift))
+        blade.addQuadCurve(to: CGPoint(x: k - 26, y: 128 - lift), control: CGPoint(x: k - 16, y: 137 - lift))
         blade.closeSubpath()
         c.fill(blade, with: .color(Kit.chrome))
-        c.fill(Path(roundedRect: CGRect(x: cut - 50, y: 116 - lift, width: 26, height: 8), cornerRadius: 4),
+        c.fill(Path(roundedRect: CGRect(x: k - 50, y: 116 - lift, width: 26, height: 8), cornerRadius: 4),
                with: .color(Kit.dark))
-        return CGPoint(x: cut - 46, y: 120 - lift)
+        return CGPoint(x: k - 46, y: 120 - lift)
     }
 
     private func drawMix(_ c: GraphicsContext, x: CGFloat, t: Double, heat: Double) -> CGPoint {
@@ -977,6 +1005,7 @@ private enum Kit {
     static let potato = hex(0xF4E2B0)
     static let pasta = hex(0xF3D48A)
     static let mitt = hex(0xD64A4A)
+    static let potatoSkin = hex(0xB5835A)
     static let sink = hex(0xAFB6BF)
     static let blueEnamel = hex(0x4F7FB0)
     static let sageBowl = hex(0xDCE8CF)

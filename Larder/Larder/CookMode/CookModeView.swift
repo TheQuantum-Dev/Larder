@@ -602,6 +602,8 @@ private struct DoneView: View {
     /// many were eaten, so the calories logged are right.
     @State private var eaten = 1
     @State private var cheer = 0
+    /// What Nutmeg says as he serves it up, a different one each time.
+    @State private var enjoyLine = EnjoyLines.next()
     @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
@@ -635,7 +637,7 @@ private struct DoneView: View {
     private var message: some View {
         VStack(spacing: Theme.Spacing.m) {
             // Nutmeg serving it up, with a cheer.
-            KitchenStage(scene: .serve, emoji: recipe.emoji, cheer: cheer)
+            KitchenStage(scene: .serve, emoji: recipe.emoji, cheer: cheer, cheerLine: enjoyLine)
                 .frame(height: typeSize.isAccessibilitySize ? 170 : 240)
                 .task {
                     try? await Task.sleep(for: .milliseconds(500))

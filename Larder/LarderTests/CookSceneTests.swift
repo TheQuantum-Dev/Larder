@@ -5,6 +5,7 @@
 //  Created by Joshua Samuel on 9/26/26.
 //
 
+import Foundation
 import Testing
 @testable import Larder
 
@@ -107,5 +108,19 @@ struct CookSceneTests {
         #expect(CookScene.variant(recipeID: "egg-fried-rice", step: 2) == first)
         #expect((0..<CookScene.variants).contains(first))
         #expect(CookScene.variant(recipeID: "egg-fried-rice", step: 3) != first)
+    }
+}
+
+struct EnjoyLinesTests {
+    @Test func linesDontRepeatUntilTheyveAllBeenSaid() throws {
+        let defaults = try #require(UserDefaults(suiteName: "enjoy-\(UUID().uuidString)"))
+        let said = (0..<EnjoyLines.all.count).map { _ in EnjoyLines.next(defaults: defaults) }
+        #expect(Set(said).count == EnjoyLines.all.count)
+        // The next round doesn't open with the line that just played.
+        #expect(EnjoyLines.next(defaults: defaults) != said.last)
+    }
+
+    @Test func potatoesArePotatoes() {
+        #expect(CookScene.produce(in: "Scrub the potato and prick it all over with a fork.") == .potato)
     }
 }
