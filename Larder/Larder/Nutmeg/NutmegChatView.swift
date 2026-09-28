@@ -554,10 +554,15 @@ private struct ChatRecipeCard: View {
     let isOnline: Bool
     let action: () -> Void
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: Theme.Spacing.s) {
-                RecipeThumb(emoji: emoji, imageURL: imageURL, size: 44, emojiSize: 24)
+                // At the biggest text sizes the title needs the room more.
+                if !typeSize.isAccessibilitySize {
+                    RecipeThumb(emoji: emoji, imageURL: imageURL, size: 44, emojiSize: 24)
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.subheadline.bold())

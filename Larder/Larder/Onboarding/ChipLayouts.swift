@@ -24,7 +24,7 @@ struct FlowLayout: Layout {
         var widest: CGFloat = 0
 
         for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
+            let size = Self.measure(subview, maxWidth: maxWidth)
             if x > 0, x + size.width > maxWidth {
                 x = 0
                 y += rowHeight + spacing
@@ -44,7 +44,7 @@ struct FlowLayout: Layout {
         var rowHeight: CGFloat = 0
 
         for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
+            let size = Self.measure(subview, maxWidth: bounds.width)
             if x > bounds.minX, x + size.width > bounds.maxX {
                 x = bounds.minX
                 y += rowHeight + spacing
@@ -54,6 +54,16 @@ struct FlowLayout: Layout {
             x += size.width + spacing
             rowHeight = max(rowHeight, size.height)
         }
+    }
+}
+
+extension FlowLayout {
+    /// A view's natural size, but never wider than the row: a chip that won't
+    /// fit on one line (big text sizes) wraps its text instead of being cut off.
+    static func measure(_ subview: LayoutSubview, maxWidth: CGFloat) -> CGSize {
+        let natural = subview.sizeThatFits(.unspecified)
+        guard maxWidth.isFinite, natural.width > maxWidth else { return natural }
+        return subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
     }
 }
 

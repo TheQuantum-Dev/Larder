@@ -13,6 +13,7 @@ import SwiftUI
 /// cooked), how the week's going, and one way to add food. The pantry,
 /// recipes and insights each have their own tab.
 struct HomeView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(AppModel.self) private var app
     @Environment(OnlineRecipes.self) private var online
     @Environment(\.modelContext) private var context
@@ -188,36 +189,59 @@ struct HomeView: View {
     }
 
     private func header(_ plan: Plan) -> some View {
-        HStack(alignment: .center, spacing: Theme.Spacing.s) {
-            LivelyNutmeg(mood: pantry.isEmpty ? .peeking : .idle, expression: nutmegFace,
-                         cheer: app.homeCheer + giggles, sleepy: isLate && !cookedToday ? 0.2 : 0)
-                .frame(width: 124, height: 97)
-                .contentShape(Rectangle())
-                // A tap makes him giggle.
-                .onTapGesture { giggle() }
-                .sensoryFeedback(.impact(weight: .light), trigger: giggles)
-                .accessibilityElement()
-                .accessibilityLabel("Nutmeg")
-                .accessibilityAddTraits(.isButton)
-                .accessibilityHint("Say hello")
-            VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
-                Text(HomeGreeting.text(pantryCount: pantry.count,
-                                       readyCount: plan.matches.filter(\.isReady).count))
-                    .font(.title3.bold())
-                    .foregroundStyle(Theme.Palette.textPrimary)
+        let greeting = Text(HomeGreeting.text(pantryCount: pantry.count,
+                                              readyCount: plan.matches.filter(\.isReady).count))
+            .font(.title3.bold())
+            .foregroundStyle(Theme.Palette.textPrimary)
+        return Group {
+            if typeSize.isAccessibilitySize {
+                // At the biggest text sizes the greeting gets the full width,
+                // so words don't break in half.
+                VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
+                    HStack {
+                        homeNutmeg
+                        Spacer(minLength: 0)
+                        settingsButton
+                    }
+                    greeting
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else {
+                HStack(alignment: .center, spacing: Theme.Spacing.s) {
+                    homeNutmeg
+                    greeting
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    settingsButton
+                        .frame(maxHeight: .infinity, alignment: .top)
+                }
+                .fixedSize(horizontal: false, vertical: true)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Button { app.showSettings = true } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.title3)
-                    .foregroundStyle(Theme.Palette.textPrimary)
-                    .frame(width: 44, height: 44)
-                    .background(Theme.Palette.surface, in: Circle())
-            }
-            .accessibilityLabel("Settings")
-            .frame(maxHeight: .infinity, alignment: .top)
         }
-        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var homeNutmeg: some View {
+        LivelyNutmeg(mood: pantry.isEmpty ? .peeking : .idle, expression: nutmegFace,
+                     cheer: app.homeCheer + giggles, sleepy: isLate && !cookedToday ? 0.2 : 0)
+            .frame(width: 124, height: 97)
+            .contentShape(Rectangle())
+            // A tap makes him giggle.
+            .onTapGesture { giggle() }
+            .sensoryFeedback(.impact(weight: .light), trigger: giggles)
+            .accessibilityElement()
+            .accessibilityLabel("Nutmeg")
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("Say hello")
+    }
+
+    private var settingsButton: some View {
+        Button { app.showSettings = true } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(Theme.Palette.textPrimary)
+                .frame(width: 44, height: 44)
+                .background(Theme.Palette.surface, in: Circle())
+        }
+        .accessibilityLabel("Settings")
     }
 
     // MARK: - The next meal

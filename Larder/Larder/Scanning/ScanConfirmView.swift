@@ -323,8 +323,18 @@ private struct CountRow: View {
     var checkbox: (isOn: Bool, toggle: () -> Void)?
     let onStep: (Int) -> Void
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    /// At the biggest text sizes the amount goes on its own line under the name.
+    private var layout: AnyLayout {
+        typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Spacing.xs))
+            : AnyLayout(HStackLayout(spacing: Theme.Spacing.xs))
+    }
+
     var body: some View {
-        HStack(spacing: Theme.Spacing.xs) {
+        layout {
+            HStack(spacing: Theme.Spacing.xs) {
             if let checkbox {
                 Button(action: checkbox.toggle) {
                     Image(systemName: checkbox.isOn ? "checkmark.circle.fill" : "circle")
@@ -347,7 +357,9 @@ private struct CountRow: View {
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 }
             }
+            }
             Spacer(minLength: 0)
+            HStack(spacing: Theme.Spacing.xs) {
             if showsStepper {
                 stepButton("minus", label: "Less \(name)") { onStep(-1) }
                     .disabled(isNew ? amount == nil : amount == 0)
@@ -370,7 +382,9 @@ private struct CountRow: View {
                     .font(.subheadline.bold())
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
             }
+            }
         }
+        .padding(.vertical, typeSize.isAccessibilitySize ? Theme.Spacing.xs : 0)
         .padding(.leading, checkbox == nil ? Theme.Spacing.s : Theme.Spacing.xs)
         .padding(.trailing, Theme.Spacing.s)
         .frame(minHeight: 60)
