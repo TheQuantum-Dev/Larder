@@ -57,8 +57,12 @@ nonisolated enum CookScene: String, CaseIterable, Sendable {
         if has(["drain", "strain", "colander", "rinse"]) { return .drain }
         if has(["mash"]) { return .mash }
         if has(["crack"]) { return .crack }
-        if has(["chop", "slice", "dice", "mince", "cut", "grate", "peel", "shred", "halve", "crush",
-                "crumble", "prick", "pierce", "scrub", "zest", "flake"]) { return .chop }
+        // Cutting as the thing to do, not "sliced chicken" that's already cut.
+        let cutting = ["chop", "slice", "dice", "mince", "cut", "grate", "peel", "shred", "halve", "crush",
+                       "crumble", "prick", "pierce", "scrub", "zest", "flake"]
+        if words.contains(where: { word in
+            cutting.contains { word.hasPrefix($0) } && !(word.hasSuffix("ed") && word != "shred")
+        }) { return .chop }
         // Stirring something that's cooking happens over the heat, not in a bowl.
         if step.timer != nil || has(["cook", "heat", "cover", "minute"]), let heated = heatScene(for: recipe) {
             return heated

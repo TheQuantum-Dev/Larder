@@ -74,6 +74,12 @@ struct CookSceneTests {
         #expect(scene("Serve with a sprinkle of cheese.") == .serve)
     }
 
+    @Test func alreadyCutIngredientsArentAChoppingStep() {
+        #expect(scene("Stir the soy sauce and garlic together in a bowl and toss the sliced chicken in it.") == .mix)
+        #expect(scene("Add the chopped onion and cook 2 minutes.", equipment: [.pan]) == .fry)
+        #expect(scene("Slice the onion thinly.") == .chop)
+    }
+
     @Test func choppingKnowsWhatItsCutting() {
         #expect(CookScene.produce(in: "Dice the onion.") == .onion)
         #expect(CookScene.produce(in: "Slice the tomato.") == .tomato)
