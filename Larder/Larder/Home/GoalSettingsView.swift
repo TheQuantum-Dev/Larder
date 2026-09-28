@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// What you're working toward, and, if you like, a little about you so the
 /// calorie target fits. It all stays on the phone.
@@ -30,11 +31,34 @@ struct GoalSettingsView: View {
             }
         }
         .scrollContentBackground(.hidden)
+        .scrollDismissesKeyboard(.interactively)
         .background(Theme.Palette.background.ignoresSafeArea())
+        .toolbar {
+            // Number pads have no return key, so this puts the typed number in.
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+                .fontWeight(.semibold)
+            }
+        }
         .navigationTitle("Your goal")
         .navigationBarTitleDisplayMode(.inline)
         .tapFeedback(profile.goal)
         .onChange(of: profile) { _, new in save(new) }
+        .onAppear(perform: debugTargets)
+    }
+
+    /// `-customTargets 2600,140,,` sets your own calories and protein and
+    /// leaves carbs and fat suggested (debug builds only).
+    private func debugTargets() {
+        #if DEBUG
+        guard let text = UserDefaults.standard.string(forKey: "customTargets") else { return }
+        let values = text.split(separator: ",", omittingEmptySubsequences: false).map { Int($0) }
+        func value(_ index: Int) -> Int? { values.indices.contains(index) ? values[index] : nil }
+        profile.customTargets = CustomTargets(kcal: value(0), protein: value(1), carbs: value(2), fat: value(3))
+        #endif
     }
 
     /// Only this screen's fields are written, so nothing edited elsewhere is lost.
@@ -42,6 +66,7 @@ struct GoalSettingsView: View {
         var stored = ProfileStore.load()
         stored.goal = new.goal
         stored.bodyStats = new.bodyStats
+        stored.customTargets = new.customTargets
         ProfileStore.save(stored)
     }
 
@@ -202,25 +227,64 @@ struct GoalSettingsView: View {
         }
     }
 
+    /// The day's numbers. Each one can be typed over; until it is, it shows
+    /// what the formula suggests.
     private func targetSection(_ targets: DailyTargets) -> some View {
         Section {
-            LabeledContent("Calories", value: "\(targets.kcal.formatted()) kcal")
-                .listRowBackground(Theme.Palette.surface)
-            LabeledContent("Protein", value: "\(targets.protein) g")
-                .listRowBackground(Theme.Palette.surface)
-            LabeledContent("Carbs", value: "\(targets.carbs) g")
-                .listRowBackground(Theme.Palette.surface)
-            LabeledContent("Fat", value: "\(targets.fat) g")
-                .listRowBackground(Theme.Palette.surface)
+            targetRow("Calories", unit: "kcal", \.kcal, suggested: profile.suggestedTargets?.kcal)
+            targetRow("Protein", unit: "g", \.protein, suggested: profile.suggestedTargets?.protein)
+            targetRow("Carbs", unit: "g", \.carbs, suggested: profile.suggestedTargets?.carbs)
+            targetRow("Fat", unit: "g", \.fat, suggested: profile.suggestedTargets?.fat)
+            if targets.isCustom {
+                Button("Use the suggested targets") { profile.customTargets = nil }
+                    .foregroundStyle(Theme.Palette.textPrimary)
+                    .listRowBackground(Theme.Palette.surface)
+            }
         } header: {
             Text("Your daily target")
         } footer: {
-            Text((targets.isPersonal ? "" : "Based on a typical 2,000 calorie day until you add your stats. ")
-                 + "This is a rough estimate from a standard formula, not medical advice. For a real plan, talk to a doctor or dietitian.")
+            Text(targetFooter(targets))
         }
     }
 
+    private func targetRow(_ title: String, unit: String, _ field: WritableKeyPath<CustomTargets, Int?>,
+                           suggested: Int?) -> some View {
+        LabeledContent(title) {
+            HStack(spacing: Theme.Spacing.xs) {
+                TextField(suggested.map { $0.formatted() } ?? "—", value: target(field, suggested: suggested),
+                          format: .number)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.trailing)
+                    .foregroundStyle(profile.customTargets?[keyPath: field] == nil
+                                     ? Theme.Palette.textPrimary.opacity(0.75) : Theme.Palette.amber)
+                Text(unit)
+            }
+        }
+        .listRowBackground(Theme.Palette.surface)
+    }
+
+    private func targetFooter(_ targets: DailyTargets) -> String {
+        if targets.isCustom {
+            return "These are your own numbers, and I'll use them everywhere. Tap one to change it. Calories stay between "
+                + "\(CustomTargets.kcalRange.lowerBound.formatted()) and \(CustomTargets.kcalRange.upperBound.formatted()) a day."
+        }
+        return (targets.isPersonal ? "" : "Based on a typical 2,000 calorie day until you add your stats. ")
+            + "Tap a number to set your own. These are rough estimates from a standard formula, not medical advice. "
+            + "For a real plan, talk to a doctor or dietitian."
+    }
+
     // MARK: - Bindings
+
+    /// Shows your own number, or the suggested one until you change it. Typing
+    /// the suggested number back in (or clearing the field) goes back to it.
+    private func target(_ field: WritableKeyPath<CustomTargets, Int?>, suggested: Int?) -> Binding<Int?> {
+        Binding(get: { profile.customTargets?[keyPath: field] ?? suggested },
+                set: { value in
+                    var custom = profile.customTargets ?? CustomTargets()
+                    custom[keyPath: field] = value == suggested ? nil : value
+                    profile.customTargets = custom.isEmpty ? nil : custom
+                })
+    }
 
     private var sex: Binding<BiologicalSex?> {
         Binding(get: { profile.sex.flatMap(BiologicalSex.init(rawValue:)) },

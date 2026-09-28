@@ -68,6 +68,20 @@ nonisolated struct BodyStats: Equatable, Sendable {
     var validWeightKg: Double? { weightKg.flatMap { (30...250).contains($0) ? $0 : nil } }
 }
 
+/// Daily numbers the person chose themselves. Anything left nil keeps the
+/// suggested value.
+nonisolated struct CustomTargets: Codable, Equatable, Sendable {
+    var kcal: Int?
+    var protein: Int?
+    var carbs: Int?
+    var fat: Int?
+
+    static let kcalRange = 1_200...6_000
+    static let gramsLimit = 900
+
+    var isEmpty: Bool { kcal == nil && protein == nil && carbs == nil && fat == nil }
+}
+
 /// A day's worth of energy and macros to aim for.
 nonisolated struct DailyTargets: Equatable, Sendable {
     var kcal: Int
@@ -76,6 +90,22 @@ nonisolated struct DailyTargets: Equatable, Sendable {
     var fat: Int
     /// False when there weren't enough body stats and a 2,000 kcal day stood in.
     var isPersonal: Bool
+    /// True when the person has typed in any of these numbers themselves.
+    var isCustom = false
+
+    /// These targets with any numbers the person set themselves in place of
+    /// the suggested ones. Each is kept to a sensible range, so a slip of the
+    /// finger can't set a 20 kcal day.
+    func applying(_ custom: CustomTargets?) -> DailyTargets {
+        guard let custom, !custom.isEmpty else { return self }
+        var result = self
+        if let kcal = custom.kcal { result.kcal = min(max(kcal, CustomTargets.kcalRange.lowerBound), CustomTargets.kcalRange.upperBound) }
+        if let protein = custom.protein { result.protein = min(max(protein, 0), CustomTargets.gramsLimit) }
+        if let carbs = custom.carbs { result.carbs = min(max(carbs, 0), CustomTargets.gramsLimit) }
+        if let fat = custom.fat { result.fat = min(max(fat, 0), CustomTargets.gramsLimit) }
+        result.isCustom = true
+        return result
+    }
 
     var macros: Macros {
         Macros(kcal: Double(kcal), protein: Double(protein), carbs: Double(carbs), fat: Double(fat))

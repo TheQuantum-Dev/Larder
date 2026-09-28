@@ -24,6 +24,8 @@ nonisolated struct Profile: Codable, Equatable, Sendable {
     var heightCm: Double?
     var weightKg: Double?
     var activity: String?
+    /// Daily targets typed in by hand, used instead of the suggested ones.
+    var customTargets: CustomTargets?
 
     init() {}
 
@@ -81,6 +83,11 @@ nonisolated struct Profile: Codable, Equatable, Sendable {
 
     /// A day's calories and macros for the goal, or nil with no goal or "just cook".
     var dailyTargets: DailyTargets? {
+        suggestedTargets?.applying(customTargets)
+    }
+
+    /// What the formula suggests, before any numbers typed in by hand.
+    var suggestedTargets: DailyTargets? {
         fitnessGoal.flatMap { NutritionTargets.targets(for: $0, stats: bodyStats) }
     }
 

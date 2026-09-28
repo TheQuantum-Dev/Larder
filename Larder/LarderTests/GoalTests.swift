@@ -252,3 +252,59 @@ struct ProfileGoalTests {
         #expect(profile.weightKg == 75 && profile.birthYear == 2004)
     }
 }
+
+/// Daily targets typed in by hand.
+struct CustomTargetsTests {
+    private var profile: Profile {
+        var profile = Profile()
+        profile.goal = FitnessGoal.buildMuscle.rawValue
+        return profile
+    }
+
+    @Test func yourOwnNumbersReplaceTheSuggestedOnes() throws {
+        var p = profile
+        let suggested = try #require(p.suggestedTargets)
+        p.customTargets = CustomTargets(kcal: 2_600, protein: 140)
+        let targets = try #require(p.dailyTargets)
+        #expect(targets.kcal == 2_600)
+        #expect(targets.protein == 140)
+        // What wasn't typed in keeps the suggestion.
+        #expect(targets.carbs == suggested.carbs)
+        #expect(targets.fat == suggested.fat)
+        #expect(targets.isCustom)
+        // The suggestion itself is untouched, for going back to it.
+        #expect(p.suggestedTargets == suggested)
+    }
+
+    @Test func aSlipOfTheFingerCantSetAnAbsurdDay() throws {
+        var p = profile
+        p.customTargets = CustomTargets(kcal: 20, protein: 5_000, carbs: -10, fat: 1_000)
+        let targets = try #require(p.dailyTargets)
+        #expect(targets.kcal == CustomTargets.kcalRange.lowerBound)
+        #expect(targets.protein == CustomTargets.gramsLimit)
+        #expect(targets.carbs == 0)
+        #expect(targets.fat == CustomTargets.gramsLimit)
+    }
+
+    @Test func nothingTypedInMeansTheSuggestion() throws {
+        var p = profile
+        p.customTargets = CustomTargets()
+        let targets = try #require(p.dailyTargets)
+        #expect(!targets.isCustom)
+        #expect(targets == p.suggestedTargets)
+    }
+
+    @Test func justCookStillHasNoNumbers() {
+        var p = profile
+        p.goal = FitnessGoal.justCook.rawValue
+        p.customTargets = CustomTargets(kcal: 2_500)
+        #expect(p.dailyTargets == nil)
+    }
+
+    @Test func profilesSavedBeforeThisStillLoad() throws {
+        let old = #"{"diets":[],"cooking":[],"priorities":[],"goal":"buildMuscle"}"#
+        let decoded = try JSONDecoder().decode(Profile.self, from: Data(old.utf8))
+        #expect(decoded.customTargets == nil)
+        #expect(decoded.dailyTargets != nil)
+    }
+}
