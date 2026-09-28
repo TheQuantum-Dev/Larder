@@ -14,6 +14,13 @@ Larder is an iPhone app for students who cook on a small budget. You show it wha
 
 I'm a high school student, and I built Larder on my own. It started as a hackathon project, but somewhere along the way I started actually using it, a lot more than I expected to. So it isn't just a hackathon project anymore. It's something I'm going to keep working on, and it's [free and open source](#free-and-staying-open-source) on purpose.
 
+<p align="center">
+  <img src="docs/screenshots/home.jpg" width="190" alt="Home: tonight's pick, a recipe you can make with everything you have, and a 2-day streak">
+  <img src="docs/screenshots/scan.jpg" width="190" alt="Scan results: the items Larder spotted in a photo, with amounts to confirm">
+  <img src="docs/screenshots/cook-mode.jpg" width="190" alt="Cook Mode: Nutmeg in a chef's hat frying at the stove, with a 3 minute timer">
+  <img src="docs/screenshots/chat.jpg" width="190" alt="Chat with Nutmeg: what can I make tonight, answered with three recipes">
+</p>
+
 ## What it does
 
 **Update your pantry.** Take a few photos in a row, scan barcodes, or type things in. Larder shows you everything it thinks it found, with amounts, and nothing gets saved until you've checked it.
@@ -24,15 +31,27 @@ I'm a high school student, and I built Larder on my own. It started as a hackath
 
 **Cook Mode.** Step by step, with timers that ring even when your phone is locked, and count down on your lock screen. Nutmeg stands in a little kitchen that changes with each step, so when the step says boil, there's a pot boiling.
 
+<p align="center">
+  <img src="docs/screenshots/timer-done.jpg" width="220" alt="A Cook Mode timer that has gone off: Step 1 is done, with a Stop button">
+</p>
+
 **Goals and nutrition.** Pick a goal (build muscle, lose weight, gain weight, stay fit, or "just cook" if you don't want numbers). Every recipe shows calories and macros per serving. Apple Health sync is optional and only saves the meals you cook.
 
 **Shopping list.** When you run out of something it can go on the list by itself. "Add what's missing" puts a recipe's missing ingredients on the list with amounts. When you tick things off, they move into your pantry, and if you already had some, the amounts add up.
+
+<p align="center">
+  <img src="docs/screenshots/shopping-list.jpg" width="220" alt="The shopping list grouped by aisle, with amounts and a button to put bought items in the pantry">
+</p>
 
 **Streak.** Seven Nutmegs for the week, one for each day you cook. No streak freezes and no guilt trips if you miss a day.
 
 **Chat with Nutmeg** (Larder Plus). Type or talk. Ask what to make, what you're running low on, or how today's calories and protein look. Say "I bought 6 eggs" and he'll offer to update your pantry. You tap to confirm.
 
 **Nutmeg's looks.** Coral unlocks after you've cooked a few times. Snow and Harvest come with Larder Plus. Each look changes the colors of the whole app, in light and dark mode, and can switch the app icon to match.
+
+<p align="center">
+  <img src="docs/screenshots/looks.png" width="720" alt="The same Home screen in Nutmeg's four looks: Amber, Coral, Snow and Harvest">
+</p>
 
 **Privacy.** Photos and voice messages stay on your phone. A barcode scan sends only the barcode number. If you turn on online recipes, it sends a few ingredient names plus your goal and diet. There are no accounts and no sign in.
 
