@@ -8,6 +8,7 @@
 import SwiftData
 import SwiftUI
 import UIKit
+import UserNotifications
 
 /// Cook Mode: get set up, then one big step at a time with timers, then done.
 /// The screen stays awake while it's open, because a phone that goes dark
@@ -59,16 +60,22 @@ struct CookModeView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: session.ringing)
         // A timer going off rings, with a buzz, until someone taps Stop.
         .onChange(of: session.ringing.isEmpty) { _, isQuiet in
-            if isQuiet { TimerAlarm.shared.stop() } else { TimerAlarm.shared.start() }
+            // A system alarm rings by itself (and on the lock screen), so the
+            // app only rings its own when alarms aren't allowed.
+            if isQuiet {
+                TimerAlarm.shared.stop()
+            } else if !session.usesSystemAlarms {
+                TimerAlarm.shared.start()
+            }
         }
         .onChange(of: session.timersStarted) { _, _ in offerNotifications() }
         .sheet(isPresented: $askingForNotifications) {
-            TimerNotificationAsk { allowed in
+            TimerNotificationAsk(request: requestTimerAlerts) { allowed in
                 askingForNotifications = false
                 session.notificationsOff = !allowed
-                if allowed { session.rescheduleNotifications() }
+                if allowed { session.rescheduleAlerts() }
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.fraction(0.62), .large])
         }
         .alert("Stop cooking?", isPresented: $confirmingExit) {
             Button("Keep cooking", role: .cancel) {}
@@ -76,10 +83,22 @@ struct CookModeView: View {
         } message: {
             Text("Your timers will stop.")
         }
+        .task {
+            // Stop on the lock screen, or in the alarm's own alert, shows up here.
+            for await states in CookAlarms.shared.updates() {
+                session.applyAlarmStates(states)
+            }
+        }
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
             session.notifier = TimerNotifications.shared
-            Task { session.notificationsOff = await TimerNotifications.status() == .denied }
+            session.systemAlarms = CookAlarms.shared
+            Task {
+                let notifications = await TimerNotifications.status()
+                session.notificationsOff = !CookAlarms.shared.isAuthorized
+                    && !CookAlarms.shared.needsAsking
+                    && notifications == .denied
+            }
             startDebugTimer()
             startDebugMade()
         }
@@ -143,14 +162,26 @@ struct CookModeView: View {
     }
 
     /// The first time someone starts a timer, and only if they've never
-    /// been asked, Nutmeg offers a notification for when it's done.
+    /// been asked, Nutmeg offers to ring them when it's done, even with the
+    /// phone locked.
     private func offerNotifications() {
         guard !askedTimerNotifications else { return }
         Task {
-            guard await TimerNotifications.status() == .notDetermined else { return }
+            let notifications = await TimerNotifications.status()
+            guard CookAlarms.shared.needsAsking || notifications == .notDetermined else { return }
             askedTimerNotifications = true
             askingForNotifications = true
         }
+    }
+
+    /// System alarms first, since they ring on a locked phone and on silent;
+    /// notifications only if alarms can't be used.
+    private func requestTimerAlerts() async -> Bool {
+        if CookAlarms.shared.needsAsking, await CookAlarms.shared.requestAuthorization() {
+            return true
+        }
+        if CookAlarms.shared.isAuthorized { return true }
+        return (try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])) ?? false
     }
 
     // MARK: - Phases
@@ -234,10 +265,13 @@ struct CookModeView: View {
 
     /// `-cookTimer YES` starts the timer on the current step, `-cookTimerStep 2`
     /// starts the one on step 2, and `-cookRinging YES` shows the current
-    /// step's timer ringing, and `-askTimerNotifications YES` shows Nutmeg's offer
-    /// to ping you (debug builds only).
+    /// step's timer ringing, `-askTimerNotifications YES` shows Nutmeg's offer
+    /// to ring you, and `-cookTimerSeconds 10` makes the step's timer that
+    /// short (debug builds only).
     private func startDebugTimer() {
         #if DEBUG
+        let seconds = UserDefaults.standard.double(forKey: "cookTimerSeconds")
+        if seconds > 0, let step = session.currentStep { session.debugShorten(step, to: seconds) }
         if UserDefaults.standard.bool(forKey: "cookTimer"), let step = session.currentStep {
             session.startTimer(step)
         }

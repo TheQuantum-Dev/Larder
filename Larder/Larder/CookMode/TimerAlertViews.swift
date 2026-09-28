@@ -49,29 +49,29 @@ struct RingingBar: View {
     }
 }
 
-/// Nutmeg asking, once, whether a timer may ping you when you've left the
-/// app. The system prompt only appears if they say yes here.
+/// Nutmeg asking, once, whether a timer may ring you when you've left the
+/// app or locked the phone. The system prompt only appears if they say yes here.
 struct TimerNotificationAsk: View {
+    /// Shows the system prompt; true if they allowed it.
+    let request: () async -> Bool
     let onDone: (Bool) -> Void
 
     var body: some View {
         VStack(spacing: Theme.Spacing.s) {
             NutmegView(pose: .rightWave)
                 .frame(height: 100)
-            Text("Want a ping when it's done?")
+            Text("Want me to ring you when it's done?")
                 .font(.title2.bold())
                 .multilineTextAlignment(.center)
-            Text("If you leave Larder while something's cooking, I'll ring your phone when the timer's up.")
+                .fixedSize(horizontal: false, vertical: true)
+            Text("Even if you lock your phone or leave Larder, I'll ring when the timer's up, and show it counting down on your lock screen.")
                 .font(.body)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
-            Button("Yes, ping me") {
-                Task {
-                    let allowed = (try? await UNUserNotificationCenter.current()
-                        .requestAuthorization(options: [.alert, .sound])) ?? false
-                    onDone(allowed)
-                }
+            Button("Yes, ring me") {
+                Task { onDone(await request()) }
             }
             .buttonStyle(PillButtonStyle())
             Button("Not now") { onDone(false) }

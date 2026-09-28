@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		DDFD43D330606DD500DC37AE /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = DDFD43D230606DD500DC37AE /* RevenueCat */; };
+		AA10F0E0C0D0B0A09080000C /* LarderTimers.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA10F0E0C0D0B0A090800003 /* LarderTimers.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,13 +26,35 @@
 			remoteGlobalIDString = DDFD439A3060698600DC37AE;
 			remoteInfo = Larder;
 		};
+		AA10F0E0C0D0B0A09080000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DDFD43933060698600DC37AE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA10F0E0C0D0B0A090800004;
+			remoteInfo = LarderTimers;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AA10F0E0C0D0B0A09080000B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AA10F0E0C0D0B0A09080000C /* LarderTimers.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		DDFD439B3060698600DC37AE /* Larder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Larder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDFD43A83060698800DC37AE /* LarderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LarderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDFD43B23060698800DC37AE /* LarderUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LarderUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDFD43D4306071B700DC37AE /* Larder.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Larder.storekit; sourceTree = "<group>"; };
+		AA10F0E0C0D0B0A090800003 /* LarderTimers.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LarderTimers.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,6 +64,13 @@
 				Info.plist,
 			);
 			target = DDFD439A3060698600DC37AE /* Larder */;
+		};
+		AA10F0E0C0D0B0A09080000F /* Exceptions for "LarderTimers" folder in "LarderTimers" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = AA10F0E0C0D0B0A090800004 /* LarderTimers */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -61,6 +91,19 @@
 		DDFD43B53060698800DC37AE /* LarderUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = LarderUITests;
+			sourceTree = "<group>";
+		};
+		AA10F0E0C0D0B0A090800001 /* LarderTimers */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AA10F0E0C0D0B0A09080000F /* Exceptions for "LarderTimers" folder in "LarderTimers" target */,
+			);
+			path = LarderTimers;
+			sourceTree = "<group>";
+		};
+		AA10F0E0C0D0B0A090800002 /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -88,6 +131,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA10F0E0C0D0B0A090800006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -96,6 +146,8 @@
 			children = (
 				DDFD43D4306071B700DC37AE /* Larder.storekit */,
 				DDFD439D3060698600DC37AE /* Larder */,
+				AA10F0E0C0D0B0A090800002 /* Shared */,
+				AA10F0E0C0D0B0A090800001 /* LarderTimers */,
 				DDFD43AB3060698800DC37AE /* LarderTests */,
 				DDFD43B53060698800DC37AE /* LarderUITests */,
 				DDFD439C3060698600DC37AE /* Products */,
@@ -108,6 +160,7 @@
 				DDFD439B3060698600DC37AE /* Larder.app */,
 				DDFD43A83060698800DC37AE /* LarderTests.xctest */,
 				DDFD43B23060698800DC37AE /* LarderUITests.xctest */,
+				AA10F0E0C0D0B0A090800003 /* LarderTimers.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -122,13 +175,16 @@
 				DDFD43973060698600DC37AE /* Sources */,
 				DDFD43983060698600DC37AE /* Frameworks */,
 				DDFD43993060698600DC37AE /* Resources */,
+				AA10F0E0C0D0B0A09080000B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AA10F0E0C0D0B0A09080000E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				DDFD439D3060698600DC37AE /* Larder */,
+				AA10F0E0C0D0B0A090800002 /* Shared */,
 			);
 			name = Larder;
 			packageProductDependencies = (
@@ -184,6 +240,29 @@
 			productReference = DDFD43B23060698800DC37AE /* LarderUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		AA10F0E0C0D0B0A090800004 /* LarderTimers */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA10F0E0C0D0B0A090800008 /* Build configuration list for PBXNativeTarget "LarderTimers" */;
+			buildPhases = (
+				AA10F0E0C0D0B0A090800005 /* Sources */,
+				AA10F0E0C0D0B0A090800006 /* Frameworks */,
+				AA10F0E0C0D0B0A090800007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AA10F0E0C0D0B0A090800001 /* LarderTimers */,
+				AA10F0E0C0D0B0A090800002 /* Shared */,
+			);
+			name = LarderTimers;
+			packageProductDependencies = (
+			);
+			productName = LarderTimers;
+			productReference = AA10F0E0C0D0B0A090800003 /* LarderTimers.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -204,6 +283,9 @@
 					DDFD43B13060698800DC37AE = {
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = DDFD439A3060698600DC37AE;
+					};
+					AA10F0E0C0D0B0A090800004 = {
+						CreatedOnToolsVersion = 26.6;
 					};
 				};
 			};
@@ -227,6 +309,7 @@
 				DDFD439A3060698600DC37AE /* Larder */,
 				DDFD43A73060698800DC37AE /* LarderTests */,
 				DDFD43B13060698800DC37AE /* LarderUITests */,
+				AA10F0E0C0D0B0A090800004 /* LarderTimers */,
 			);
 		};
 /* End PBXProject section */
@@ -247,6 +330,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		DDFD43B03060698800DC37AE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AA10F0E0C0D0B0A090800007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -277,6 +367,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA10F0E0C0D0B0A090800005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -289,6 +386,11 @@
 			isa = PBXTargetDependency;
 			target = DDFD439A3060698600DC37AE /* Larder */;
 			targetProxy = DDFD43B33060698800DC37AE /* PBXContainerItemProxy */;
+		};
+		AA10F0E0C0D0B0A09080000E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA10F0E0C0D0B0A090800004 /* LarderTimers */;
+			targetProxy = AA10F0E0C0D0B0A09080000D /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -428,10 +530,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Larder/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Larder uses the camera to look at your fridge or pantry and spot what you have.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Larder uses the microphone so you can talk to Nutmeg. What you say is turned into text on your phone.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Larder turns what you say to Nutmeg into text, right on your phone.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Larder reads your height, weight, age and sex from Apple Health to estimate a daily calorie target. It stays on your phone.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Larder can save the calories and nutrients of the meals you cook to Apple Health, only if you turn that on.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Larder uses the microphone so you can talk to Nutmeg. What you say is turned into text on your phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Larder turns what you say to Nutmeg into text, right on your phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -468,10 +570,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Larder/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Larder uses the camera to look at your fridge or pantry and spot what you have.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Larder uses the microphone so you can talk to Nutmeg. What you say is turned into text on your phone.";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Larder turns what you say to Nutmeg into text, right on your phone.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Larder reads your height, weight, age and sex from Apple Health to estimate a daily calorie target. It stays on your phone.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Larder can save the calories and nutrients of the meals you cook to Apple Health, only if you turn that on.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Larder uses the microphone so you can talk to Nutmeg. What you say is turned into text on your phone.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Larder turns what you say to Nutmeg into text, right on your phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -578,6 +680,64 @@
 			};
 			name = Release;
 		};
+		AA10F0E0C0D0B0A090800009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QFBXJP6P5G;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LarderTimers/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Larder Timers";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.joshuasamuel.Larder.LarderTimers;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AA10F0E0C0D0B0A09080000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = QFBXJP6P5G;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LarderTimers/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Larder Timers";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.joshuasamuel.Larder.LarderTimers;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -613,6 +773,15 @@
 			buildConfigurations = (
 				DDFD43C33060698800DC37AE /* Debug */,
 				DDFD43C43060698800DC37AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA10F0E0C0D0B0A090800008 /* Build configuration list for PBXNativeTarget "LarderTimers" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA10F0E0C0D0B0A090800009 /* Debug */,
+				AA10F0E0C0D0B0A09080000A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

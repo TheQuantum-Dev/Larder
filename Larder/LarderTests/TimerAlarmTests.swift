@@ -115,3 +115,123 @@ struct TimerAlarmTests {
         #expect(TimerReminder.snippet(of: "Boil the pasta. Drain it.") == "Boil the pasta.")
     }
 }
+
+/// Stands in for AlarmKit, remembering what the session asked of it.
+@MainActor
+final class FakeAlarms: CookAlarming {
+    var isAuthorized = true
+    var started: [UUID: TimeInterval] = [:]
+    var paused: Set<UUID> = []
+    var cancelled: Set<UUID> = []
+
+    func start(id: UUID, recipe: Recipe, step: Int, seconds: TimeInterval) { started[id] = seconds }
+    func pause(id: UUID) { paused.insert(id) }
+    func resume(id: UUID) { paused.remove(id) }
+    func cancel(id: UUID) { cancelled.insert(id) }
+}
+
+/// Cook Mode timers as system alarms, so they ring on a locked phone.
+@MainActor
+struct SystemAlarmTests {
+    private func session(authorized: Bool = true) -> (CookSession, TestClock, FakeAlarms, FakeNotifier, Int) {
+        let clock = TestClock()
+        let recipe = RecipeStore.all.first { recipe in recipe.steps.contains { $0.timer != nil } }!
+        let session = CookSession(recipe: recipe, clock: { clock.now })
+        let alarms = FakeAlarms()
+        alarms.isAuthorized = authorized
+        let notifier = FakeNotifier()
+        session.systemAlarms = alarms
+        session.notifier = notifier
+        let step = recipe.steps.firstIndex { $0.timer != nil }!
+        return (session, clock, alarms, notifier, step)
+    }
+
+    @Test func startingSetsASystemAlarmInsteadOfANotification() {
+        let (s, _, alarms, notifier, step) = session()
+        s.startTimer(step)
+        let id = try! #require(s.alarmIDs[step])
+        #expect(alarms.started[id] == s.timers[step]!.duration)
+        #expect(notifier.scheduled.isEmpty)
+    }
+
+    @Test func withoutPermissionItFallsBackToANotification() {
+        let (s, _, alarms, notifier, step) = session(authorized: false)
+        s.startTimer(step)
+        #expect(alarms.started.isEmpty)
+        #expect(s.alarmIDs.isEmpty)
+        #expect(notifier.scheduled.count == 1)
+    }
+
+    @Test func pauseAndResumeGoToTheAlarm() {
+        let (s, clock, alarms, _, step) = session()
+        s.startTimer(step)
+        let id = s.alarmIDs[step]!
+        clock.advance(5)
+        s.pauseTimer(step)
+        #expect(alarms.paused == [id])
+        s.resumeTimer(step)
+        #expect(alarms.paused.isEmpty)
+        #expect(s.alarmIDs[step] == id)
+    }
+
+    @Test func resettingCancelsTheAlarm() {
+        let (s, _, alarms, _, step) = session()
+        s.startTimer(step)
+        let id = s.alarmIDs[step]!
+        s.resetTimer(step)
+        #expect(alarms.cancelled.contains(id))
+        #expect(s.alarmIDs[step] == nil)
+    }
+
+    @Test func aRingingAlarmRingsInTheAppEvenAfterBeingAsleep() {
+        let (s, _, _, _, step) = session()
+        s.startTimer(step)
+        s.appIsActive = false
+        s.applyAlarmStates([s.alarmIDs[step]!: .ringing])
+        #expect(s.ringing == [step])
+        #expect(s.timers[step]!.isFinished)
+    }
+
+    @Test func stoppingOnTheLockScreenStopsItInTheApp() {
+        let (s, _, _, _, step) = session()
+        s.startTimer(step)
+        s.applyAlarmStates([s.alarmIDs[step]!: .ringing])
+        // The alarm is gone: someone tapped Stop on the lock screen.
+        s.applyAlarmStates([:])
+        #expect(s.ringing.isEmpty)
+        #expect(s.alarmIDs[step] == nil)
+    }
+
+    @Test func aRunningAlarmMissingFromAnUpdateIsLeftAlone() {
+        let (s, _, _, _, step) = session()
+        s.startTimer(step)
+        // The system may not list a brand-new alarm yet.
+        s.applyAlarmStates([:])
+        #expect(s.alarmIDs[step] != nil)
+        #expect(s.timers[step]!.isRunning)
+    }
+
+    @Test func stoppingInTheAppSilencesTheAlarm() {
+        let (s, _, alarms, _, step) = session()
+        s.startTimer(step)
+        let id = s.alarmIDs[step]!
+        s.applyAlarmStates([id: .ringing])
+        s.stopRinging(step)
+        #expect(alarms.cancelled.contains(id))
+        #expect(s.ringing.isEmpty)
+    }
+
+    @Test func closingCookModeCancelsEveryAlarm() {
+        let (s, _, alarms, _, step) = session()
+        s.startTimer(step)
+        let id = s.alarmIDs[step]!
+        s.stop()
+        #expect(alarms.cancelled.contains(id))
+    }
+
+    @Test func theLockScreenDetailsSurviveTheTrip() throws {
+        let metadata = CookTimerMetadata(recipeTitle: "Egg fried rice", recipeEmoji: "🍳", step: 2, stepSnippet: "Fry the rice.")
+        let data = try JSONEncoder().encode(metadata)
+        #expect(try JSONDecoder().decode(CookTimerMetadata.self, from: data) == metadata)
+    }
+}

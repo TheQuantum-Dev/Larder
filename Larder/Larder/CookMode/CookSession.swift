@@ -26,9 +26,10 @@ final class CookSession {
     private(set) var timers: [Int: StepTimer] = [:]
     /// Goes up each time a timer runs out, which is what triggers the haptic.
     private(set) var finishedCount = 0
-    /// Steps whose timer ran out while you were looking and is still ringing.
-    /// One that ran out while Larder was in the background has already rung
-    /// through its notification, so it doesn't start again on return.
+    /// Steps whose timer has gone off and is still ringing, until Stop. With
+    /// system alarms that's whatever the alarm says; otherwise it's a timer
+    /// that ran out while you were looking (one that ran out in the background
+    /// already rang through its notification).
     private(set) var ringing: Set<Int> = []
     /// Goes up each time a timer is started, so Cook Mode can offer to send
     /// a notification the first time.
@@ -41,9 +42,18 @@ final class CookSession {
     var checkedIngredients: Set<Int> = []
 
     @ObservationIgnored private let clock: () -> Date
-    @ObservationIgnored private var alarms: [Int: Task<Void, Never>] = [:]
+    /// Wakes the session when a running timer is due, while the app is open.
+    @ObservationIgnored private var wakeups: [Int: Task<Void, Never>] = [:]
     /// Where timer notifications go. Nil sends none, which is what tests want.
     @ObservationIgnored var notifier: TimerNotifying?
+    /// System alarms (AlarmKit), used instead of notifications once allowed.
+    @ObservationIgnored var systemAlarms: CookAlarming?
+    /// Each step's system alarm, while it has one.
+    @ObservationIgnored private(set) var alarmIDs: [Int: UUID] = [:]
+
+    /// True when timers ring as real alarms: on a locked phone, on silent, with
+    /// a countdown on the lock screen.
+    var usesSystemAlarms: Bool { systemAlarms?.isAuthorized == true }
     /// Whether Larder is on screen, so a timer running out can ring.
     @ObservationIgnored var appIsActive = true
 
@@ -113,22 +123,32 @@ final class CookSession {
         timersStarted += 1
     }
 
-    /// Sends the notifications again for every running timer, for right
-    /// after someone allows them.
-    func rescheduleNotifications() {
+    /// Sets up alarms or notifications again for every running timer, for
+    /// right after someone allows them.
+    func rescheduleAlerts() {
         for (step, timer) in timers where timer.isRunning {
-            notifier?.schedule(TimerReminder.make(recipe: recipe, step: step, seconds: timer.remaining(at: clock())))
+            scheduleAlarm(for: step)
         }
     }
 
     func pauseTimer(_ step: Int) {
         change(step) { $0.pause(now: clock()) }
-        cancelAlarm(for: step)
+        if let id = alarmIDs[step] {
+            wakeups[step]?.cancel()
+            systemAlarms?.pause(id: id)
+        } else {
+            cancelAlarm(for: step)
+        }
     }
 
     func resumeTimer(_ step: Int) {
         change(step) { $0.resume(now: clock()) }
-        scheduleAlarm(for: step)
+        if let id = alarmIDs[step] {
+            systemAlarms?.resume(id: id)
+            scheduleWakeup(for: step)
+        } else {
+            scheduleAlarm(for: step)
+        }
     }
 
     func resetTimer(_ step: Int) {
@@ -140,7 +160,35 @@ final class CookSession {
     /// Stop on a ringing timer. It stays at "Time's up!" until it's reset.
     func stopRinging(_ step: Int) {
         ringing.remove(step)
+        if let id = alarmIDs.removeValue(forKey: step) { systemAlarms?.cancel(id: id) }
         notifier?.clearDelivered(id: TimerReminder.id(recipeID: recipe.id, step: step))
+    }
+
+    /// Keeps the session in step with the system alarms. One that's ringing
+    /// shows as ringing here (and counts as done, even if the app was asleep);
+    /// one that has vanished was stopped from the lock screen, so it stops
+    /// ringing here too.
+    func applyAlarmStates(_ states: [UUID: CookAlarmState]) {
+        for (step, id) in alarmIDs {
+            switch states[id] {
+            case .ringing:
+                if var timer = timers[step], !timer.isFinished {
+                    let due = clock().addingTimeInterval(timer.remaining(at: clock()) + 1)
+                    if timer.finishIfDue(now: due) {
+                        timers[step] = timer
+                        finishedCount += 1
+                    }
+                }
+                ringing.insert(step)
+            case nil:
+                if ringing.contains(step) || timers[step]?.isFinished == true {
+                    ringing.remove(step)
+                    alarmIDs[step] = nil
+                }
+            default:
+                break
+            }
+        }
     }
 
     func stopAllRinging() {
@@ -186,9 +234,17 @@ final class CookSession {
 
     /// Stops any pending alarms and notifications, for when Cook Mode closes.
     func stop() {
-        for step in Array(alarms.keys) { cancelAlarm(for: step) }
+        for step in Set(wakeups.keys).union(alarmIDs.keys) { cancelAlarm(for: step) }
         stopAllRinging()
     }
+
+    #if DEBUG
+    /// Swaps a step's timer for a short one, for trying alarms quickly.
+    func debugShorten(_ step: Int, to seconds: TimeInterval) {
+        guard timers[step] != nil else { return }
+        timers[step] = StepTimer(duration: seconds)
+    }
+    #endif
 
     // MARK: - Private
 
@@ -199,17 +255,34 @@ final class CookSession {
     }
 
     private func cancelAlarm(for step: Int) {
-        alarms[step]?.cancel()
-        alarms[step] = nil
+        wakeups[step]?.cancel()
+        wakeups[step] = nil
+        if let id = alarmIDs.removeValue(forKey: step) { systemAlarms?.cancel(id: id) }
         notifier?.cancel(id: TimerReminder.id(recipeID: recipe.id, step: step))
     }
 
+    /// A system alarm when they're allowed, otherwise a notification, plus a
+    /// wake-up for while the app is open.
     private func scheduleAlarm(for step: Int) {
-        alarms[step]?.cancel()
         guard let timer = timers[step] else { return }
         let seconds = timer.remaining(at: clock())
-        notifier?.schedule(TimerReminder.make(recipe: recipe, step: step, seconds: seconds))
-        alarms[step] = Task { [weak self] in
+        if usesSystemAlarms, let systemAlarms {
+            if let old = alarmIDs[step] { systemAlarms.cancel(id: old) }
+            let id = UUID()
+            alarmIDs[step] = id
+            systemAlarms.start(id: id, recipe: recipe, step: step, seconds: seconds)
+            notifier?.cancel(id: TimerReminder.id(recipeID: recipe.id, step: step))
+        } else {
+            notifier?.schedule(TimerReminder.make(recipe: recipe, step: step, seconds: seconds))
+        }
+        scheduleWakeup(for: step)
+    }
+
+    private func scheduleWakeup(for step: Int) {
+        wakeups[step]?.cancel()
+        guard let timer = timers[step] else { return }
+        let seconds = timer.remaining(at: clock())
+        wakeups[step] = Task { [weak self] in
             try? await Task.sleep(for: .seconds(seconds))
             guard !Task.isCancelled else { return }
             self?.refresh()

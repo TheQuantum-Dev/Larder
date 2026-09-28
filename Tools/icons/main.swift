@@ -76,6 +76,11 @@ MainActor.assumeIsolated {
         render(NutmegView(skin: .amber, showsWeather: false), width: 231 * scale, height: 180 * scale,
                to: "\(out)/launch-nutmeg\(suffix).png")
     }
+    // Nutmeg in his chef's hat, for the Cook Mode timer on the lock screen.
+    for (suffix, scale) in [("", 1.0), ("@2x", 2.0), ("@3x", 3.0)] {
+        render(NutmegView(pose: .noHands, showsWeather: false, hat: .chef), width: 60 * scale, height: 60 * scale,
+               to: "\(out)/timer-nutmeg\(suffix).png")
+    }
     // The Nutmeg tab's icon in each look: the icon's crop of him a little closer, 30 points
     // square, on a clear background.
     for (name, skin) in [("", NutmegSkin.amber), ("-coral", .coral), ("-snow", .snow), ("-harvest", .harvest)] {
