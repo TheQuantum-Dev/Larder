@@ -80,7 +80,7 @@ struct OnlineOptInCard: View {
             VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                 Text("Want more ideas?")
                     .font(.headline)
-                Text("I can look up extra recipes online that fit your goal and what's in your pantry. Only ingredient names go out, never your photos.")
+                Text("I can find more recipes online that fit your goal and what you have. I only send ingredient names, never your photos.")
                     .font(.subheadline)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                     .fixedSize(horizontal: false, vertical: true)

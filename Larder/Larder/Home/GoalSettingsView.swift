@@ -112,7 +112,7 @@ struct GoalSettingsView: View {
         } header: {
             Text("About you (optional)")
         } footer: {
-            Text("\(profile.bodyStats.activity.detail). Only used to estimate a daily target, and it stays on your phone. Leave anything blank and I'll use a typical 2,000 calorie day.")
+            Text("\(profile.bodyStats.activity.detail). This only sets your daily target, and it stays on your phone. Leave anything blank and I'll go with a typical 2,000 calorie day.")
         }
     }
 
@@ -187,7 +187,7 @@ struct GoalSettingsView: View {
             Text("Apple Health")
         } footer: {
             Text((healthNote.map { $0 + " " } ?? "")
-                 + "Larder saves the calories and macros of meals you cook, and can read your height, weight and age. Manage what it can see in the Health app, under Sharing.")
+                 + "Larder saves each meal you cook, with its calories and macros, and can read your height, weight and age. You can change what it sees in the Health app, under Sharing.")
         }
     }
 
@@ -216,7 +216,7 @@ struct GoalSettingsView: View {
             Text("Your daily target")
         } footer: {
             Text((targets.isPersonal ? "" : "Based on a typical 2,000 calorie day until you add your stats. ")
-                 + "A rough estimate from a standard formula. It isn't medical advice, so talk to a professional for a real plan.")
+                 + "This is a rough estimate from a standard formula, not medical advice. For a real plan, talk to a doctor or dietitian.")
         }
     }
 

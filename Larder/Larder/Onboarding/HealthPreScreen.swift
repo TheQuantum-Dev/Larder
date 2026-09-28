@@ -60,7 +60,7 @@ struct HealthPreScreen: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("Optional, and you stay in control.")
+                Text("It's optional, and you can turn it off anytime.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
@@ -72,7 +72,7 @@ struct HealthPreScreen: View {
     private var reasons: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
             reason("fork.knife", "Saves the calories and macros of each meal you cook")
-            reason("figure.stand", "Reads your height, weight and age to size your daily target")
+            reason("figure.stand", "Reads your height, weight and age to work out your daily target")
             reason("lock.fill", "Stays on your phone. Change it any time in Health or Settings.")
         }
         .padding(Theme.Spacing.s)

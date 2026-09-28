@@ -268,7 +268,7 @@ struct RecipeDetailView: View {
     /// Who wrote a recipe from online, with a way to read the original.
     private func sourceCredit(_ source: RecipeSource) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Recipe from \(source.name). Nutmeg didn't write this one, so give the steps a read first.")
+            Text("Recipe from \(source.name). Larder didn't check this one, so read it through before you start.")
             if let url = source.url.flatMap(URL.init(string:)) {
                 Link("View the original recipe", destination: url)
                     .underline()

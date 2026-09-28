@@ -132,7 +132,7 @@ struct TryItView: View {
                     .foregroundStyle(Theme.Palette.textPrimary)
                     .frame(minHeight: 44)
 
-                Text("Photos are read on your phone and never uploaded.")
+                Text("Your photos stay on your phone.")
                     .font(.footnote)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))

@@ -51,7 +51,7 @@ struct ShoppingListView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: toast)
         .sheet(item: $editing) { item in
             AmountEditorView(emoji: item.emoji, name: item.name, amount: item.amount,
-                             emptyNote: "No amount. Add one if it helps you remember how much to get.",
+                             emptyNote: "No amount yet. Add one if it helps you remember how much to buy.",
                              onChange: { ShoppingRepository.setAmount($0, for: item, in: context) })
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)

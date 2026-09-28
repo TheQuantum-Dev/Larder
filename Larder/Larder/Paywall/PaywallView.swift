@@ -82,7 +82,7 @@ struct PaywallView: View {
             featureGroup("With Plus", icon: "plus.circle.fill", tint: Theme.Palette.coral, items: [
                 "Chat with Nutmeg about your kitchen",
                 "Budget and nutrition insights",
-                "Seasonal looks and app icons for Nutmeg",
+                "Seasonal outfits for Nutmeg, with matching app colors and icons",
             ])
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -111,13 +111,13 @@ struct PaywallView: View {
         case .loading:
             HStack(spacing: Theme.Spacing.xs) {
                 ProgressView()
-                Text("Nutmeg is fetching today's prices…")
+                Text("Nutmeg is fetching the prices…")
                     .foregroundStyle(Theme.Palette.textPrimary)
             }
             .padding(Theme.Spacing.s)
         case .failed:
             VStack(spacing: Theme.Spacing.s) {
-                Text("Nutmeg couldn't fetch the prices. Check your connection and try again.")
+                Text("Couldn't load the prices. Check your connection and try again.")
                     .foregroundStyle(Theme.Palette.textPrimary)
                     .multilineTextAlignment(.center)
                 Button("Try again") { Task { await store.loadOfferings() } }

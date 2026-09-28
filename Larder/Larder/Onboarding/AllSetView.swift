@@ -51,9 +51,9 @@ struct AllSetView: View {
     private var message: String {
         switch outcome {
         case .purchased:
-            "Everything in Plus is ready whenever you are. Now let's get cooking."
+            "Plus is all set. Let's get cooking."
         case .declined:
-            "No pressure at all. Scanning and recipes are yours for free, and I'm here whenever you want more."
+            "That's fine! Scanning and recipes are free, and Larder Plus is in Settings if you ever want it."
         }
     }
 }

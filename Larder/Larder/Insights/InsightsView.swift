@@ -195,7 +195,7 @@ struct InsightsView: View {
                         .font(.subheadline.weight(.semibold))
                 }
             } else {
-                Text("Set a weekly budget and Nutmeg will keep track of it for you.")
+                Text("Set a weekly budget and I'll keep an eye on it.")
                     .font(.subheadline)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 Button("Set a weekly budget") {

@@ -118,7 +118,7 @@ struct SettingsView: View {
             Button("Reset", role: .destructive) { resetAllData() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This deletes your pantry, cooked meals and preferences, and restarts onboarding. This can't be undone.")
+            Text("This wipes your pantry, your cooked meals and your settings, and starts setup again. You can't undo it.")
         }
     }
 
@@ -136,7 +136,7 @@ struct SettingsView: View {
             }
             .padding(.vertical, Theme.Spacing.xs)
             .listRowBackground(Theme.Palette.surface)
-            Text("Recipes that don't fit are hidden. For halal, that means no pork or alcohol; the meat itself still needs to be halal-certified.")
+            Text("Recipes that don't fit your diet are hidden. Halal hides anything with pork or alcohol, but you'll still need to buy halal meat.")
                 .font(.footnote)
                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 .listRowBackground(Theme.Palette.surface)
@@ -152,7 +152,7 @@ struct SettingsView: View {
             }
             .listRowBackground(Theme.Palette.surface)
         } footer: {
-            Text("Sets which recipes come first and your daily calorie and protein targets.")
+            Text("Changes which recipes show up first, and your daily calories and protein.")
         }
         .onAppear { goalName = Self.goalName(for: ProfileStore.load()) }
     }
@@ -165,7 +165,7 @@ struct SettingsView: View {
             }
             .listRowBackground(Theme.Palette.surface)
         } footer: {
-            Text("Change how Nutmeg looks, and the app icon with him.")
+            Text("Pick Nutmeg's outfit. The app's colors and icon change with it.")
         }
     }
 
@@ -201,7 +201,7 @@ struct SettingsView: View {
         } header: {
             Text("Ordering out costs")
         } footer: {
-            Text("Used only to work out how much you save by cooking. It's a rough guess, so set it to what you'd really spend.")
+            Text("This is only used to work out how much you save by cooking. Set it to what you'd usually spend on takeout.")
         }
     }
 
@@ -216,7 +216,7 @@ struct SettingsView: View {
         } header: {
             Text("Reminders")
         } footer: {
-            Text("At most one a day: an evening nudge if your streak is still open, a morning one if your pantry's down to a few things, and a Sunday check-in if you've set a budget. Needs notifications turned on for Larder.")
+            Text("Once a day at most. In the evening if you haven't cooked yet, in the morning if your pantry's almost empty, and on Sunday if you've set a budget. Notifications need to be on for Larder.")
         }
     }
 
@@ -227,7 +227,7 @@ struct SettingsView: View {
         } header: {
             Text("Shopping list")
         } footer: {
-            Text("When you tell me something ran out after cooking, or take it off your pantry as all gone, it goes on your shopping list.")
+            Text("When something runs out after you cook, or you mark it as all gone, I'll put it on your shopping list.")
         }
     }
 
@@ -252,9 +252,9 @@ struct SettingsView: View {
 
     private var onlineFooter: String {
         guard OnlineRecipeConfig.isAvailable else { return "Online recipes aren't available in this build." }
-        let privacy = "Looks up extra recipes for what's in your pantry, your goal and your diet. Only ingredient names and those filters are sent, never photos or anything that says who you are."
+        let privacy = "Finds more recipes online based on what's in your pantry. Larder only sends ingredient names, your goal and your diet. No photos, nothing about you."
         if onlineRecipes, onlineOnly {
-            return privacy + " Larder's own recipes come back automatically when you're offline or the day's lookups run out."
+            return privacy + " If you're offline or you hit today's limit, you'll get Larder's own recipes instead."
         }
         return privacy + " Larder's own recipes are always there."
     }

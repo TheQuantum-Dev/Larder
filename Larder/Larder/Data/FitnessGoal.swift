@@ -34,10 +34,10 @@ nonisolated enum FitnessGoal: String, QuizOption {
 
     var detail: String? {
         switch self {
-        case .buildMuscle: "High-protein meals that fuel your training"
+        case .buildMuscle: "High-protein meals for training days"
         case .loseWeight: "Lighter meals that still keep you full"
         case .gainWeight: "Filling, calorie-rich meals"
-        case .stayFit: "Balanced meals to keep you feeling good"
+        case .stayFit: "A good mix of everything"
         case .justCook: "Recipes only. No calories or numbers."
         }
     }

@@ -457,7 +457,7 @@ struct NutmegChatScreen: View {
             if let recipe = await online.recipe(id: recipeID) {
                 select(recipe)
             } else {
-                fetchMessage = "That recipe lives online and can't be reached right now. Try again when you're connected."
+                fetchMessage = "That recipe is online and I can't reach it right now. Try again when you're connected."
             }
         }
     }

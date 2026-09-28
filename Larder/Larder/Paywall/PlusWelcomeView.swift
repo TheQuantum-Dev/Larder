@@ -40,9 +40,9 @@ struct PlusWelcomeView: View {
         Perk(id: 0, symbol: "bubble.left.and.bubble.right.fill", title: "Chat with Nutmeg",
              detail: "Ask what to cook, check today's meals, or tell me what to add to your pantry. Out loud, too."),
         Perk(id: 1, symbol: "chart.bar.fill", title: "Nutrition and budget insights",
-             detail: "Your week's calories, macros and spending, all in one place."),
+             detail: "See your week's calories, macros and spending."),
         Perk(id: 2, symbol: "sparkles", title: "Seasonal looks and app icons",
-             detail: "Dress me up for snow or harvest, with a matching icon. Find them in Settings."),
+             detail: "Dress me up for winter or fall. The app and icon change to match. They're in Settings."),
     ]
 
     var body: some View {

@@ -39,7 +39,7 @@ struct LooksView: View {
                     Toggle("Match the app icon", isOn: $matchIcon)
                         .font(.body.weight(.semibold))
                         .foregroundStyle(Theme.Palette.textPrimary)
-                    Text("Your home screen icon changes to fit his look. iOS asks you to confirm each change.")
+                    Text("Your home screen icon changes with his outfit. Your iPhone will ask you to OK each change.")
                         .font(.footnote)
                         .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                 }

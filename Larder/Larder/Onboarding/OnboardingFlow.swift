@@ -63,7 +63,7 @@ struct OnboardingFlow: View {
                        onContinue: advance)
         case .cooking:
             QuizScreen(title: "How's your cooking these days?",
-                       subtitle: "No wrong answers. I'll match the recipes.",
+                       subtitle: "No wrong answers. I'll pick recipes to match.",
                        selection: Bindable(answers).cooking,
                        onContinue: advance)
         case .priorities:

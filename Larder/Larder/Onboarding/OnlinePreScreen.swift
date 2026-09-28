@@ -59,7 +59,7 @@ struct OnlinePreScreen: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("Optional, and you stay in control.")
+                Text("It's optional. Turn it off anytime.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
@@ -70,8 +70,8 @@ struct OnlinePreScreen: View {
 
     private var reasons: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.s) {
-            reason("fork.knife", "Finds extra recipes that fit your goal and what's in your pantry")
-            reason("lock.fill", "Only ingredient names go out. Never your photos.")
+            reason("fork.knife", "Finds more recipes that fit your goal and what you have")
+            reason("lock.fill", "Only ingredient names are sent, never photos")
             reason("switch.2", "Turn it off any time in Settings. Larder's own recipes are always here.")
         }
         .padding(Theme.Spacing.s)

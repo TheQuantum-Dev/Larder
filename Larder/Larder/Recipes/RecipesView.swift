@@ -265,7 +265,7 @@ struct RecipesView: View {
         case .ready:
             ("Nothing new online for this pantry yet. Add a few more things and I'll look again.", false)
         case .exhausted:
-            ("Online ideas are resting for today. Larder's own recipes are all right here.", false)
+            ("That's all the online lookups for today. Larder's own recipes are still here.", false)
         case .offline:
             ("You're offline, so it's just Larder's own recipes for now.", false)
         case .failed:
@@ -332,7 +332,7 @@ struct RecipesView: View {
             guard let recipe,
                   let match = RecipeMatcher.matches(recipes: [recipe], pantry: Set(pantry.map(\.ingredientID)),
                                                     maxMissing: .max).first else {
-                fetchMessage = "That recipe lives online and can't be reached right now. Try again when you're connected."
+                fetchMessage = "That recipe is online and I can't reach it right now. Try again when you're connected."
                 return
             }
             selected = match
@@ -354,7 +354,7 @@ struct RecipesView: View {
                 .font(.headline)
                 .foregroundStyle(Theme.Palette.textPrimary)
             if showsFavoritesHint {
-                Text("Tap the heart on any recipe and it'll wait for you here.")
+                Text("Tap the heart on a recipe to save it here.")
                     .font(.subheadline)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))

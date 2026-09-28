@@ -425,7 +425,7 @@ nonisolated struct OfflineBrain: Sendable {
     private func runningLow(_ kitchen: KitchenSnapshot) -> NutmegReply {
         let low = kitchen.lowItems
         guard !low.isEmpty else {
-            return NutmegReply("Nothing's running low that I can tell. Setting amounts in your pantry helps me keep an eye on it.")
+            return NutmegReply("Nothing looks low to me. If you add amounts in your pantry, I can keep a better eye on it.")
         }
         let listed = Set(kitchen.shopping.filter { !$0.isBought }.map { $0.name.lowercased() })
         let names = low.map { item in item.amount.map { "\(item.name.lowercased()) (\($0))" } ?? item.name.lowercased() }
@@ -498,7 +498,7 @@ nonisolated struct OfflineBrain: Sendable {
         let why: String
         switch kitchen.online {
         case .off: why = "Online recipes are switched off. You can turn them on in Settings, under Online recipes."
-        case .resting: why = "Online ideas are resting for today."
+        case .resting: why = "I've used up today's online lookups."
         case .offline: why = "I can't reach the online recipes right now."
         case .looking: why = "I'm still looking online."
         case .ready: why = "I couldn't find anything new online for this pantry yet."
