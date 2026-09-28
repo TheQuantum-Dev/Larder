@@ -26,7 +26,7 @@ struct CookSceneTests {
         #expect(scene("Toast the bread.") == .toast)
         #expect(scene("Heat the oil in a pan over medium heat.") == .fry)
         #expect(scene("Slice the onion thinly.") == .chop)
-        #expect(scene("Whisk the eggs with a pinch of salt.") == .mix)
+        #expect(scene("Whisk the eggs with a pinch of salt.") == .whisk)
         #expect(scene("Serve with a squeeze of lemon.") == .serve)
         #expect(scene("Leave in the fridge overnight.") == .chill)
     }
@@ -62,10 +62,44 @@ struct CookSceneTests {
         #expect(Set(steps).count >= 10)
     }
 
+    @Test func theNewScenesHaveTheirOwnWords() {
+        #expect(scene("Drain the pasta, keeping a splash of the water.") == .drain)
+        #expect(scene("Rinse the beans in a sieve.") == .drain)
+        #expect(scene("Crack the eggs into a bowl.") == .crack)
+        #expect(scene("Mash the potato with a fork.") == .mash)
+        #expect(scene("Spread the peanut butter on the toast.", equipment: []) == .spread)
+        #expect(scene("Season with salt and pepper.") == .season)
+        #expect(scene("Beat the eggs until smooth.") == .whisk)
+        // A sprinkle to finish is still serving.
+        #expect(scene("Serve with a sprinkle of cheese.") == .serve)
+    }
+
+    @Test func choppingKnowsWhatItsCutting() {
+        #expect(CookScene.produce(in: "Dice the onion.") == .onion)
+        #expect(CookScene.produce(in: "Slice the tomato.") == .tomato)
+        #expect(CookScene.produce(in: "Shred the spinach.") == .greens)
+        #expect(CookScene.produce(in: "Grate the carrot.") == .carrot)
+    }
+
+    @Test func noTwoStepsInARowLookTheSame() {
+        for recipe in RecipeStore.all {
+            let plan = CookScene.plan(for: recipe)
+            #expect(plan.count == recipe.steps.count)
+            for (a, b) in zip(plan, plan.dropFirst()) {
+                #expect(a != b, "\(recipe.id) repeats \(a.scene)")
+            }
+        }
+    }
+
+    @Test func thePlanIsTheSameEveryTime() {
+        let recipe = RecipeStore.recipe(withID: "egg-fried-rice")!
+        #expect(CookScene.plan(for: recipe) == CookScene.plan(for: recipe))
+    }
+
     @Test func theVariantIsTheSameEveryTime() {
         let first = CookScene.variant(recipeID: "egg-fried-rice", step: 2)
         #expect(CookScene.variant(recipeID: "egg-fried-rice", step: 2) == first)
-        #expect([0, 1].contains(first))
+        #expect((0..<CookScene.variants).contains(first))
         #expect(CookScene.variant(recipeID: "egg-fried-rice", step: 3) != first)
     }
 }

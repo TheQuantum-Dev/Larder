@@ -17,8 +17,11 @@ import SwiftUI
 /// upward (with a shelf or a window), so a quiet step isn't left with a gap.
 struct KitchenStage: View {
     let scene: CookScene
-    /// 0 or 1: which side Nutmeg stands on, and a couple of small differences.
+    /// 0, 1 or 2: which side Nutmeg stands on, and a few small differences, so
+    /// two steps in a row with the same scene don't look the same.
     var variant = 0
+    /// What's on the chopping board.
+    var produce = CookScene.Produce.carrot
     /// The recipe's emoji, served up on the plate.
     var emoji = "🍽️"
     /// The step's timer, if it has one. A running timer turns the heat up, and
@@ -35,6 +38,8 @@ struct KitchenStage: View {
     @Environment(\.nutmegSkin) private var skin
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var nod = 0
+    /// When the step's timer last went off, for his "oh!" face.
+    @State private var surprisedAt: Date?
 
     var body: some View {
         GeometryReader { proxy in
@@ -59,6 +64,7 @@ struct KitchenStage: View {
             try? await Task.sleep(for: .milliseconds(450))
             nod += 1
         }
+        .onChange(of: cheer) { _, _ in surprisedAt = .now }
     }
 
     // MARK: - Layout
@@ -85,8 +91,12 @@ struct KitchenStage: View {
                 drawWall(context, size: size, counterTop: Self.counterTop + extra)
                 drawDecor(context, extra: extra)
             }
-            nutmeg(t: t)
+            nutmeg(t: t, date: date)
                 .offset(y: extra)
+            if isSurprised(at: date) {
+                surpriseMark
+                    .position(x: nutmegCenterX + (flipped ? -52 : 52), y: Self.nutmegTop + extra - 4)
+            }
             Canvas { context, _ in
                 var c = context
                 c.translateBy(x: 0, y: extra)
@@ -121,21 +131,54 @@ struct KitchenStage: View {
         }
     }
 
-    private func nutmeg(t: Double) -> some View {
+    /// The "oh!" lasts a moment after a timer goes off.
+    private func isSurprised(at date: Date) -> Bool {
+        guard let surprisedAt else { return false }
+        return date.timeIntervalSince(surprisedAt) < 1.2
+    }
+
+    private func nutmeg(t: Double, date: Date) -> some View {
+        let toward: CGFloat = flipped ? -12 : 12
         // Mostly he watches what he's making; every so often he glances up at you.
         let glance = Self.pulse(t, every: 7, lasting: 1.6)
-        let toward: CGFloat = flipped ? -12 : 12
-        let gaze = CGSize(width: toward * (1 - glance), height: -2 * (1 - glance))
+        var gaze = CGSize(width: toward * (1 - glance), height: -2 * (1 - glance))
+        if let timer, timer.isRunning, timer.remaining(at: date) <= 10 {
+            // The last few seconds: eyes on the pot.
+            gaze = CGSize(width: toward * 1.3, height: 4)
+        } else if timer?.isFinished == true {
+            // Time's up: he looks at you.
+            gaze = .zero
+        }
         // A quick blink now and then, and a lean in for a closer look.
         let blink = Self.pulse(t + 1.3, every: 3.7, lasting: 0.18)
         let sleepy = scene == .chill ? 0.4 : 0
         let lean = Self.pulse(t + 3, every: 9, lasting: 1.4) * (flipped ? -6 : 6)
         let height = Self.nutmegWidth * 530 / 680
+        let surprised = isSurprised(at: date)
         return NutmegView(pose: pose, nod: nod, cheer: cheer, showsWeather: false, hat: .chef,
-                          gaze: gaze, eyelids: max(sleepy, blink))
+                          gaze: gaze, eyelids: surprised ? 0 : max(sleepy, blink),
+                          expression: surprised ? .surprised : .smile,
+                          apron: apronTrim,
+                          goggles: scene == .chop && produce == .onion,
+                          mitts: scene == .oven ? Kit.mitt : nil)
             .frame(width: Self.nutmegWidth, height: height)
             .rotationEffect(.degrees(lean), anchor: .bottom)
             .position(x: nutmegCenterX, y: Self.nutmegTop + height / 2)
+    }
+
+    /// The apron's trim follows the look, except where the look's color is
+    /// his own body color (amber, coral, harvest): then it's sage, so it shows.
+    private var apronTrim: Color {
+        ThemeStore.shared.look == .snow ? Theme.Palette.amber : Theme.Palette.sage
+    }
+
+    /// A little "!" beside his hat when a timer goes off.
+    private var surpriseMark: some View {
+        Text("!")
+            .font(.system(size: 18, weight: .black, design: .rounded))
+            .foregroundStyle(Kit.dark)
+            .frame(width: 26, height: 26)
+            .background(Kit.flameInner, in: Circle())
     }
 
     static func pulse(_ t: Double, every: Double, lasting: Double) -> Double {
@@ -167,7 +210,24 @@ struct KitchenStage: View {
     private func drawDecor(_ c: GraphicsContext, extra: CGFloat) {
         guard extra >= 50 else { return }
         let mid = extra * 0.5 + 6
-        if variant == 0 {
+        if variant == 2 {
+            // A wall clock, and a rail of hanging spoons.
+            let clock = CGPoint(x: 290, y: mid)
+            c.fill(Kit.circle(clock, 22), with: .color(Kit.counterTop))
+            c.fill(Kit.circle(clock, 18), with: .color(Kit.plate))
+            var hands = Path()
+            hands.move(to: CGPoint(x: clock.x, y: clock.y - 12))
+            hands.addLine(to: clock)
+            hands.addLine(to: CGPoint(x: clock.x + 9, y: clock.y + 3))
+            c.stroke(hands, with: .color(Kit.dark), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+            c.fill(Path(roundedRect: CGRect(x: 170, y: mid - 20, width: 80, height: 5), cornerRadius: 2.5),
+                   with: .color(Kit.chrome))
+            for (i, color) in [Kit.wood, Kit.chrome, Kit.wood].enumerated() {
+                let hx = 184 + CGFloat(i) * 26
+                c.fill(Path(roundedRect: CGRect(x: hx - 2, y: mid - 16, width: 4, height: 30), cornerRadius: 2), with: .color(color))
+                c.fill(Path(ellipseIn: CGRect(x: hx - 6, y: mid + 12, width: 12, height: 14)), with: .color(color))
+            }
+        } else if variant == 0 {
             // A shelf with jars and a little plant.
             c.fill(Path(roundedRect: CGRect(x: 150, y: mid + 18, width: 190, height: 7), cornerRadius: 3.5),
                    with: .color(Kit.counterTop))
@@ -247,6 +307,12 @@ struct KitchenStage: View {
         case .check: drawCheck(c, x: x, t: t); return nil
         case .chill: drawChill(c, x: x, t: t); return nil
         case .prep: return drawPrep(c, x: x, t: t)
+        case .drain: return drawDrain(c, x: x, t: t, heat: heat)
+        case .crack: return drawCrack(c, x: x, t: t)
+        case .season: return drawSeason(c, x: x, t: t)
+        case .spread: return drawSpread(c, x: x, t: t)
+        case .mash: return drawMash(c, x: x, t: t, heat: heat)
+        case .whisk: return drawWhisk(c, x: x, t: t, heat: heat)
         }
     }
 
@@ -279,7 +345,9 @@ struct KitchenStage: View {
         }
     }
 
-    private var metal: Color { variant == 1 ? Kit.copper : Kit.castIron }
+    private var bowlColor: Color { [Kit.bowl, Kit.enamel, Kit.sageBowl][variant % 3] }
+
+    private var metal: Color { [Kit.castIron, Kit.copper, Kit.blueEnamel][variant % 3] }
 
     private func drawBoil(_ c: GraphicsContext, x: CGFloat, t: Double, heat: Double) -> CGPoint {
         drawHob(c, x: x, t: t, heat: heat)
@@ -304,6 +372,21 @@ struct KitchenStage: View {
                      with: .color(.white.opacity(1 - phase)), lineWidth: 1.5)
         }
         drawSteam(c, origin: CGPoint(x: x, y: 78), spread: 44, t: t, heat: heat)
+        if variant == 2 {
+            // Every so often, a taste: the spoon comes up out of the pot.
+            let taste = Self.pulse(t, every: 5, lasting: 1.8)
+            let stir = CGPoint(x: x + 14 * CGFloat(cos(t * 2)), y: 92)
+            let lifted = CGPoint(x: x - 58, y: 62)
+            let tip = CGPoint(x: stir.x + (lifted.x - stir.x) * CGFloat(taste),
+                              y: stir.y + (lifted.y - stir.y) * CGFloat(taste))
+            let paw = CGPoint(x: tip.x - 34 + 18 * CGFloat(taste), y: tip.y - 28 + 40 * CGFloat(taste))
+            Kit.utensil(c, from: tip, to: paw, color: Kit.wood)
+            c.fill(Path(ellipseIn: CGRect(x: tip.x - 7, y: tip.y - 4, width: 14, height: 8)), with: .color(Kit.wood))
+            if taste > 0.6 {
+                drawSteam(c, origin: CGPoint(x: tip.x, y: tip.y - 8), spread: 10, t: t, heat: 1, count: 2, rise: 22)
+            }
+            return paw
+        }
         // A wooden spoon going round.
         let angle = t * 2.2 * heat
         let tip = CGPoint(x: x + 20 * CGFloat(cos(angle)), y: 92 + 3 * CGFloat(sin(angle)))
@@ -498,18 +581,40 @@ struct KitchenStage: View {
         // Slices pile up as the carrot gets shorter, then it starts again.
         let slices = Int(Self.fraction(t / 6) * 7)
         let cut = x - 10 + CGFloat(slices) * 5
+        let (skinColor, flesh): (Color, Color) = switch produce {
+        case .carrot: (Kit.carrot, Kit.egg)
+        case .onion: (Kit.onionSkin, Kit.onion)
+        case .tomato: (Kit.tomato, Kit.tomatoFlesh)
+        case .greens: (Kit.greens, Kit.leafLight)
+        }
         for i in 0..<slices {
             let sx = x - 58 + CGFloat(i) * 6
-            c.fill(Path(ellipseIn: CGRect(x: sx, y: 130 + CGFloat(i % 2), width: 9, height: 9)), with: .color(Kit.carrot))
-            c.fill(Kit.circle(CGPoint(x: sx + 4.5, y: 134.5 + CGFloat(i % 2)), 2), with: .color(Kit.egg))
+            c.fill(Path(ellipseIn: CGRect(x: sx, y: 130 + CGFloat(i % 2), width: 9, height: 9)), with: .color(skinColor))
+            c.fill(Kit.circle(CGPoint(x: sx + 4.5, y: 134.5 + CGFloat(i % 2)), 2), with: .color(flesh))
         }
-        c.fill(Path(roundedRect: CGRect(x: cut, y: 126, width: x + 44 - cut, height: 12), cornerRadius: 6),
-               with: .color(Kit.carrot))
-        for (i, angle) in [-30.0, 0, 30].enumerated() {
-            var leaf = c
-            leaf.translateBy(x: x + 46, y: 132)
-            leaf.rotate(by: .degrees(angle))
-            leaf.fill(Path(ellipseIn: CGRect(x: 0, y: -3, width: 14 + CGFloat(i % 2) * 3, height: 6)), with: .color(Kit.greens))
+        if produce == .onion || produce == .tomato {
+            // A round thing, cut down to a shrinking dome.
+            let width = x + 44 - cut
+            c.fill(Path(roundedRect: CGRect(x: cut, y: 118, width: width, height: 20), cornerRadius: 10),
+                   with: .color(skinColor))
+            c.fill(Path(roundedRect: CGRect(x: cut, y: 121, width: 4, height: 14), cornerRadius: 2), with: .color(flesh))
+        } else {
+            c.fill(Path(roundedRect: CGRect(x: cut, y: 126, width: x + 44 - cut, height: 12), cornerRadius: 6),
+                   with: .color(skinColor))
+            for (i, angle) in [-30.0, 0, 30].enumerated() {
+                var leaf = c
+                leaf.translateBy(x: x + 46, y: 132)
+                leaf.rotate(by: .degrees(angle))
+                leaf.fill(Path(ellipseIn: CGRect(x: 0, y: -3, width: 14 + CGFloat(i % 2) * 3, height: 6)), with: .color(Kit.greens))
+            }
+        }
+        if produce == .onion {
+            // Onion tears, flying off his goggles.
+            for i in 0..<2 {
+                let phase = Self.fraction(t * 0.8 + Double(i) * 0.5)
+                c.fill(Kit.circle(CGPoint(x: 150 + CGFloat(phase) * 14, y: 70 + CGFloat(phase) * 20), 2.2),
+                       with: .color(Kit.water.opacity(1 - phase)))
+            }
         }
         // The knife comes down, again and again.
         let lift = CGFloat(max(0, sin(t * 6 * max(1, heat)))) * 10
@@ -530,12 +635,47 @@ struct KitchenStage: View {
         bowl.move(to: CGPoint(x: x - 48, y: 114))
         bowl.addQuadCurve(to: CGPoint(x: x + 48, y: 114), control: CGPoint(x: x, y: 172))
         bowl.closeSubpath()
-        c.fill(bowl, with: .color(variant == 1 ? Kit.enamel : Kit.bowl))
+        c.fill(bowl, with: .color(bowlColor))
         c.stroke(bowl, with: .color(Kit.applianceEdge), lineWidth: 2)
         c.fill(Path(ellipseIn: CGRect(x: x - 48, y: 108, width: 96, height: 13)), with: .color(Kit.applianceEdge))
-        c.fill(Path(ellipseIn: CGRect(x: x - 42, y: 110, width: 84, height: 9)), with: .color(Kit.batter))
-        // A whisk going round, flicking the odd drop.
-        let angle = t * 3 * heat
+        c.fill(Path(ellipseIn: CGRect(x: x - 42, y: 110, width: 84, height: 9)), with: .color(Kit.oats))
+        // Bits of this and that, turned over with a wooden spoon.
+        let bits: [(CGFloat, Color)] = [(-24, Kit.greens), (-8, Kit.carrot), (10, Kit.tomato), (24, Kit.egg)]
+        let toss = Self.pulse(t, every: 3.2, lasting: 0.6)
+        for (i, bit) in bits.enumerated() {
+            let lift = CGFloat(toss * (10 + Double(i % 2) * 6))
+            c.fill(Path(ellipseIn: CGRect(x: x + bit.0 - 5, y: 110 - lift, width: 10, height: 6)), with: .color(bit.1))
+        }
+        let angle = t * 2.4 * heat
+        let tip = CGPoint(x: x + 20 * CGFloat(cos(angle)), y: 114 + 3 * CGFloat(sin(angle)))
+        let paw = CGPoint(x: tip.x - 38, y: tip.y - 34)
+        Kit.utensil(c, from: tip, to: paw, color: Kit.wood)
+        c.fill(Path(ellipseIn: CGRect(x: tip.x - 6, y: tip.y - 3, width: 12, height: 7)), with: .color(Kit.wood))
+        return paw
+    }
+
+    /// A mixing bowl, shared by the whisk, crack and mash scenes.
+    private func drawBowl(_ c: GraphicsContext, x: CGFloat, filling: Color) {
+        var bowl = Path()
+        bowl.move(to: CGPoint(x: x - 48, y: 114))
+        bowl.addQuadCurve(to: CGPoint(x: x + 48, y: 114), control: CGPoint(x: x, y: 172))
+        bowl.closeSubpath()
+        c.fill(bowl, with: .color(bowlColor))
+        c.stroke(bowl, with: .color(Kit.applianceEdge), lineWidth: 2)
+        c.fill(Path(ellipseIn: CGRect(x: x - 48, y: 108, width: 96, height: 13)), with: .color(Kit.applianceEdge))
+        c.fill(Path(ellipseIn: CGRect(x: x - 42, y: 110, width: 84, height: 9)), with: .color(filling))
+    }
+
+    private func drawWhisk(_ c: GraphicsContext, x: CGFloat, t: Double, heat: Double) -> CGPoint {
+        drawBowl(c, x: x, filling: Kit.batter)
+        // Froth building up on top.
+        for i in 0..<6 {
+            let bx = x - 30 + CGFloat(i) * 12
+            let r = CGFloat(2 + abs(sin(t * 3 + Double(i))) * 2)
+            c.stroke(Kit.circle(CGPoint(x: bx, y: 112), r), with: .color(.white.opacity(0.8)), lineWidth: 1.2)
+        }
+        // A whisk going round, fast, flicking the odd drop.
+        let angle = t * 4.5 * heat
         let tip = CGPoint(x: x + 22 * CGFloat(cos(angle)), y: 113 + 3 * CGFloat(sin(angle)))
         let paw = CGPoint(x: tip.x - 38, y: tip.y - 36)
         Kit.utensil(c, from: CGPoint(x: tip.x - 5, y: tip.y - 10), to: paw, color: Kit.dark)
@@ -551,6 +691,150 @@ struct KitchenStage: View {
             }
         }
         return paw
+    }
+
+    private func drawCrack(_ c: GraphicsContext, x: CGFloat, t: Double) -> CGPoint {
+        drawBowl(c, x: x, filling: Kit.egg)
+        c.fill(Kit.circle(CGPoint(x: x + 8, y: 114), 6), with: .color(Kit.yolk))
+        // Tap, tap, crack: the egg comes down on the rim and splits open.
+        let cycle = Self.fraction(t / 2.6)
+        let egg = CGPoint(x: x - 18, y: 104)
+        if cycle < 0.55 {
+            let tap = CGFloat(abs(sin(cycle / 0.55 * .pi * 2))) * 10
+            let center = CGPoint(x: egg.x, y: egg.y - 18 - tap)
+            let shell = Path(ellipseIn: CGRect(x: center.x - 10, y: center.y - 13, width: 20, height: 26))
+            c.fill(shell, with: .color(Kit.shell))
+            c.stroke(shell, with: .color(Kit.crust), lineWidth: 1.5)
+            return CGPoint(x: center.x - 14, y: center.y + 4)
+        }
+        // Open: two halves tip apart and the yolk drops.
+        let open = CGFloat(min(1, (cycle - 0.55) / 0.2))
+        for side in [-1.0, 1.0] {
+            var half = c
+            half.translateBy(x: egg.x + CGFloat(side) * 6 * open, y: egg.y - 18)
+            half.rotate(by: .degrees(side * 40 * open))
+            let piece = Path(roundedRect: CGRect(x: -10, y: -13, width: 20, height: 13), cornerRadius: 7)
+            half.fill(piece, with: .color(Kit.shell))
+            half.stroke(piece, with: .color(Kit.crust), lineWidth: 1.5)
+        }
+        let drop = CGFloat(min(1, (cycle - 0.6) / 0.25))
+        if drop > 0 {
+            c.fill(Kit.circle(CGPoint(x: egg.x + 8 * drop, y: egg.y - 12 + 24 * drop), 5), with: .color(Kit.yolk))
+        }
+        return CGPoint(x: egg.x - 18, y: egg.y - 14)
+    }
+
+    private func drawSeason(_ c: GraphicsContext, x: CGFloat, t: Double) -> CGPoint {
+        // A pan of food on the counter, and a salt shaker standing by.
+        c.fill(Path(roundedRect: CGRect(x: x - 46, y: 128, width: 82, height: 16), cornerRadius: 8), with: .color(metal))
+        c.fill(Path(ellipseIn: CGRect(x: x - 48, y: 122, width: 86, height: 12)), with: .color(Kit.rim))
+        c.fill(Path(ellipseIn: CGRect(x: x - 42, y: 124, width: 74, height: 8)), with: .color(Kit.toast))
+        let shaker = CGRect(x: x + 46, y: 112, width: 18, height: 34)
+        c.fill(Path(roundedRect: shaker, cornerRadius: 6), with: .color(Kit.plate))
+        c.fill(Path(roundedRect: CGRect(x: shaker.minX, y: shaker.minY, width: 18, height: 8), cornerRadius: 4), with: .color(Kit.chrome))
+        // A pepper grinder, twisting, with specks falling.
+        let twist = CGFloat(sin(t * 5)) * 4
+        let grinder = CGRect(x: x - 10, y: 62, width: 16, height: 40)
+        c.fill(Path(roundedRect: grinder, cornerRadius: 6), with: .color(Kit.wood))
+        c.fill(Path(roundedRect: CGRect(x: grinder.minX - 2 + twist / 2, y: grinder.minY - 8, width: 20, height: 10),
+                    cornerRadius: 5), with: .color(Kit.crust))
+        c.fill(Kit.circle(CGPoint(x: grinder.midX + twist / 2, y: grinder.minY - 11), 3.5), with: .color(Kit.dark))
+        for i in 0..<8 {
+            let phase = Self.fraction(t * 1.2 + Double(i) * 0.125)
+            let sx = grinder.midX - 6 + CGFloat(Self.fraction(Double(i) * 0.618)) * 12
+            c.fill(Kit.circle(CGPoint(x: sx, y: grinder.maxY + 4 + CGFloat(phase) * 22), 1.2),
+                   with: .color(Kit.dark.opacity(1 - phase * 0.6)))
+        }
+        return CGPoint(x: grinder.minX - 6, y: grinder.midY)
+    }
+
+    private func drawSpread(_ c: GraphicsContext, x: CGFloat, t: Double) -> CGPoint {
+        c.fill(Path(roundedRect: CGRect(x: x - 62, y: 138, width: 118, height: 10), cornerRadius: 5), with: .color(Kit.board))
+        c.fill(Path(roundedRect: CGRect(x: x - 62, y: 145, width: 118, height: 5), cornerRadius: 2.5), with: .color(Kit.boardEdge))
+        // A slice of toast, getting buttered from one side to the other.
+        let slice = CGRect(x: x - 40, y: 118, width: 58, height: 22)
+        c.fill(Path(roundedRect: slice, cornerRadius: 7), with: .color(Kit.crust))
+        c.fill(Path(roundedRect: slice.insetBy(dx: 3, dy: 3), cornerRadius: 5), with: .color(Kit.toast))
+        let covered = CGFloat(Self.fraction(t / 4))
+        c.fill(Path(roundedRect: CGRect(x: slice.minX + 4, y: slice.minY + 4, width: (slice.width - 8) * covered, height: 7),
+                    cornerRadius: 3.5), with: .color(Kit.butter))
+        // The butter dish.
+        c.fill(Path(roundedRect: CGRect(x: x + 26, y: 132, width: 36, height: 8), cornerRadius: 3), with: .color(Kit.plate))
+        c.fill(Path(roundedRect: CGRect(x: x + 32, y: 122, width: 24, height: 11), cornerRadius: 3), with: .color(Kit.butter))
+        // The knife sweeps across with the butter.
+        let sweep = slice.minX + 8 + (slice.width - 16) * covered + CGFloat(sin(t * 8)) * 3
+        let blade = CGRect(x: sweep - 10, y: slice.minY - 2, width: 22, height: 5)
+        c.fill(Path(roundedRect: blade, cornerRadius: 2.5), with: .color(Kit.chrome))
+        let paw = CGPoint(x: blade.minX - 20, y: blade.minY - 14)
+        Kit.utensil(c, from: CGPoint(x: blade.minX, y: blade.midY), to: paw, color: Kit.dark)
+        return paw
+    }
+
+    private func drawMash(_ c: GraphicsContext, x: CGFloat, t: Double, heat: Double) -> CGPoint {
+        drawBowl(c, x: x, filling: Kit.batter)
+        // Lumpy potato on top.
+        for i in 0..<5 {
+            c.fill(Kit.circle(CGPoint(x: x - 28 + CGFloat(i) * 14, y: 111 - CGFloat(i % 2) * 2), 7), with: .color(Kit.potato))
+        }
+        // The masher pumps up and down.
+        let press = CGFloat(abs(sin(t * 3.4 * max(1, heat))))
+        let head = CGPoint(x: x - 2, y: 104 - 18 * press)
+        var grid = Path()
+        grid.move(to: CGPoint(x: head.x - 14, y: head.y))
+        for i in 1...4 {
+            grid.addLine(to: CGPoint(x: head.x - 14 + CGFloat(i) * 7, y: head.y + (i % 2 == 0 ? 0 : 5)))
+        }
+        c.stroke(grid, with: .color(Kit.chrome), style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+        Kit.utensil(c, from: head, to: CGPoint(x: head.x, y: head.y - 24), color: Kit.chrome)
+        c.fill(Path(roundedRect: CGRect(x: head.x - 5, y: head.y - 34, width: 10, height: 16), cornerRadius: 4), with: .color(Kit.wood))
+        if press < 0.15 {
+            for i in 0..<3 {
+                Kit.sparkle(c, at: CGPoint(x: x - 20 + CGFloat(i) * 20, y: 100), size: 3, color: Kit.potato)
+            }
+        }
+        return CGPoint(x: head.x - 6, y: head.y - 28)
+    }
+
+    private func drawDrain(_ c: GraphicsContext, x: CGFloat, t: Double, heat: Double) -> CGPoint {
+        // The sink, set into the counter, with a tap on the far side.
+        c.fill(Path(roundedRect: CGRect(x: x - 60, y: 142, width: 120, height: 8), cornerRadius: 4), with: .color(Kit.sink))
+        var tap = Path()
+        tap.move(to: CGPoint(x: x + 62, y: 146))
+        tap.addLine(to: CGPoint(x: x + 62, y: 104))
+        tap.addQuadCurve(to: CGPoint(x: x + 44, y: 104), control: CGPoint(x: x + 62, y: 92))
+        tap.addLine(to: CGPoint(x: x + 44, y: 110))
+        c.stroke(tap, with: .color(Kit.chrome), style: StrokeStyle(lineWidth: 5, lineCap: .round, lineJoin: .round))
+        // A colander catching everything.
+        var colander = Path()
+        colander.move(to: CGPoint(x: x - 34, y: 116))
+        colander.addQuadCurve(to: CGPoint(x: x + 34, y: 116), control: CGPoint(x: x, y: 158))
+        colander.closeSubpath()
+        c.fill(colander, with: .color(Kit.chrome))
+        for i in 0..<5 {
+            c.fill(Kit.circle(CGPoint(x: x - 18 + CGFloat(i) * 9, y: 126 + CGFloat(i % 2) * 4), 1.6), with: .color(Kit.dark.opacity(0.5)))
+        }
+        c.fill(Path(ellipseIn: CGRect(x: x - 34, y: 111, width: 68, height: 10)), with: .color(Kit.rim))
+        c.fill(Path(ellipseIn: CGRect(x: x - 28, y: 112, width: 56, height: 7)), with: .color(Kit.pasta))
+        // The pot, on its side and tipped toward the colander: the open top
+        // faces right, its handle is on the left, in Nutmeg's paw.
+        var pot = c
+        pot.translateBy(x: x - 44, y: 82)
+        pot.rotate(by: .degrees(28 + sin(t * 1.5) * 3))
+        pot.fill(Path(roundedRect: CGRect(x: -44, y: -3, width: 16, height: 7), cornerRadius: 3.5), with: .color(metal))
+        pot.fill(Path(roundedRect: CGRect(x: -30, y: -20, width: 52, height: 40), cornerRadius: 9), with: .color(metal))
+        pot.fill(Path(roundedRect: CGRect(x: -24, y: -14, width: 6, height: 28), cornerRadius: 3), with: .color(.white.opacity(0.18)))
+        pot.fill(Path(ellipseIn: CGRect(x: 16, y: -22, width: 13, height: 44)), with: .color(Kit.rim))
+        pot.fill(Path(ellipseIn: CGRect(x: 19, y: -17, width: 8, height: 34)), with: .color(Kit.water))
+        // Water pouring from the pot's lip into the colander, and steam off it.
+        let lip = CGPoint(x: x - 20, y: 100)
+        for i in 0..<6 {
+            let phase = Self.fraction(t * 1.8 + Double(i) / 6)
+            let p = CGPoint(x: lip.x + CGFloat(phase) * 10 + CGFloat(sin(t * 6 + Double(i))) * 1.5,
+                            y: lip.y + CGFloat(phase) * 14)
+            c.fill(Kit.circle(p, 3), with: .color(Kit.water))
+        }
+        drawSteam(c, origin: CGPoint(x: x, y: 100), spread: 40, t: t, heat: heat, count: 3, rise: 56)
+        return CGPoint(x: x - 82, y: 64)
     }
 
     private func drawServe(_ c: GraphicsContext, x: CGFloat, t: Double) {
@@ -682,6 +966,20 @@ private enum Kit {
     static let oats = hex(0xF3E3C6)
     static let frost = hex(0xBFE0EE)
     static let sky = hex(0xCDE6F2)
+    static let onion = hex(0xF6ECF3)
+    static let onionSkin = hex(0xB37AAE)
+    static let tomato = hex(0xE0503C)
+    static let tomatoFlesh = hex(0xF6A08E)
+    static let leafLight = hex(0xB9D69A)
+    static let yolk = hex(0xF7B733)
+    static let shell = hex(0xE6C398)
+    static let butter = hex(0xFBE38E)
+    static let potato = hex(0xF4E2B0)
+    static let pasta = hex(0xF3D48A)
+    static let mitt = hex(0xD64A4A)
+    static let sink = hex(0xAFB6BF)
+    static let blueEnamel = hex(0x4F7FB0)
+    static let sageBowl = hex(0xDCE8CF)
 
     static func circle(_ center: CGPoint, _ r: CGFloat) -> Path {
         Path(ellipseIn: CGRect(x: center.x - r, y: center.y - r, width: r * 2, height: r * 2))
@@ -722,10 +1020,34 @@ private enum Kit {
     ScrollView {
         VStack(spacing: 20) {
             ForEach(CookScene.allCases, id: \.self) { scene in
-                KitchenStage(scene: scene, variant: scene.rawValue.count % 2, emoji: "🍝")
+                KitchenStage(scene: scene, variant: scene.rawValue.count % CookScene.variants, emoji: "🍝")
             }
         }
         .padding()
     }
     .background(Theme.Palette.background)
 }
+
+#if DEBUG
+/// Kitchen scenes side by side, for checking the drawings (debug builds only).
+struct KitchenSceneGallery: View {
+    let scenes: [CookScene]
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 10) {
+                ForEach(scenes, id: \.self) { scene in
+                    ForEach(0..<CookScene.variants, id: \.self) { variant in
+                        KitchenStage(scene: scene, variant: variant,
+                                     produce: variant == 1 ? .onion : (variant == 2 ? .tomato : .carrot),
+                                     emoji: "🍝")
+                            .frame(height: 170)
+                    }
+                }
+            }
+            .padding(.horizontal, 10)
+        }
+        .background(Theme.Palette.background.ignoresSafeArea())
+    }
+}
+#endif

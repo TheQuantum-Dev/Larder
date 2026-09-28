@@ -370,7 +370,11 @@ private struct StepView: View {
 
     private var step: RecipeStep { session.recipe.steps[index] }
     private var isLast: Bool { index == session.stepCount - 1 }
-    private var scene: CookScene { CookScene.for(step: index, in: session.recipe) }
+    private var staging: CookScene.Staging {
+        let plan = CookScene.plan(for: session.recipe)
+        return plan.indices.contains(index) ? plan[index] : CookScene.Staging(scene: .prep, variant: 0)
+    }
+    private var scene: CookScene { staging.scene }
 
     var body: some View {
         GeometryReader { proxy in
@@ -402,7 +406,8 @@ private struct StepView: View {
                 // Nutmeg's little kitchen, doing what this step says. It takes
                 // whatever room the screen has left, so no step sits half empty.
                 KitchenStage(scene: scene,
-                             variant: CookScene.variant(recipeID: session.recipe.id, step: index),
+                             variant: staging.variant,
+                             produce: CookScene.produce(in: step.text),
                              emoji: session.recipe.emoji, timer: session.timers[index],
                              cheer: session.finishedCount)
                     .frame(maxHeight: typeSize.isAccessibilitySize ? 180 : 440)

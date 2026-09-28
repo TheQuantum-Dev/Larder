@@ -19,7 +19,10 @@ struct RootView: View {
         // `-scanPreviewQuery onion` also fills the search box.
         // `-cookRecipe egg-fried-rice` opens Cook Mode; add `-cookPhase gather|done|<step number>`
         // to start elsewhere, and `-cookTimer YES` to start the step's timer.
-        if UserDefaults.standard.bool(forKey: "showPlusWelcome") {
+        if let scenes = UserDefaults.standard.string(forKey: "sceneGallery") {
+            // `-sceneGallery drain,crack` lays those kitchen scenes out, in all three looks.
+            KitchenSceneGallery(scenes: scenes.split(separator: ",").compactMap { CookScene(rawValue: String($0)) })
+        } else if UserDefaults.standard.bool(forKey: "showPlusWelcome") {
             // `-showPlusWelcome YES` shows the welcome for Larder Plus.
             PlusWelcomeView {}
         } else if let id = UserDefaults.standard.string(forKey: "cookRecipe"),

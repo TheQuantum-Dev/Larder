@@ -45,6 +45,12 @@ struct NutmegView: View {
     var eyelids: Double = 0
     /// His face: the everyday smile, or a grin, a happy eyes-closed smile, or a little "oh!".
     var expression = Expression.smile
+    /// A half apron round his middle, trimmed in this color. Cook Mode only.
+    var apron: Color?
+    /// Swim goggles, for chopping onions.
+    var goggles = false
+    /// Oven mitts on his resting paws, in this color.
+    var mitts: Color?
 
     enum Hat { case none, chef }
     enum Expression { case smile, grin, content, surprised }
@@ -136,6 +142,10 @@ struct NutmegView: View {
             }
             .scaleEffect(y: swaying ? 1.02 : 1, anchor: .bottom)
 
+            if let apron {
+                apronView(trim: apron)
+            }
+
             // Leaf tuft.
             Path { p in
                 p.move(to: CGPoint(x: 340, y: 185))
@@ -178,6 +188,9 @@ struct NutmegView: View {
             if look.accessory == .winter {
                 // In the chef's hat the beanie comes off, but the scarf stays on.
                 winterGear(beanie: hat == .none)
+            }
+            if goggles {
+                swimGoggles
             }
             if hat == .chef {
                 chefHat
@@ -222,13 +235,33 @@ struct NutmegView: View {
         }
     }
 
-    /// A stubby paw at rest, with three small toe-pad marks.
+    /// A stubby paw at rest, with three small toe-pad marks, or an oven mitt.
+    @ViewBuilder
     private func restingPaw(cx: CGFloat) -> some View {
-        ZStack {
-            ellipse(cx, 430, 34, 26, look.body)
-            ellipse(cx - 13, 417, 6, 7, look.foot)
-            ellipse(cx, 414, 6, 7, look.foot)
-            ellipse(cx + 13, 417, 6, 7, look.foot)
+        if let mitts {
+            ZStack {
+                // A quilted mitt, thumb pointing up and out.
+                RoundedRectangle(cornerRadius: 26).fill(mitts)
+                    .frame(width: 76, height: 66).position(x: cx, y: 428)
+                Capsule().fill(mitts)
+                    .frame(width: 26, height: 44)
+                    .rotationEffect(.degrees(cx < 340 ? -30 : 30))
+                    .position(x: cx + (cx < 340 ? -30 : 30), y: 404)
+                RoundedRectangle(cornerRadius: 6).fill(.white.opacity(0.85))
+                    .frame(width: 80, height: 14).position(x: cx, y: 458)
+                ForEach(0..<3) { i in
+                    Capsule().fill(.black.opacity(0.12))
+                        .frame(width: 4, height: 34)
+                        .position(x: cx - 20 + CGFloat(i) * 20, y: 428)
+                }
+            }
+        } else {
+            ZStack {
+                ellipse(cx, 430, 34, 26, look.body)
+                ellipse(cx - 13, 417, 6, 7, look.foot)
+                ellipse(cx, 414, 6, 7, look.foot)
+                ellipse(cx + 13, 417, 6, 7, look.foot)
+            }
         }
     }
 
@@ -313,6 +346,50 @@ struct NutmegView: View {
                 Circle().fill(fluff)
                     .frame(width: 44, height: 44).position(x: 418, y: 160)
             }
+        }
+    }
+
+    // MARK: - Kitchen outfit
+
+    /// A white half apron tied round his middle, following his round shape,
+    /// with ties and a pocket in `trim`.
+    private func apronView(trim: Color) -> some View {
+        let body = Path(ellipseIn: CGRect(x: 180, y: 187, width: 320, height: 296))
+        let cloth = Path(CGRect(x: 180, y: 392, width: 320, height: 100)).intersection(body)
+        let band = Path(CGRect(x: 180, y: 386, width: 320, height: 16)).intersection(body)
+        return ZStack {
+            cloth.fill(Color(red: 1, green: 0.99, blue: 0.96))
+            band.fill(trim)
+            RoundedRectangle(cornerRadius: 10).fill(trim.opacity(0.85))
+                .frame(width: 70, height: 36).position(x: 340, y: 446)
+            RoundedRectangle(cornerRadius: 3).fill(.white.opacity(0.5))
+                .frame(width: 70, height: 6).position(x: 340, y: 432)
+        }
+    }
+
+    /// Swim goggles: a blue lens over each eye and a strap round the back.
+    private var swimGoggles: some View {
+        let frame = Color(red: 0x2F / 255, green: 0x6F / 255, blue: 0xB5 / 255)
+        return ZStack {
+            Path { p in
+                p.move(to: CGPoint(x: 182, y: 296))
+                p.addLine(to: CGPoint(x: 498, y: 296))
+            }
+            .stroke(frame, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+            ForEach([285.0, 395.0], id: \.self) { x in
+                Ellipse().fill(Color(red: 0.6, green: 0.85, blue: 1).opacity(0.35))
+                    .frame(width: 100, height: 104).position(x: x, y: 300)
+                Ellipse().stroke(frame, lineWidth: 11)
+                    .frame(width: 100, height: 104).position(x: x, y: 300)
+                Capsule().fill(.white.opacity(0.7))
+                    .frame(width: 10, height: 26).rotationEffect(.degrees(25))
+                    .position(x: x - 26, y: 280)
+            }
+            Path { p in
+                p.move(to: CGPoint(x: 332, y: 296))
+                p.addQuadCurve(to: CGPoint(x: 348, y: 296), control: CGPoint(x: 340, y: 286))
+            }
+            .stroke(frame, style: StrokeStyle(lineWidth: 8, lineCap: .round))
         }
     }
 
