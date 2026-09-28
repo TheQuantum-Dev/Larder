@@ -15,6 +15,9 @@ import Foundation
 nonisolated enum OnlineRecipeConfig {
     static let keyFileName = "spoonacular"
     static let keyFileExtension = "key"
+    /// What the template file (`spoonacular.key.example`) holds. A copy that
+    /// still says this counts as no key.
+    static let placeholder = "PASTE_YOUR_SPOONACULAR_KEY_HERE"
 
     static let apiKey: String? = key(in: .main)
 
@@ -23,7 +26,7 @@ nonisolated enum OnlineRecipeConfig {
         guard let url = bundle.url(forResource: keyFileName, withExtension: keyFileExtension),
               let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
         let key = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return key.isEmpty ? nil : key
+        return key.isEmpty || key == placeholder ? nil : key
     }
 
     /// True when there is a key to use, or, in debug builds, when

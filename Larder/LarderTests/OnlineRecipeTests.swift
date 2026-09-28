@@ -507,6 +507,8 @@ struct OnlineConfigTests {
     @Test func noFileOrAnEmptyOneMeansNoKey() throws {
         #expect(OnlineRecipeConfig.key(in: try bundle(containing: nil)) == nil)
         #expect(OnlineRecipeConfig.key(in: try bundle(containing: " \n")) == nil)
+        // A copy of the template that nobody filled in.
+        #expect(OnlineRecipeConfig.key(in: try bundle(containing: OnlineRecipeConfig.placeholder + "\n")) == nil)
     }
 }
 
