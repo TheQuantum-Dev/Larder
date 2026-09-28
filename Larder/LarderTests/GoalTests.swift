@@ -308,3 +308,25 @@ struct CustomTargetsTests {
         #expect(decoded.dailyTargets != nil)
     }
 }
+
+/// The − and + buttons in the target editor.
+struct TargetStepperTests {
+    @Test func stepsLandOnRoundNumbers() {
+        #expect(TargetStepper.step(2_250, by: 1, kind: .kcal) == 2_300)
+        #expect(TargetStepper.step(2_260, by: 1, kind: .kcal) == 2_300)
+        #expect(TargetStepper.step(2_260, by: -1, kind: .kcal) == 2_250)
+        #expect(TargetStepper.step(140, by: -1, kind: .protein) == 135)
+        #expect(TargetStepper.step(142, by: 1, kind: .protein) == 145)
+    }
+
+    @Test func stepsStayInRange() {
+        #expect(TargetStepper.step(CustomTargets.kcalRange.lowerBound, by: -1, kind: .kcal) == CustomTargets.kcalRange.lowerBound)
+        #expect(TargetStepper.step(CustomTargets.kcalRange.upperBound, by: 1, kind: .kcal) == CustomTargets.kcalRange.upperBound)
+        #expect(TargetStepper.step(0, by: -1, kind: .fat) == 0)
+    }
+
+    @Test func landingOnTheSuggestionGoesBackToIt() {
+        #expect(TargetStepper.custom(170, suggested: 170) == nil)
+        #expect(TargetStepper.custom(140, suggested: 170) == 140)
+    }
+}

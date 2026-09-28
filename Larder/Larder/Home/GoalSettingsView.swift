@@ -16,6 +16,7 @@ struct GoalSettingsView: View {
     @AppStorage(AppSettings.healthSyncKey) private var healthSync = false
     @State private var isFillingFromHealth = false
     @State private var healthNote: String?
+    @State private var editingTarget: TargetKind?
 
     private var goal: FitnessGoal? { profile.fitnessGoal }
 
@@ -48,12 +49,23 @@ struct GoalSettingsView: View {
         .tapFeedback(profile.goal)
         .onChange(of: profile) { _, new in save(new) }
         .onAppear(perform: debugTargets)
+        .sheet(item: $editingTarget) { kind in
+            TargetEditorSheet(kind: kind, value: profile.dailyTargets.map(kind.value(in:)) ?? 0,
+                              suggested: profile.suggestedTargets.map(kind.value(in:))) { custom in
+                var targets = profile.customTargets ?? CustomTargets()
+                targets[keyPath: kind.field] = custom
+                profile.customTargets = targets.isEmpty ? nil : targets
+            }
+            .presentationDetents([.height(330)])
+        }
     }
 
     /// `-customTargets 2600,140,,` sets your own calories and protein and
-    /// leaves carbs and fat suggested (debug builds only).
+    /// leaves carbs and fat suggested, and `-editTarget protein` opens that
+    /// target's editor (debug builds only).
     private func debugTargets() {
         #if DEBUG
+        editingTarget = UserDefaults.standard.string(forKey: "editTarget").flatMap(TargetKind.init(rawValue:))
         guard let text = UserDefaults.standard.string(forKey: "customTargets") else { return }
         let values = text.split(separator: ",", omittingEmptySubsequences: false).map { Int($0) }
         func value(_ index: Int) -> Int? { values.indices.contains(index) ? values[index] : nil }
@@ -227,14 +239,12 @@ struct GoalSettingsView: View {
         }
     }
 
-    /// The day's numbers. Each one can be typed over; until it is, it shows
-    /// what the formula suggests.
+    /// The day's numbers as a card. Tapping one opens its editor.
     private func targetSection(_ targets: DailyTargets) -> some View {
         Section {
-            targetRow("Calories", unit: "kcal", \.kcal, suggested: profile.suggestedTargets?.kcal)
-            targetRow("Protein", unit: "g", \.protein, suggested: profile.suggestedTargets?.protein)
-            targetRow("Carbs", unit: "g", \.carbs, suggested: profile.suggestedTargets?.carbs)
-            targetRow("Fat", unit: "g", \.fat, suggested: profile.suggestedTargets?.fat)
+            DailyTargetCard(targets: targets, custom: profile.customTargets) { editingTarget = $0 }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
             if targets.isCustom {
                 Button("Use the suggested targets") { profile.customTargets = nil }
                     .foregroundStyle(Theme.Palette.textPrimary)
@@ -247,26 +257,9 @@ struct GoalSettingsView: View {
         }
     }
 
-    private func targetRow(_ title: String, unit: String, _ field: WritableKeyPath<CustomTargets, Int?>,
-                           suggested: Int?) -> some View {
-        LabeledContent(title) {
-            HStack(spacing: Theme.Spacing.xs) {
-                TextField(suggested.map { $0.formatted() } ?? "—", value: target(field, suggested: suggested),
-                          format: .number)
-                    .keyboardType(.numberPad)
-                    .multilineTextAlignment(.trailing)
-                    .foregroundStyle(profile.customTargets?[keyPath: field] == nil
-                                     ? Theme.Palette.textPrimary.opacity(0.75) : Theme.Palette.amber)
-                Text(unit)
-            }
-        }
-        .listRowBackground(Theme.Palette.surface)
-    }
-
     private func targetFooter(_ targets: DailyTargets) -> String {
         if targets.isCustom {
-            return "These are your own numbers, and I'll use them everywhere. Tap one to change it. Calories stay between "
-                + "\(CustomTargets.kcalRange.lowerBound.formatted()) and \(CustomTargets.kcalRange.upperBound.formatted()) a day."
+            return "The ones in color are your own, and I'll use them everywhere. Tap any number to change it."
         }
         return (targets.isPersonal ? "" : "Based on a typical 2,000 calorie day until you add your stats. ")
             + "Tap a number to set your own. These are rough estimates from a standard formula, not medical advice. "
@@ -274,17 +267,6 @@ struct GoalSettingsView: View {
     }
 
     // MARK: - Bindings
-
-    /// Shows your own number, or the suggested one until you change it. Typing
-    /// the suggested number back in (or clearing the field) goes back to it.
-    private func target(_ field: WritableKeyPath<CustomTargets, Int?>, suggested: Int?) -> Binding<Int?> {
-        Binding(get: { profile.customTargets?[keyPath: field] ?? suggested },
-                set: { value in
-                    var custom = profile.customTargets ?? CustomTargets()
-                    custom[keyPath: field] = value == suggested ? nil : value
-                    profile.customTargets = custom.isEmpty ? nil : custom
-                })
-    }
 
     private var sex: Binding<BiologicalSex?> {
         Binding(get: { profile.sex.flatMap(BiologicalSex.init(rawValue:)) },
