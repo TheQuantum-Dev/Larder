@@ -30,51 +30,135 @@ struct NutmegChatView: View {
 }
 
 /// What someone without Plus sees: a real-looking exchange, so it's clear
-/// what they'd be getting.
+/// what they'd be getting. The way in is pinned to the bottom, so it's never
+/// scrolled out of sight.
 struct NutmegChatIntro: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showPaywall = false
+    /// How many of the example messages have appeared so far.
+    @State private var shown = 0
+
+    private let example: [(text: String, fromNutmeg: Bool)] = [
+        ("I want something warm but I only have 15 minutes", false),
+        ("You've got eggs, rice and frozen veg, so egg fried rice is ready right now. About $1.30 and 15 minutes. Want to start?", true),
+        ("How much have I saved this week?", false),
+        ("About $38 compared with ordering out. Three meals from your own pantry!", true),
+    ]
 
     var body: some View {
         ScrollView {
             VStack(spacing: Theme.Spacing.m) {
-                NutmegView()
-                    .frame(height: 140)
-                    .padding(.top, Theme.Spacing.s)
-
-                VStack(spacing: Theme.Spacing.xs) {
-                    Text("Ask me anything about your kitchen")
-                        .font(.title2.bold())
-                        .multilineTextAlignment(.center)
-                    Text("I can see what's in your pantry, every recipe, and how your week's going.")
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
-                }
-                .foregroundStyle(Theme.Palette.textPrimary)
-
-                VStack(spacing: Theme.Spacing.xs) {
-                    ChatBubble(text: "I want something warm but I only have 15 minutes", fromNutmeg: false)
-                    ChatBubble(text: "You've got eggs, rice and frozen veg, so egg fried rice is ready right now. About $1.30 and 15 minutes. Want to start?",
-                               fromNutmeg: true)
-                    ChatBubble(text: "How much have I saved this week?", fromNutmeg: false)
-                    ChatBubble(text: "About $38 compared with ordering out. Three meals from your own pantry!", fromNutmeg: true)
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("An example conversation with Nutmeg")
-
-                VStack(spacing: Theme.Spacing.xs) {
-                    Button("See Larder Plus") { showPaywall = true }
-                        .buttonStyle(PillButtonStyle())
-                    Text("Chatting with Nutmeg is part of Larder Plus. Scanning and recipes stay free.")
-                        .font(.footnote)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))
-                }
+                header
+                conversation
             }
-            .padding(Theme.Spacing.s)
+            .padding(.horizontal, Theme.Spacing.s)
+            .padding(.bottom, Theme.Spacing.s)
         }
+        .safeAreaInset(edge: .bottom) { actions }
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView { _ in showPaywall = false }
+        }
+        .task { await playExample() }
+    }
+
+    private var header: some View {
+        VStack(spacing: Theme.Spacing.xs) {
+            LivelyNutmeg(seed: 1)
+                .frame(width: 90, height: 90)
+                // He's drawn with room to hop inside his frame; this takes
+                // back the empty part so the page starts closer to the top.
+                .padding(.vertical, -Theme.Spacing.xs)
+                .accessibilityHidden(true)
+            Text("Ask me anything about your kitchen")
+                .font(.title2.bold())
+                .multilineTextAlignment(.center)
+            Text("I can see what's in your pantry, every recipe, and how your week's going.")
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+        }
+        .foregroundStyle(Theme.Palette.textPrimary)
+    }
+
+    /// The example chat, laid out like the real one: Nutmeg's replies have
+    /// his face beside them, and a locked message field sits underneath.
+    private var conversation: some View {
+        VStack(spacing: Theme.Spacing.xs) {
+            ForEach(example.indices, id: \.self) { index in
+                let message = example[index]
+                Group {
+                    if message.fromNutmeg {
+                        HStack(alignment: .top, spacing: Theme.Spacing.xs) {
+                            NutmegView()
+                                .frame(width: 40, height: 40)
+                            ChatBubble(text: message.text, fromNutmeg: true)
+                        }
+                    } else {
+                        ChatBubble(text: message.text, fromNutmeg: false)
+                    }
+                }
+                // Space is kept for every message, so nothing jumps as they appear.
+                .opacity(shown > index ? 1 : 0)
+                .offset(y: shown > index ? 0 : 12)
+            }
+
+            HStack(spacing: Theme.Spacing.xs) {
+                Text("Ask Nutmeg…")
+                    .foregroundStyle(Theme.Palette.textPrimary.opacity(0.6))
+                Spacer(minLength: 0)
+                Image(systemName: "lock.fill")
+                    .foregroundStyle(Theme.Palette.amber)
+            }
+            .font(.body)
+            .padding(.horizontal, Theme.Spacing.s)
+            .frame(minHeight: 50)
+            .background(Theme.Palette.background, in: Capsule())
+            .overlay { Capsule().strokeBorder(Theme.Palette.textPrimary.opacity(0.12)) }
+            .padding(.top, Theme.Spacing.xs)
+        }
+        .padding(.horizontal, Theme.Spacing.xs)
+        .padding(.vertical, Theme.Spacing.s)
+        .background {
+            RoundedRectangle(cornerRadius: Theme.cardRadius)
+                .strokeBorder(Theme.Palette.textPrimary.opacity(0.08), lineWidth: 1.5)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("An example conversation with Nutmeg")
+    }
+
+    private var actions: some View {
+        VStack(spacing: Theme.Spacing.xs) {
+            Button("See Larder Plus") { showPaywall = true }
+                .buttonStyle(PillButtonStyle())
+            Text("Chatting with Nutmeg is part of Larder Plus. Scanning and recipes stay free.")
+                .font(.footnote)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
+        }
+        .padding(.horizontal, Theme.Spacing.s)
+        .padding(.vertical, Theme.Spacing.xs)
+        .background(Theme.Palette.background)
+        // The chat fades out under the button instead of being cut off.
+        .background(alignment: .top) {
+            LinearGradient(colors: [Theme.Palette.background.opacity(0), Theme.Palette.background],
+                           startPoint: .top, endPoint: .bottom)
+                .frame(height: 30)
+                .offset(y: -30)
+                .allowsHitTesting(false)
+        }
+    }
+
+    /// The messages come in one by one, like a real chat. Only the first
+    /// visit plays it; after that they're just there.
+    private func playExample() async {
+        guard shown < example.count else { return }
+        if reduceMotion {
+            shown = example.count
+            return
+        }
+        for index in example.indices {
+            try? await Task.sleep(for: .milliseconds(index == 0 ? 250 : 650))
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { shown = index + 1 }
         }
     }
 }
