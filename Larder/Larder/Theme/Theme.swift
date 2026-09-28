@@ -25,6 +25,12 @@ enum Theme {
         static let coral = Color(.coral)
         /// Success states only.
         static let sage = Color(.sage)
+        /// Sage for text: darker on light backgrounds so it stays readable.
+        static let sageText = Color(UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0x9C / 255, green: 0xC0 / 255, blue: 0x74 / 255, alpha: 1)
+                : UIColor(red: 0x4A / 255, green: 0x6B / 255, blue: 0x2E / 255, alpha: 1)
+        })
         /// Text and icons that sit on top of the main color or its soft version.
         static var onAccent: Color { theme.onAccent }
         /// A lighter main color for the quieter of two buttons. It's light in

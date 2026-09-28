@@ -253,7 +253,7 @@ struct HomeView: View {
                         }
                         Text(pick.isReady ? "You have everything" : "Missing " + missingNames(pick))
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(pick.isReady ? Theme.Palette.sage : Theme.Palette.textPrimary.opacity(0.6))
+                            .foregroundStyle(pick.isReady ? Theme.Palette.sageText : Theme.Palette.textPrimary.opacity(0.75))
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -332,7 +332,8 @@ struct HomeView: View {
     }
 
     private func weekLine(_ stats: MealStats) -> String {
-        let meals = "\(Commitment.mealsThisWeekText(count: stats.mealsThisWeek, goal: mealGoal)) meals"
+        let word = stats.mealsThisWeek == 1 && mealGoal == 0 ? "meal" : "meals"
+        let meals = "\(Commitment.mealsThisWeekText(count: stats.mealsThisWeek, goal: mealGoal)) \(word)"
         guard stats.totalSaved > 0 else { return meals }
         return "\(meals) · saved about \(Money.text(stats.totalSaved)) so far"
     }

@@ -262,7 +262,7 @@ struct NutmegChatScreen: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(Theme.Palette.textPrimary)
                         .padding(.horizontal, Theme.Spacing.s)
-                        .frame(minHeight: 40)
+                        .frame(minHeight: 44)
                         .background(Theme.Palette.surface, in: Capsule())
                         .buttonStyle(.plain)
                         .disabled(chat.isThinking)
@@ -527,7 +527,7 @@ private struct MessageRow: View {
                                     .font(.subheadline.weight(.semibold))
                                     .foregroundStyle(Theme.Palette.textPrimary)
                                     .padding(.horizontal, Theme.Spacing.s)
-                                    .frame(minHeight: 40)
+                                    .frame(minHeight: 44)
                                     .overlay { Capsule().strokeBorder(Theme.Palette.amber, lineWidth: 2) }
                                     .buttonStyle(.plain)
                             }
@@ -628,7 +628,7 @@ private struct PantryChangeCard: View {
             case .applied:
                 Label("Your pantry's updated", systemImage: "checkmark.circle.fill")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Theme.Palette.sage)
+                    .foregroundStyle(Theme.Palette.sageText)
             case .dismissed:
                 Text("Left as it was")
                     .font(.subheadline)
