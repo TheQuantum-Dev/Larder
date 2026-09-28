@@ -148,6 +148,14 @@ struct NutmegFollowUpTests {
         }
     }
 
+    @Test func runningLowSaysWhichOnesStillNeedAdding() {
+        let k = kitchen(stocked, amounts: ["egg": (1, "items"), "rice": (50, "g")],
+                        shopping: [.init(name: "Eggs", amount: "6", isBought: false)])
+        let text = brain.answer(.runningLow, in: k).text
+        #expect(text.contains("already on your shopping list"))
+        #expect(text.contains("add rice too"))
+    }
+
     @Test func offTopicGivesWaysBackIn() {
         let reply = brain.reply(to: "who won the football", in: kitchen(stocked))
         #expect(!reply.quickReplies.isEmpty)

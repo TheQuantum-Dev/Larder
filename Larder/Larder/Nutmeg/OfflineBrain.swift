@@ -434,7 +434,13 @@ nonisolated struct OfflineBrain: Sendable {
         guard !toAdd.isEmpty else {
             return NutmegReply("You're running low on \(Self.list(names)). They're already on your shopping list.")
         }
-        return NutmegReply("You're running low on \(Self.list(names)). Want me to add \(toAdd.count == 1 ? "it" : "them") to your shopping list?",
+        let addNames = Self.list(toAdd.map { $0.item.name.lowercased() })
+        // When some are already on the list, say which ones still need adding.
+        let already = low.count - toAdd.count
+        let ask = already > 0
+            ? "\(already == 1 ? "One's" : "Some are") already on your shopping list. Want me to add \(addNames) too?"
+            : "Want me to add \(toAdd.count == 1 ? "it" : "them") to your shopping list?"
+        return NutmegReply("You're running low on \(Self.list(names)). \(ask)",
                            quickReplies: ["Yes, add \(toAdd.count == 1 ? "it" : "them")", "No thanks"],
                            offer: .addToList(toAdd))
     }
