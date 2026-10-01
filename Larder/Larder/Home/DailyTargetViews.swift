@@ -96,7 +96,7 @@ struct DailyTargetCard: View {
             Button { onEdit(.kcal) } label: {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack {
-                        Text("\(TargetKind.kcal.emoji) \(TargetKind.kcal.title)")
+                        Text(TargetKind.kcal.title)
                             .font(.headline)
                             .foregroundStyle(Theme.Palette.textPrimary)
                         Spacer(minLength: Theme.Spacing.xs)
@@ -132,7 +132,7 @@ struct DailyTargetCard: View {
                                 .font(.title3.bold())
                                 .monospacedDigit()
                                 .foregroundStyle(isCustom(kind) ? Theme.Palette.amber : Theme.Palette.textPrimary)
-                            Text("\(kind.emoji) \(kind.title)")
+                            Text(kind.title)
                                 .font(.subheadline)
                                 .foregroundStyle(Theme.Palette.textPrimary.opacity(0.75))
                         }
